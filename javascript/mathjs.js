@@ -56,13 +56,14 @@ function nthroot(n,base) {
 function nthlogten(n,v) {
 	return ((Math.log(v))/(Math.log(n)));
 }
-var funcstoindexarr = "sinh|cosh|tanh|sech|csch|coth|sqrt|ln|log|exp|sin|cos|tan|sec|csc|cot|abs|root|arcsin|arccos|arctan|arcsec|arccsc|arccot|arcsinh|arccosh|arctanh|arcsech|arccsch|arccoth".split("|");
+var funcstoindexarr = "sinh|cosh|tanh|sech|csch|coth|sqrt|ln|log|exp|sin|cos|tan|sec|csc|cot|abs|root|arcsin|arccos|arctan|arcsec|arccsc|arccot|arcsinh|arccosh|arctanh|arcsech|arccsch|arccoth|argsinh|argcosh|argtanh|argsech|argcsch|argcoth|arsinh|arcosh|artanh|arsech|arcsch|arcoth".split("|");
 function functoindex(match) {
 	for (var i=0;i<funcstoindexarr.length;i++) {
 		if (funcstoindexarr[i]==match) {
 			return '@'+i+'@';
 		}
 	}
+    return match;
 }
 function indextofunc(match, contents) {
 	return funcstoindexarr[contents];
@@ -95,11 +96,13 @@ function mathjs(st,varlist) {
   //while ^ in string, find term on left and right
   //slice and concat new formula string
   //parenthesizes the function variables
+  st = st.replace(/(\+\s*-|-\s*\+)/g,'-').replace(/-\s*-/g,'+');
   st = st.replace("[","(");
   st = st.replace("]",")");
   st = st.replace(/root\s*(\d+)/,"root($1)");
   st = st.replace(/\|(.*?)\|/g,"abs($1)");
   st = st.replace(/arc(sin|cos|tan|sec|csc|cot|sinh|cosh|tanh|sech|csch|coth)/gi,"$1^-1");
+  st = st.replace(/(ar|arg)(sinh|cosh|tanh|sech|csch|coth)/gi,"$2^-1");
   st = st.replace(/(Sin|Cos|Tan|Sec|Csc|Cot|Arc|Abs|Log|Exp|Ln|Sqrt)/gi, matchtolower);
   //hide functions for now
   st = st.replace(/(sinh|cosh|tanh|sech|csch|coth|sqrt|ln|log|exp|sin|cos|tan|sec|csc|cot|abs|root)/g, functoindex);
@@ -287,6 +290,5 @@ function mathjs(st,varlist) {
     st = st.slice(0,j+1)+"safepow("+st.slice(j+1,i)+","+st.slice(i+1,k)+")"+
            st.slice(k);
   }
-
   return st;
 }

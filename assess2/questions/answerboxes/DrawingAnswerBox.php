@@ -93,9 +93,9 @@ class DrawingAnswerBox implements AnswerBox
                         $pts = explode(':', $grid[$i]);
                         foreach ($pts as $k => $v) {
                             if ($v[0] === "h") {
-                                $pts[$k] = "h" . evalbasic(substr($v, 1));
+                                $pts[$k] = ($k<2) ? "h" . evalbasic(substr($v, 1)) : $v;
                             } else {
-                                $pts[$k] = evalbasic($v);
+                                $pts[$k] = ($k<2) ? evalbasic($v) : $v;
                             }
                         }
                         $settings[$i] = implode(':', $pts);
@@ -196,8 +196,8 @@ class DrawingAnswerBox implements AnswerBox
         } else {
             $plot = showplot($background, $origxmin, $settings[1], $origymin, $settings[3], $sclinglbl, $sclinggrid, $settings[6], $settings[7]);
         }
-        if (is_array($settings[4]) && count($settings[4]) > 2) {
-            $plot = addlabel($plot, $settings[1], 0, $settings[4][2], "black", "aboveleft");
+        if (is_array($xsclgridpts) && count($xsclgridpts) > 2) {
+            $plot = addlabel($plot, $settings[1], 0, $xsclgridpts[2], "black", "aboveleft");
         }
         if (is_array($settings[5]) && count($settings[5]) > 2) {
             $plot = addlabel($plot, 0, $settings[3], $settings[5][2], "black", "belowright");
@@ -210,16 +210,32 @@ class DrawingAnswerBox implements AnswerBox
         }
 
         $dotline = 0;
+        $a11yinfo = '';
         if ($colorbox != '') {$out .= '<div class="' . $colorbox . '" id="qnwrap' . $qn . '">';}
+        //$bg = getgraphfilename($plot);
+        $bg = preg_replace('/.*script=\'(.*?[^\\\\])\'.*/', '$1', $plot);
         if (isset($GLOBALS['hidedrawcontrols'])) {
             $out .= $plot;
         } else {
             if ($_SESSION['userprefs']['drawentry'] == 0) { //accessible entry
-                $bg = 'a11ydraw:' . implode(',', $answerformat);
+                $a11yinfo = implode(',', $answerformat);
+                if ($_SESSION['graphdisp'] == 0) {
+                    $a11yinfo .= ',noprev';
+                }
                 $out .= '<p class="sr-only">' . $this->answerBoxParams->getQuestionIdentifierString() .
                     (!empty($readerlabel) ? ' ' . Sanitize::encodeStringForDisplay($readerlabel) : '') . '</p>';
                 $out .= '<p>' . _('Graph to add drawings to:') . '</p>';
-                $out .= '<p>' . $plot . '</p>';
+                if ($_SESSION['graphdisp'] > 0) {
+                    $plot = str_replace('<embed', '<embed data-nomag=1', $plot); //hide mag
+                    //overlay canvas over SVG.
+                    $out .= '<div class="drawcanvas" style="position:relative;width:' . $settings[6] . 'px;height:' . $settings[7] . 'px">';
+                    $out .= '<div class="canvasbg" style="position:absolute;top:0px;left:0px;">' . $plot . '</div>';
+                    $out .= '<div class="drawcanvasholder" style="position:relative;top:0;left:0;z-index:2">';
+                    $out .= "<canvas id=\"canvas$qn\" width=\"{$settings[6]}\" height=\"{$settings[7]}\"></canvas>";
+                    $out .= '</div></div>';    
+                } else {
+                    $out .= '<p>' . $plot . '</p>';
+                }
                 $out .= '<p tabindex="-1">' . _('Elements to draw:') . '</p>';
                 $out .= '<ul class="a11ydraw" id="a11ydraw' . $qn . '"></ul>';
                 $out .= '<p class="empty-state">' . _('No elements have been added yet') . '</p>';
@@ -232,9 +248,8 @@ class DrawingAnswerBox implements AnswerBox
                     $answerformat[0] = "polygon";
                     $dotline = 2;
                 }
+                
             } else {
-                //$bg = getgraphfilename($plot);
-                $bg = preg_replace('/.*script=\'(.*?[^\\\\])\'.*/', '$1', $plot);
                 $plot = str_replace('<embed', '<embed data-nomag=1', $plot); //hide mag
                 //overlay canvas over SVG.
                 $out .= '<div class="drawcanvas" style="position:relative;width:' . $settings[6] . 'px;height:' . $settings[7] . 'px">';
@@ -316,6 +331,12 @@ class DrawingAnswerBox implements AnswerBox
                         if (count($answerformat) > 1 && $answerformat[1] == 'horizparab') {$out .= 'class="sel" ';
                             $def = 6.1;}
                         $out .= ' alt="Horizontal parabola"/>';
+                    }
+                    if (count($answerformat) == 1 || in_array('halfparab', $answerformat)) {
+                        $out .= "<img src=\"$staticroot/img/tphalfparab.png\" data-drawaction=\"settool\" data-qn=\"$qn\" data-val=\"6.2\" ";
+                        if (count($answerformat) > 1 && $answerformat[1] == 'halfparab') {$out .= 'class="sel" ';
+                            $def = 6.2;}
+                        $out .= ' alt="Half Parabola"/>';
                     }
                     if (in_array('cubic', $answerformat)) {
                         $out .= "<img src=\"$staticroot/img/tpcubic.png\" data-drawaction=\"settool\" data-qn=\"$qn\" data-val=\"6.3\" ";
@@ -495,14 +516,14 @@ class DrawingAnswerBox implements AnswerBox
             ];
 
             $settings = array_map('floatval', $settings);
-            $params['canvas'] = [$qn, $bg, $settings[0], $settings[1], $settings[2], $settings[3], 5, $settings[6], $settings[7], $def, $dotline, $locky, $snaptogrid];
+            $params['canvas'] = [$qn, $bg, $settings[0], $settings[1], $settings[2], $settings[3], 5, $settings[6], $settings[7], $def, $dotline, $locky, $snaptogrid, $a11yinfo];
 
             $out .= '<input ' .
             Sanitize::generateAttributeString($attributes) .
                 '" />';
 
             if (isset($GLOBALS['capturedrawinit'])) {
-                $GLOBALS['drawinitdata'][$qn] = [$bg, $settings[0], $settings[1], $settings[2], $settings[3], 5, $settings[6], $settings[7], $def, $dotline, $locky, $snaptogrid];
+                $GLOBALS['drawinitdata'][$qn] = [$bg, $settings[0], $settings[1], $settings[2], $settings[3], 5, $settings[6], $settings[7], $def, $dotline, $locky, $snaptogrid, $a11yinfo];
                 //$params['livepoll_drawinit'] = "'$bg',{$settings[0]},{$settings[1]},{$settings[2]},{$settings[3]},5,{$settings[6]},{$settings[7]},$def,$dotline,$locky,$snaptogrid";
                 $params['livepoll_drawinit'] = $GLOBALS['drawinitdata'][$qn];
             }
@@ -525,6 +546,16 @@ class DrawingAnswerBox implements AnswerBox
                 if ($function[0] == 'optional') {
                     array_shift($function);
                     $defcolor = 'grey';
+                }
+                if (count($function)==2 && ($function[1][0]==='<' || $function[1][0]==='>')) {
+                    $val = substr($function[1],1);
+                    if ($function[1][0]==='<') {
+                        $function[1] = '-oo';
+                        $function[2] = $val;
+                    } else {
+                        $function[1] = $val;
+                        $function[2] = 'oo';
+                    }
                 }
                 if ($answerformat[0] == 'inequality') {
                     if ($function[0][2] == '=') {

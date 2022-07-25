@@ -5,6 +5,10 @@
 } else {
 	echo '<html lang="en">';
 }
+//Look to see if a hook file is defined, and include if it is
+if (isset($CFG['hooks']['header'])) {
+    require_once($CFG['hooks']['header']);
+}
 ?>
 <head>
 <title><?php echo $installname; if (isset($pagetitle)) { echo " - $pagetitle";}?></title>
@@ -22,7 +26,7 @@ if (empty($_SESSION['tzoffset']) && !empty($CFG['static_server'])) {
     echo '<script src="'.$CFG['static_server'].'/javascript/staticcheck.js"></script>';
 }
 ?>
-<link rel="stylesheet" href="<?php echo $staticroot . "/imascore.css?ver=020721";?>" type="text/css" />
+<link rel="stylesheet" href="<?php echo $staticroot . "/imascore.css?ver=032822";?>" type="text/css" />
 <?php
 if (isset($coursetheme)) {
 	if (isset($flexwidth) || isset($usefullwidth)) {
@@ -70,7 +74,7 @@ div.breadcrumb { display:none;}
 var imasroot = '<?php echo $imasroot; ?>'; var cid = <?php echo (isset($cid) && is_numeric($cid))?$cid:0; ?>;
 var staticroot = '<?php echo $staticroot; ?>';
 </script>
-<script type="text/javascript" src="<?php echo $staticroot;?>/javascript/general.js?v=032821"></script>
+<script type="text/javascript" src="<?php echo $staticroot;?>/javascript/general.js?v=061022"></script>
 <?php
 //$_SESSION['mathdisp'] = 3;
 //
@@ -99,7 +103,7 @@ if (!isset($_SESSION['mathdisp'])) {
 	//merged, eliminating original AsciiMath display; MathJax only now
 	if (isset($useeditor) && $_SESSION['useed']==1) {
 		echo '<script type="text/javascript">var AMTcgiloc = "'.$mathimgurl.'";</script>';
-		echo "<script src=\"$staticroot/javascript/ASCIIMathTeXImg_min.js?ver=090120\" type=\"text/javascript\"></script>\n";
+		echo "<script src=\"$staticroot/javascript/ASCIIMathTeXImg_min.js?ver=070822\" type=\"text/javascript\"></script>\n";
     }
     if (isset($_SESSION['ltiitemtype'])) {
         echo '<script type="text/x-mathjax-config">
@@ -114,6 +118,12 @@ if (!isset($_SESSION['mathdisp'])) {
         MathJax.Hub.Config({"messageStyle": "none", asciimath2jax: {ignoreClass:"skipmathrender"}});
         MathJax.Ajax.config.path["Local"] = "'.$staticroot.'/javascript/mathjax";
         MathJax.Hub.config.extensions.push("[Local]/InputToDataAttrCDN.js");
+        MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+            var AM = MathJax.InputJax.AsciiMath.AM;
+            AM.newsymbol({input: "o-", tag:"mo", output:"\u2296", ttype:AM.TOKEN.CONST});
+            AM.newsymbol({input: "ominus", tag:"mo", output:"\u2296", ttype:AM.TOKEN.CONST});
+            AM.newsymbol({input: "rightleftharpoons", tag:"mo", output:"\u21CC", ttype:AM.TOKEN.CONST});
+        });
         </script>';
     if (!empty($CFG['GEN']['uselocaljs'])) {
         echo '<script type="text/javascript" async src="'.$staticroot.'/mathjax/MathJax.js?config=AM_CHTML-full"></script>';
@@ -136,7 +146,7 @@ if (!isset($_SESSION['mathdisp'])) {
 } else if ($_SESSION['mathdisp']==7 || $_SESSION['mathdisp']==8) { // mathjax 3
     if (isset($useeditor) && $_SESSION['useed']==1) {
 		echo '<script type="text/javascript">var AMTcgiloc = "'.$mathimgurl.'";</script>';
-		echo "<script src=\"$staticroot/javascript/ASCIIMathTeXImg_min.js?ver=090120\" type=\"text/javascript\"></script>\n";
+		echo "<script src=\"$staticroot/javascript/ASCIIMathTeXImg_min.js?ver=070822\" type=\"text/javascript\"></script>\n";
     }
     // for autoload of a11y extension, add "a11y/semantic-enrich" to load, and put in options enrichSpeech: "shallow",
     echo '<script>
@@ -158,7 +168,16 @@ if (!isset($_SESSION['mathdisp'])) {
       },
       addDataAttr: function (math, doc) {
         math.typesetRoot.setAttribute("data-asciimath", math.math);
-      }
+      },
+      startup: {
+          ready: function() {
+            var AM = MathJax.InputJax.AsciiMath.AM;
+            AM.newsymbol({input: "o-", tag:"mo", output:"\u2296", ttype:AM.TOKEN.CONST});
+            AM.newsymbol({input: "ominus", tag:"mo", output:"\u2296", ttype:AM.TOKEN.CONST});
+            AM.newsymbol({input: "rightleftharpoons", tag:"mo", output:"\u21CC", ttype:AM.TOKEN.CONST});
+            MathJax.startup.defaultReady();
+          }
+       }
     };
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/startup.js" id="MathJax-script"></script>';
@@ -183,15 +202,15 @@ if (!isset($_SESSION['mathdisp'])) {
 } else if ($_SESSION['mathdisp']==6) {
 	//Katex experimental
 	echo '<script type="text/javascript">var AMTcgiloc = "'.$mathimgurl.'";</script>';
-	echo "<script src=\"$staticroot/javascript/ASCIIMathTeXImg_min.js?ver=090120\" type=\"text/javascript\"></script>\n";
+	echo "<script src=\"$staticroot/javascript/ASCIIMathTeXImg_min.js?ver=070822\" type=\"text/javascript\"></script>\n";
 
 	if (!empty($CFG['GEN']['uselocaljs'])) {
 		echo '<script src="'.$staticroot.'/katex/katex.min.js"></script>';
 		echo '<link rel="stylesheet" href="'.$staticroot.'/katex/katex.min.css" />';
 		//echo '<script type="text/javascript" async src="'.$imasroot.'/mathjax/MathJax.js?config=AM_CHTML-full"></script>';
 	} else {
-		echo '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.css" integrity="sha384-zB1R0rpPzHqg7Kpt0Aljp8JPLqbXI3bhnPWROx27a9N0Ll6ZP/+DiW/UqRcLbRjq" crossorigin="anonymous">';
-		echo '<script src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.js" integrity="sha384-y23I5Q6l+B6vatafAwxRu/0oK/79VlbSz7Q9aiSZUvyWYIYsd+qj+o24G5ZU2zJz" crossorigin="anonymous"></script>';
+		echo '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.css" integrity="sha256-tVkQ3/3zHAr/iep04F8LJwgzNzJ2NzX8oHqg71BvzYU=" crossorigin="anonymous">';
+		echo '<script src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js" integrity="sha256-6xggdIcWFnTnFwh8MX2xSsGmLa2uzMuAJJnOFzv+tzk=" crossorigin="anonymous"></script>';
 		//echo '<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=AM_CHTML-full"></script>';
 	}
 	echo '<script type="text/javascript" src="'.$staticroot.'/katex/auto-render.js?v=073119"></script>';
@@ -203,7 +222,7 @@ if (!isset($_SESSION['mathdisp'])) {
 	echo '<script type="text/javascript">var AMTcgiloc = "'.$mathimgurl.'";';
 	if ($mathdarkbg) {echo 'var mathbg = "dark";';}
 	echo '</script>';
-	echo "<script src=\"$staticroot/javascript/ASCIIMathTeXImg_min.js?ver=090120\" type=\"text/javascript\"></script>\n";
+	echo "<script src=\"$staticroot/javascript/ASCIIMathTeXImg_min.js?ver=070822\" type=\"text/javascript\"></script>\n";
 	echo "<script type=\"text/javascript\">var usingASCIIMath = false; var AMnoMathML=true; var MathJaxCompatible = false; var mathRenderer=\"Image\"; function rendermathnode(el,callback) {AMprocessNode(el); if(typeof callback=='function'){callback();}}</script>";
 } else if ($_SESSION['mathdisp']==2) {
 	echo "<script type=\"text/javascript\">var usingASCIIMath = false; var AMnoMathML=true; var MathJaxCompatible = false; var mathRenderer=\"Image\";function rendermathnode(el,callback) {AMprocessNode(el);} if(typeof callback=='function'){callback();}</script>";
@@ -221,8 +240,8 @@ if (isset($_SESSION['graphdisp']) && $_SESSION['graphdisp']==1) {
 
 
 if (isset($useeditor) && $_SESSION['useed']==1) {
-    echo '<script type="text/javascript" src="'.$staticroot.'/tinymce4/tinymce_bundled.min.js?v=052821"></script>';
-    //echo '<script type="text/javascript" src="'.$imasroot.'/tinymce4/tinymce.js?v=031421"></script>';
+    echo '<script type="text/javascript" src="'.$staticroot.'/tinymce4/tinymce_bundled.min.js?v=062821"></script>';
+    //echo '<script type="text/javascript" src="'.$imasroot.'/tinymce4/tinymce.js?v=062821"></script>';
 
 	echo "\n";
 	echo '<script type="text/javascript">';
@@ -248,6 +267,9 @@ if (isset($placeinhead)) {
 $curdir = rtrim(dirname(__FILE__), '/\\');
 if (isset($CFG['GEN']['headerscriptinclude'])) {
 	require("$curdir/{$CFG['GEN']['headerscriptinclude']}");
+}
+if (function_exists('insertIntoHead')) {
+    insertIntoHead();
 }
 if (isset($coursetheme)) {
 	echo '<link rel="stylesheet" href="'. $staticroot . "/themes/$coursetheme?v=042217\" type=\"text/css\" />";

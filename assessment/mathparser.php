@@ -12,15 +12,15 @@
  *                            set of standard math functions.
  * @return Parser instance
  */
-function parseMath($str, $vars = '', $allowedfuncs = array()) {
-  $parser = new MathParser($vars, $allowedfuncs);
+function parseMath($str, $vars = '', $allowedfuncs = array(), $fvlist = '') {
+  $parser = new MathParser($vars, $allowedfuncs, $fvlist);
   $parser->parse($str);
   return $parser;
 }
 
-function parseMathQuiet($str, $vars = '', $allowedfuncs = array()) {
+function parseMathQuiet($str, $vars = '', $allowedfuncs = array(), $fvlist = '') {
   try {
-    $parser = new MathParser($vars, $allowedfuncs);
+    $parser = new MathParser($vars, $allowedfuncs, $fvlist);
     $parser->parse($str);
   } catch (Throwable $t) {
     if ($GLOBALS['myrights'] > 10) {
@@ -50,14 +50,15 @@ function parseMathQuiet($str, $vars = '', $allowedfuncs = array()) {
  * @param array $allowedfuncs  (optional) An array of function names that can
  *                            be called in math expressions.  Defaults to a
  *                            set of standard math functions.
+ * @param string $fvlist comma separated list of variables to treat as functions
  * @return function
  */
-function makeMathFunction($str, $vars = '', $allowedfuncs = array()) {
+function makeMathFunction($str, $vars = '', $allowedfuncs = array(), $fvlist = '') {
   if (trim($str)=='') {
     return false;
   }
   try {
-    $parser = new MathParser($vars, $allowedfuncs);
+    $parser = new MathParser($vars, $allowedfuncs, $fvlist);
     $parser->parse($str);
   } catch (Throwable $t) {
     if ($GLOBALS['myrights'] > 10) {
@@ -112,6 +113,7 @@ class MathParser
 {
   private $functions = [];
   private $variables = [];
+  private $funcvariables = [];
   private $operators = [];
   private $tokens = [];
   private $operatorStack = [];
@@ -128,10 +130,14 @@ class MathParser
    * @param array $allowedfuncs  (optional) An array of function names that can
    *                            be called in math expressions.  Defaults to a
    *                            set of standard math functions.
+   * @param string $fvlist   A comma-separated list of variables to treat as functions
    */
-  function __construct($variables, $allowedfuncs = array()) {
+  function __construct($variables, $allowedfuncs = array(), $fvlist = '') {
     if ($variables != '') {
-      $this->variables = array_map('trim', explode(',', $variables));
+      $this->variables = array_values(array_filter(array_map('trim', explode(',', $variables)), 'strlen'));
+    }
+    if ($fvlist != '') {
+        $this->funcvariables = array_values(array_filter(array_map('trim', explode(',', $fvlist)), 'strlen'));
     }
     //treat pi and e as variables for parsing
     array_push($this->variables, 'pi', 'e');
@@ -141,7 +147,7 @@ class MathParser
     if (count($allowedfuncs) > 0) {
       $this->functions = $allowedfuncs;
     } else {
-      $this->functions = explode(',', 'funcvar,arcsinh,arccosh,arctanh,arcsin,arccos,arctan,arcsec,arccsc,arccot,root,sqrt,sign,sinh,cosh,tanh,sech,csch,coth,abs,sin,cos,tan,sec,csc,cot,exp,log,ln');
+      $this->functions = explode(',', 'funcvar,arcsinh,arccosh,arctanh,arcsech,arccsch,arccoth,arcsin,arccos,arctan,arcsec,arccsc,arccot,root,sqrt,sign,sinh,cosh,tanh,sech,csch,coth,abs,sin,cos,tan,sec,csc,cot,exp,log,ln');
     }
 
     //build regex's for matching symbols
@@ -195,19 +201,27 @@ class MathParser
         'precedence'=>7,
         'assoc'=>'left',
         'evalfunc'=>function($a,$b) {return ($a || $b);}],
-      'La' => [
+      '#a' => [
         'precedence'=>8,
         'assoc'=>'right',
         'evalfunc'=>function($a,$b) {return ($a && $b);}],
-      'Lo' => [
+      '#x' => [
+          'precedence'=>7,
+          'assoc'=>'right',
+          'evalfunc'=>function($a,$b) {return ($a xor $b);}],
+      '#o' => [
         'precedence'=>7,
         'assoc'=>'right',
         'evalfunc'=>function($a,$b) {return ($a || $b);}],
-      'Li' => [
+      '#m' => [
+          'precedence'=>7,
+          'assoc'=>'right',
+          'evalfunc'=>function($a,$b) {return ($a && (!$b));}],
+      '#i' => [
         'precedence'=>6,
         'assoc'=>'right',
         'evalfunc'=>function($a,$b) {return ((!$a) || $b);}],
-      'Lb' => [
+      '#b' => [
         'precedence'=>6,
         'assoc'=>'right',
         'evalfunc'=>function($a,$b) {return (($a && $b) || (!$a && !$b));}],
@@ -239,17 +253,7 @@ class MathParser
    * @return array  Builds syntax tree in class, but also returns it
    */
   public function parse($str) {
-    // Rewrite sin^(-1) as arcsin
-    $str = str_replace(
-      array("sin^-1","cos^-1","tan^-1","sin^(-1)","cos^(-1)","tan^(-1)",
-        "sec^-1","csc^-1","cot^-1","sec^(-1)","csc^(-1)","cot^(-1)",
-        "sinh^-1","cosh^-1","tanh^-1","sinh^(-1)","cosh^(-1)","tanh^(-1)"),
-      array("arcsin","arccos","arctan","arcsin","arccos","arctan",
-        "arcsec","arccsc","arccot","arcsec","arccsc","arccot",
-        "arcsinh","arccosh","arctanh","arcsinh","arccosh","arctanh"),
-      $str
-    );
-
+    $str = preg_replace('/(ar|arg)(sinh|cosh|tanh|sech|csch|coth)/', 'arc$2', $str);
     $str = str_replace(array('\\','[',']','`'), array('','(',')',''), $str);
     // attempt to handle |x| as best as possible
     $str = preg_replace('/(?<!\|)\|([^\|]+?)\|(?!\|)/', 'abs($1)', $str);
@@ -361,7 +365,7 @@ class MathParser
         $lastTokenType = 'number';
         $n += strlen($matches[1]) - 1;
         continue;
-      } else if (($c=='|' || $c=='&' || $c=='L' || $c=='<' || $c=='>') &&
+      } else if (($c=='|' || $c=='&' || $c=='#' || $c=='<' || $c=='>') &&
         isset($this->operators[substr($str,$n,2)])
       ) {
         $tokens[] = [
@@ -383,7 +387,16 @@ class MathParser
         // look to see if the symbol is in our list of variables and functions
         if (preg_match($this->regex, substr($str,$n), $matches)) {
           $nextSymbol = $matches[1];
-          if (in_array($nextSymbol, $this->variables)) {
+          if (in_array($nextSymbol, $this->funcvariables)) {
+            // found a variable acting as a function 
+            $tokens[] = [
+              'type'=>'function',
+              'symbol'=>'funcvar',
+              'input'=>null,
+              'index'=>['type'=>'variable', 'symbol'=>$nextSymbol]
+            ];
+            $lastTokenType = 'function';
+          } else if (in_array($nextSymbol, $this->variables)) {
             // found a variable
             $tokens[] = [
               'type'=>'variable',
@@ -445,8 +458,8 @@ class MathParser
               }
             } else if ($peek == '^') {
               // found something like sin^2; append power to symbol for now
-              if (preg_match('/^(-?\d+)/', substr($str,$n+2), $sub)) {
-                $tokens[count($tokens)-1]['symbol'] .= '^' . $sub[1];
+              if (preg_match('/^(\-?\d+|\((\-\d+)\))/', substr($str,$n+2), $sub)) {
+                $tokens[count($tokens)-1]['symbol'] .= '^' . (isset($sub[2]) ? $sub[2] : $sub[1]);
                 $n += strlen($sub[1]) + 1;
               }
             } else if ($nextSymbol == 'root') {
@@ -923,7 +936,9 @@ class MathParser
    */
   public function normalizeTreeString() {
     $this->removeOneTimes();
-    //return $this->normalizeNodeToString($this->AST);
+    // $this->normalizeNodeToString($this->AST);
+    //echo $this->toOutputString($this->normalizeNode($this->AST));
+    //print_r($this->normalizeNode($this->AST));
     return $this->toOutputString($this->normalizeNode($this->AST));
   }
 
@@ -978,7 +993,16 @@ class MathParser
     } else if ($node['symbol'] == '~') {
       // recurse in
       $node['left'] = $this->normalizeNode($node['left']);
-      return $node;
+      if ($node['left']['symbol'] == '*') {
+        // if we have the opposite of a product, move the negative to the first element of the product
+        $node['left']['left'] = $this->negNode($node['left']['left']);
+        return $node['left'];
+      } else if ($node['left']['type'] == 'number') {
+        $node['left']['symbol'] = -1*$node['left']['symbol'];
+        return $node['left'];
+      } else {
+        return $node;
+      }
     } else if ($node['symbol'] == '^') {
       // recurse in. We're not doing any reordering for these
       $node['left'] = $this->normalizeNode($node['left']);
@@ -1382,7 +1406,37 @@ function acsc($x) {
   return asin($inv);
 }
 function acot($x) {
-  return M_PI/2 - atan($x);
+    if (abs($x)<1e-16) {
+        throw new MathParserException("Invalid input for arccot");
+    }
+    return atan(1/$x);
+}
+function asech($x) {
+    if (abs($x)<1e-16) {
+        throw new MathParserException("Invalid input for arcsech");
+    }
+    $inv = round(1/$x, 12);
+    if ($inv < 1) {
+        throw new MathParserException("Invalid input for arcsech");
+    }
+    return acosh($inv);
+}
+function acsch($x) {
+    if (abs($x)<1e-16) {
+        throw new MathParserException("Invalid input for arccsch");
+    }
+    $inv = round(1/$x, 12);
+    return asinh($inv);
+}
+function acoth($x) {
+    if (abs($x)<1e-16) {
+        throw new MathParserException("Invalid input for arccoth");
+    }
+    $inv = round(1/$x, 12);
+    if ($inv < -1 || $inv > 1) {
+        throw new MathParserException("Invalid input for arccoth");
+    }
+    return atanh($inv);
 }
 function safeasin($x) {
   return asin(round($x,12));  

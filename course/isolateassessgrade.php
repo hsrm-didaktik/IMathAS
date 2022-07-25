@@ -17,13 +17,13 @@
 	$aid = Sanitize::onlyInt($_GET['aid']);
     $now = time();
     
-    $stm = $DBH->prepare("SELECT minscore,timelimit,overtime_grace,deffeedback,startdate,enddate,LPcutoff,allowlate,name,defpoints,itemorder,ver,deffeedbacktext,tutoredit FROM imas_assessments WHERE id=:id AND courseid=:cid");
+    $stm = $DBH->prepare("SELECT minscore,timelimit,overtime_grace,deffeedback,startdate,enddate,LPcutoff,allowlate,name,itemorder,ver,deffeedbacktext,tutoredit,ptsposs FROM imas_assessments WHERE id=:id AND courseid=:cid");
 	$stm->execute(array(':id'=>$aid, ':cid'=>$cid));
 	if ($stm->rowCount()==0) {
 		echo "Invalid ID";
 		exit;
 	}
-	list($minscore,$timelimit,$overtime_grace,$deffeedback,$startdate,$enddate,$LPcutoff,$allowlate,$name,$defpoints,$itemorder,$aver,$deffeedbacktext,$tutoredit) = $stm->fetch(PDO::FETCH_NUM);
+	list($minscore,$timelimit,$overtime_grace,$deffeedback,$startdate,$enddate,$LPcutoff,$allowlate,$name,$itemorder,$aver,$deffeedbacktext,$tutoredit,$totalpossible) = $stm->fetch(PDO::FETCH_NUM);
     if ($istutor && $tutoredit == 2) {  // tutor, no access to view grades
         echo 'No access';
         exit;
@@ -91,6 +91,13 @@
 			GB_show(_("Feedback"), "showfeedback.php?cid="+cid+"&type="+type+"&id="+aid+"&uid="+uid, 500, 500);
 			return false;
 		}
+        $(function() {
+            $("a[href*=gbviewassess]").each(function() {
+                var uid = $(this).closest("tr").find("input").val();
+                $(this).attr("data-gtg", uid);
+                $(this).closest("tr").find(".pii-full-name").attr("data-gtu", uid);
+            });
+        });
 		</script>';
 	require("../header.php");
     echo "<div class=breadcrumb>$breadcrumbbase ";
@@ -129,6 +136,11 @@
 		} else {
 			$sortorder = "name";
 		}
+        if (empty($tutorsection)) {
+            $stm = $DBH->prepare("SELECT DISTINCT section FROM imas_students WHERE courseid=:courseid AND section IS NOT NULL AND section<>'' ORDER BY section");
+			$stm->execute(array(':courseid'=>$cid));
+            $sectionnames = $stm->fetchAll(PDO::FETCH_COLUMN,0);
+        }
 	} else {
 		$sortorder = "name";
 	}
@@ -153,23 +165,35 @@
 			$aitemcnt[$k] = 1;
 		}
 	}
-	$stm = $DBH->prepare("SELECT points,id FROM imas_questions WHERE assessmentid=:assessmentid");
-	$stm->execute(array(':assessmentid'=>$aid));
-	$totalpossible = 0;
-	while ($r = $stm->fetch(PDO::FETCH_NUM)) {
-		if (($k = array_search($r[1],$aitems))!==false) { //only use first item from grouped questions for total pts
-			if ($r[0]==9999) {
-				$totalpossible += $aitemcnt[$k]*$defpoints; //use defpoints
-			} else {
-				$totalpossible += $aitemcnt[$k]*$r[0]; //use points from question
-			}
-		}
-	}
-
-
+	
 	echo '<div id="headerisolateassessgrade" class="pagetitle"><h1>';
 	echo "Grades for " . Sanitize::encodeStringForDisplay($name) . "</h1></div>";
-	echo "<p>$totalpossible points possible</p>";
+
+    echo "<p>$totalpossible "._('points possible').'. ';
+    if ($hassection && empty($tutorsection)) {
+        echo _('Section').': ';
+        echo '<select id="secfiltersel" onchange="chgsecfilter(this)">';
+        echo '<option value="-1"' . ($secfilter == -1 ? ' selected' : '') . '>';
+        echo _('All') . '</option>';
+        foreach ($sectionnames as $secname) {
+            echo  '<option value="' . Sanitize::encodeStringForDisplay($secname) . '"';
+            if ($secname==$secfilter) {
+                echo  ' selected';
+            }
+            echo  '>' . Sanitize::encodeStringForDisplay($secname) . '</option>';
+        }
+        echo '</select>';
+        echo '<script type="text/javascript">
+        function chgsecfilter(el) {
+            var sec = el.value;
+            var toopen = "isolateassessgrade.php?cid='.$cid.'&aid='.$aid.'&secfilter=" + encodeURIComponent(sec);
+            window.location = toopen;
+        }
+        </script>';
+    }
+    echo '</p>';
+
+	
 
 //	$query = "SELECT iu.LastName,iu.FirstName,istu.section,istu.timelimitmult,";
 //	$query .= "ias.id,ias.userid,ias.bestscores,ias.starttime,ias.endtime,ias.feedback FROM imas_assessment_sessions AS ias,imas_users AS iu,imas_students AS istu ";
@@ -309,10 +333,12 @@
 		echo '<td><input type=checkbox name="stus[]" value="'.Sanitize::onlyInt($line['userid']).'"> ';
 		if ($line['locked']>0) {
 			echo '<span style="text-decoration: line-through;">';
-			printf("%s, %s</span>", Sanitize::encodeStringForDisplay($line['LastName']),
+			printf("<span class='pii-full-name'>%s, %s</span></span>",
+				Sanitize::encodeStringForDisplay($line['LastName']),
 				Sanitize::encodeStringForDisplay($line['FirstName']));
 		} else {
-			printf("%s, %s", Sanitize::encodeStringForDisplay($line['LastName']),
+			printf("<span class='pii-full-name'>%s, %s</span>",
+				Sanitize::encodeStringForDisplay($line['LastName']),
 				Sanitize::encodeStringForDisplay($line['FirstName']));
 		}
 		echo '</td>';
@@ -540,7 +566,11 @@
 	} else {
 		$timeavg = '-';
 	}
-	echo "</a></td><td>$pct</td><td></td><td>$timeavg</td><td></td></tr>";
+	echo "</a></td><td>$pct</td><td></td>";
+    if ($includeduedate) {
+        echo '<td></td>';
+    }
+    echo "<td>$timeavg</td><td></td></tr>";
 	echo "</tbody></table>";
 	if ($hassection && !$hidesection && $hascodes && !$hidecode) {
 		echo "<script> initSortTable('myTable',Array('S','S','S','N','P','D'),true,false);</script>";

@@ -45,12 +45,12 @@ switch($_GET['action']) {
 		}
 		echo '<div id="headerforms" class="pagetitle"><h1>',_('New Student Signup'),'</h1></div>';
 		echo "<form id=\"newuserform\" class=limitaftervalidate method=post action=\"actions.php?action=newuser$gb\">\n";
-		echo "<span class=form><label for=\"SID\">$longloginprompt:</label></span> <input class=\"form\" type=\"text\" size=12 id=SID name=SID><BR class=\"form\">\n";
+		echo "<span class=form><label for=\"SID\">$longloginprompt:</label></span> <input class=\"form pii-username\" type=\"text\" size=12 id=SID name=SID><BR class=\"form\">\n";
 		echo "<span class=\"form\"><label for=\"pw1\">",_('Choose a password:'),"</label></span><input class=\"form\" type=\"password\" size=20 id=pw1 name=pw1><BR class=\"form\">\n";
 		echo "<span class=\"form\"><label for=\"pw2\">",_('Confirm password:'),"</label></span> <input class=\"form\" type=\"password\" size=20 id=pw2 name=pw2><BR class=\"form\">\n";
-		echo "<span class=\"form\"><label for=\"firstname\">",_('Enter First Name:'),"</label></span> <input class=\"form\" type=\"text\" size=20 id=firstname name=firstname autocomplete=\"given-name\"><BR class=\"form\">\n";
-		echo "<span class=\"form\"><label for=\"lastname\">",_('Enter Last Name:'),"</label></span> <input class=\"form\" type=\"text\" size=20 id=lastname name=lastname autocomplete=\"family-name\"><BR class=\"form\">\n";
-		echo "<span class=\"form\"><label for=\"email\">",_('Enter E-mail address:'),"</label></span>  <input class=\"form\" type=\"text\" size=60 id=email name=email autocomplete=\"email\"><BR class=\"form\">\n";
+		echo "<span class=\"form\"><label for=\"firstname\">",_('Enter First Name:'),"</label></span> <input class=\"form pii-first-name\" type=\"text\" size=20 id=firstname name=firstname autocomplete=\"given-name\"><BR class=\"form\">\n";
+		echo "<span class=\"form\"><label for=\"lastname\">",_('Enter Last Name:'),"</label></span> <input class=\"form pii-last-name\" type=\"text\" size=20 id=lastname name=lastname autocomplete=\"family-name\"><BR class=\"form\">\n";
+		echo "<span class=\"form\"><label for=\"email\">",_('Enter E-mail address:'),"</label></span>  <input class=\"form pii-email\" type=\"text\" size=60 id=email name=email autocomplete=\"email\"><BR class=\"form\">\n";
 		echo "<span class=form><label for=\"msgnot\">",_('Notify me by email when I receive a new message:'),"</label></span><span class=formright><input type=checkbox id=msgnot name=msgnot checked=\"checked\" /></span><BR class=form>\n";
         if (isset($CFG['GEN']['COPPA'])) {
 			echo "<span class=form><label for=\"over13\">",_('I am 13 years old or older'),"</label></span><span class=formright><input type=checkbox name=over13 id=over13 onchange=\"toggleOver13()\"></span><br class=form />\n";
@@ -134,8 +134,9 @@ switch($_GET['action']) {
 			}
 		}
 		$_SESSION['challenge'] = uniqid();
+        $_SESSION['newuserstart'] = time();
 		echo '<input type=hidden name=challenge value="'.Sanitize::encodeStringForDisplay($_SESSION['challenge']).'"/>';
-		echo '<span style="display:none"><input name=hval></span>';
+		echo '<span class="sr-only"><label aria-hidden=true">Do not fill this out <input name=hval tabindex="-1"></label></span>';
 		echo "<div class=submit><input type=submit value='",_('Sign Up'),"'></div>\n";
 		echo "</form>\n";
 		if (isset($studentTOS)) {
@@ -213,8 +214,8 @@ switch($_GET['action']) {
 
 		echo "<form id=\"pageform\" class=limitaftervalidate enctype=\"multipart/form-data\" method=post action=\"actions.php?action=chguserinfo$gb\">\n";
 		echo '<fieldset id="userinfoprofile"><legend>',_('Profile Settings'),'</legend>';
-		echo "<span class=form><label for=\"firstname\">",_('Enter First Name'),":</label></span> <input class=form type=text size=20 id=firstname name=firstname autocomplete=\"given-name\" value=\"".Sanitize::encodeStringForDisplay($line['FirstName'])."\" /><br class=\"form\" />\n";
-		echo "<span class=form><label for=\"lastname\">",_('Enter Last Name'),":</label></span> <input class=form type=text size=20 id=lastname name=lastname autocomplete=\"family-name\" value=\"".Sanitize::encodeStringForDisplay($line['LastName'])."\"><BR class=form>\n";
+		echo "<span class=form><label for=\"firstname\">",_('Enter First Name'),":</label></span> <input class=\"form pii-first-name\" type=text size=20 id=firstname name=firstname autocomplete=\"given-name\" value=\"".Sanitize::encodeStringForDisplay($line['FirstName'])."\" /><br class=\"form\" />\n";
+		echo "<span class=form><label for=\"lastname\">",_('Enter Last Name'),":</label></span> <input class=\"form pii-first-name\" type=text size=20 id=lastname name=lastname autocomplete=\"family-name\" value=\"".Sanitize::encodeStringForDisplay($line['LastName'])."\"><BR class=form>\n";
 		if ($myrights>10 && $groupid>0) {
 			$stm = $DBH->prepare("SELECT name FROM imas_groups WHERE id=:id");
 			$stm->execute(array(':id'=>$groupid));
@@ -259,7 +260,7 @@ switch($_GET['action']) {
             }
         }
 
-		echo "<span class=form><label for=\"email\">",_('Enter E-mail address:'),"</label></span>  <input class=form type=text size=60 id=email name=email autocomplete=\"email\" value=\"".Sanitize::emailAddress($line['email'])."\"><BR class=form>\n";
+		echo "<span class=form><label for=\"email\">",_('Enter E-mail address:'),"</label></span>  <input class=\"form pii-email\" type=text size=60 id=email name=email autocomplete=\"email\" value=\"".Sanitize::emailAddress($line['email'])."\"><BR class=form>\n";
         
         echo '<div style="display:none" id="seccheck">';
         echo '<p class="noticetext">'._('The changes you are making require additional security verification.').'</p>';
@@ -281,11 +282,11 @@ switch($_GET['action']) {
 		echo "<span class=\"formright\">";
 		if ($line['hasuserimg']==1) {
 			if(isset($GLOBALS['CFG']['GEN']['AWSforcoursefiles']) && $GLOBALS['CFG']['GEN']['AWSforcoursefiles'] == true) {
-				echo "<img src=\"{$urlmode}{$GLOBALS['AWSbucket']}.s3.amazonaws.com/cfiles/userimg_$userid.jpg\" alt=\"User picture\"/> <input type=\"checkbox\" name=\"removepic\" id=removepic value=\"1\" /> <label for=removepic>Remove</label> ";
+				echo "<img class=\"pii-image\" src=\"{$urlmode}{$GLOBALS['AWSbucket']}.s3.amazonaws.com/cfiles/userimg_$userid.jpg\" alt=\"User picture\"/> <input type=\"checkbox\" name=\"removepic\" id=removepic value=\"1\" /> <label for=removepic>Remove</label> ";
 			} else {
 				$curdir = rtrim(dirname(__FILE__), '/\\');
 				$galleryPath = "$curdir/course/files/";
-				echo "<img src=\"$imasroot/course/files/userimg_$userid.jpg\" alt=\"User picture\"/> <input type=\"checkbox\" name=\"removepic\" id=removepic value=\"1\" /> <label for=removepic>Remove</label> ";
+				echo "<img class=\"pii-image\" src=\"$imasroot/course/files/userimg_$userid.jpg\" alt=\"User picture\"/> <input type=\"checkbox\" name=\"removepic\" id=removepic value=\"1\" /> <label for=removepic>Remove</label> ";
 			}
 		} else {
 			echo _("No Pic ");
@@ -412,7 +413,7 @@ switch($_GET['action']) {
 		showNewUserValidation("pageform", array('oldpw'), $requiredrules);
 
 		echo "<div class=submit><input type=submit value='",_('Update Info'),"'></div>\n";
-        echo '<script>function doSubmit() { document.getElementById("pageform").submit(); parent.GB_hide();}</script>';
+        echo '<script>function doSubmit() { document.getElementById("pageform").submit(); }</script>';
         
 		//echo '<p><a href="forms.php?action=googlegadget">Get Google Gadget</a> to monitor your messages and forum posts</p>';
 		echo "</form>\n";
@@ -508,7 +509,7 @@ switch($_GET['action']) {
 			}
 		} else {
 			echo "<p>",_('Enter your User Name below and click Submit.  An email will be sent to your email address on file.  A link in that email will reset your password.'),"</p>";
-			echo "<p><label for=username>",_('User Name'),"</label>: <input type=text name=\"username\" id=username /></p>";
+			echo "<p><label for=username>",_('User Name'),"</label>: <input type=text class=\"pii-username\" name=\"username\" id=username /></p>";
 			echo '<script type="text/javascript">
 			$("#pageform").validate({
 				rules: {
@@ -517,6 +518,10 @@ switch($_GET['action']) {
 				invalidHandler: function() {setTimeout(function(){$("#pageform").removeClass("submitted").removeClass("submitted2");}, 100)}}
 			);
 			</script>';
+            echo '<p class="sr-only"><label aria-hidden=true>Do not fill this out <input name=terms tabindex="-1" autocomplete="off" /></label></p>';
+            $_SESSION['challenge'] = uniqid();
+            echo '<input type=hidden name=challenge value="'.Sanitize::encodeStringForDisplay($_SESSION['challenge']).'"/>';
+            $_SESSION['resetpwstart'] = time();    
 			echo "<p><input type=submit value=\"",_('Submit'),"\" /></p>";
 			echo "</form>";
 		}
@@ -529,7 +534,7 @@ switch($_GET['action']) {
 		echo '<div id="headerforms" class="pagetitle"><h1>',_('Lookup Username'),'</h1></div>';
 		echo "<form id=\"pageform\" method=post action=\"actions.php?action=lookupusername$gb\">\n";
 		echo _("If you can't remember your username, enter your email address below.  An email will be sent to your email address with your username. ");
-		echo "<p><label for=email>",_('Email'),"</label>: <input type=text name=\"email\" id=email /></p>";
+		echo "<p><label for=email>",_('Email'),"</label>: <input type=text class=\"pii-email\" name=\"email\" id=email /></p>";
 		echo '<script type="text/javascript">
 		$("#pageform").validate({
 			rules: {
@@ -538,6 +543,11 @@ switch($_GET['action']) {
 			invalidHandler: function() {setTimeout(function(){$("#pageform").removeClass("submitted").removeClass("submitted2");}, 100)}}
 		);
 		</script>';
+        echo '<p class="sr-only"><label aria-hidden=true>Do not fill this out <input name=terms tabindex="-1" autocomplete="off" /></label></p>';
+        $_SESSION['challenge'] = uniqid();
+        echo '<input type=hidden name=challenge value="'.Sanitize::encodeStringForDisplay($_SESSION['challenge']).'"/>';
+        $_SESSION['lookupusernamestart'] = time();    
+
 		echo "<p><input type=submit value=\"",_('Submit'),"\" /></p>";
 		echo "</form>";
 		break;

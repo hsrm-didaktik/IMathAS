@@ -282,6 +282,20 @@ class LTI_Message_Launch {
         } else {
           return $duedate;
         }
+      } else if (!empty($custom['link_end_sub_time'])) {
+        $duedate = strtotime($custom['link_end_sub_time']);
+        if ($duedate === false) {
+          return 2000000000;
+        } else {
+          return $duedate;
+        }
+      } else if (!empty($custom['link_end_avail_time'])) {
+        $duedate = strtotime($custom['link_end_avail_time']);
+        if ($duedate === false) {
+          return 2000000000;
+        } else {
+          return $duedate;
+        }
       }
       return false;
     }
@@ -394,7 +408,9 @@ class LTI_Message_Launch {
     }
 
     public function get_migration_claim() {
-        if (!empty($this->jwt['body']['https://purl.imsglobal.org/spec/lti/claim/lti1p1'])) {
+        if (!empty($this->jwt['body']['https://purl.imsglobal.org/spec/lti/claim/lti1p1']) &&
+            !empty($this->jwt['body']['https://purl.imsglobal.org/spec/lti/claim/lti1p1']['oauth_consumer_key'])
+        ) {
             $claim = $this->jwt['body']['https://purl.imsglobal.org/spec/lti/claim/lti1p1'];
             $claim['signing_string'] = $claim['oauth_consumer_key'] . '&' .
                 $this->jwt['body']["https://purl.imsglobal.org/spec/lti/claim/deployment_id"]. '&' . 
@@ -403,6 +419,18 @@ class LTI_Message_Launch {
                 $this->jwt['body']['exp'] . '&' . 
                 $this->jwt['body']['nonce'];
             return $claim;
+        } else {
+            return false;
+        }
+    }
+
+    public function get_lti1p1_userid() {
+        if (!empty($this->jwt['body']['https://purl.imsglobal.org/spec/lti/claim/lti1p1']) &&
+            !empty($this->jwt['body']['https://purl.imsglobal.org/spec/lti/claim/lti1p1']['user_id'])
+        ) {
+            return $this->jwt['body']['https://purl.imsglobal.org/spec/lti/claim/lti1p1']['user_id'];
+        } else if (!empty($this->jwt['body']['https://purl.imsglobal.org/spec/lti/claim/lti11_legacy_user_id'])) {
+            return $this->jwt['body']['https://purl.imsglobal.org/spec/lti/claim/lti11_legacy_user_id'];
         } else {
             return false;
         }

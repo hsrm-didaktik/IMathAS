@@ -721,6 +721,15 @@ function fullungroup(loc) {
     return false;
 }
 
+function togglegroupEC(loc) {
+    var newec = 1 - itemarray[loc][2][0][9];
+    for (var i=0; i<itemarray[loc][2].length; i++) {
+        itemarray[loc][2][i][9] = newec;
+    } 
+    submitChanges();
+    return false;
+}
+
 function doremoveitem(loc) {
     if (loc.indexOf("-") > -1) {
         locparts = loc.split("-");
@@ -771,6 +780,7 @@ function groupSelected() {
     var grplist = new Array();
     var form = document.getElementById("curqform");
     var grppoints = 0;
+    var grpextracredit = 0;
     for (var e = form.elements.length - 1; e > -1; e--) {
         var el = form.elements[e];
         if (
@@ -785,6 +795,7 @@ function groupSelected() {
                 //is group
                 val = val.split("-")[0];
                 grppoints = itemarray[val][2][0][4]; //point values from first in group
+                grpextracredit = itemarray[val][2][0][9];
             } else {
             }
             isnew = true;
@@ -809,11 +820,13 @@ function groupSelected() {
         existingcnt = itemarray[to][2].length;
         if (grppoints == 0) {
             grppoints = itemarray[to][2][0][4]; //point values from first in group
+            grpextracredit = itemarray[to][2][0][9];
         }
     } else {
         var existing = itemarray[to];
         if (grppoints == 0) {
             grppoints = existing[4]; //point values from this question
+            grpextracredit = existing[9];
         }
         itemarray[to] = [1, 0, [existing], 1];
         existingcnt = 1;
@@ -834,6 +847,7 @@ function groupSelected() {
     }
     for (i = 0; i < itemarray[to][2].length; i++) {
         itemarray[to][2][i][4] = grppoints;
+        itemarray[to][2][i][9] = grpextracredit;
     }
     submitChanges();
 }
@@ -1006,8 +1020,8 @@ function generateOutput() {
     var out = "";
     var text_segments = [];
     var pts = {};
+    var extracredit = {};
     var qcnt = 0;
-
     for (var i = 0; i < itemarray.length; i++) {
         if (itemarray[i][0] == "text") {
             //is text item
@@ -1022,25 +1036,29 @@ function generateOutput() {
             });
         } else if (itemarray[i].length < 5) {
             //is group
-            if (out.length > 0) {
-                out += ",";
+            if (itemarray[i][2].length > 0) { // skip if group is empty; shouldn't happen
+                if (out.length > 0) {
+                    out += ",";
+                }
+                out += itemarray[i][0] + "|" + itemarray[i][1];
+                for (var j = 0; j < itemarray[i][2].length; j++) {
+                    out += "~" + itemarray[i][2][j][0];
+                    pts["qn" + itemarray[i][2][j][0]] = itemarray[i][2][j][4];
+                    extracredit["qn" + itemarray[i][2][j][0]] = itemarray[i][2][j][9];
+                }
+                qcnt += itemarray[i][0];
             }
-            out += itemarray[i][0] + "|" + itemarray[i][1];
-            for (var j = 0; j < itemarray[i][2].length; j++) {
-                out += "~" + itemarray[i][2][j][0];
-                pts["qn" + itemarray[i][2][j][0]] = itemarray[i][2][j][4];
-            }
-            qcnt += itemarray[i][0];
         } else {
             if (out.length > 0) {
                 out += ",";
             }
             out += itemarray[i][0];
             pts["qn" + itemarray[i][0]] = itemarray[i][4];
+            extracredit["qn" + itemarray[i][0]] = itemarray[i][9];
             qcnt++;
         }
     }
-    return [out, text_segments, pts];
+    return [out, text_segments, pts, extracredit];
 }
 
 function collapseqgrp(i) {
@@ -1080,7 +1098,7 @@ function generateTable() {
     var html = "";
     var totalcols = 10;
 
-    html += "<table cellpadding=5 class=gb><thead><tr>";
+    html += "<table cellpadding=5 class='gb questions-in-assessment'><thead><tr>";
     if (!beentaken) {
         html += "<th></th>";
     }
@@ -1112,9 +1130,12 @@ function generateTable() {
     var text_segment_count = 0;
     var curqnum = 0;
     var curqitemloc = 0;
+    var curgrppoints = 0;
     var badgrppoints = false;
     var badthisgrppoints = false;
     var grppoints = -1;
+    var grpextracredit = -1;
+    var ECmark = ' <span onmouseover="tipshow(this,\'' + _('Extra Credit') + '\')" onmouseout="tipout()">' + _('EC') + '</span>';
     for (var i = 0; i < itemcount; i++) {
         curistext = 0;
         curisgroup = 0;
@@ -1135,6 +1156,7 @@ function generateTable() {
         //var ms = generateMoveSelect(i,itemcount);
         var ms = generateMoveSelect2(i);
         grppoints = -1;
+        grpextracredit = -1;
         badthisgrppoints = false;
         for (var j = 0; j < curitems.length; j++) {
             if (alt == 0) {
@@ -1178,6 +1200,7 @@ function generateTable() {
                         if (itemarray[i][0] > 1) {
                             html += "ea";
                         }
+                        html += (curitems[0][9] > 0 ? ECmark : '');
                         html += "</td><td></td>";
                         html += "</tr><tr class=" + curclass + ">";
                     }
@@ -1282,6 +1305,7 @@ function generateTable() {
                         if (itemarray[i][0] > 1) {
                             html += "ea";
                         }
+                        html += (curitems[0][9] > 0 ? ECmark : '');
 
                         html +=
                             '</td><td class=c><div class="dropdown"><button tabindex=0 class="dropdown-toggle plain" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
@@ -1296,6 +1320,10 @@ function generateTable() {
                         html +=
                             '<li><a href="#" onclick="return fullungroup(' + i + ');">' +
                             _("Ungroup all Questions") +
+                            "</a></li>";
+                        html +=
+                            '<li><a href="#" onclick="return togglegroupEC(' + i + ');">' +
+                            _("Toggle Extra Credit") +
                             "</a></li>";
                         html += '</ul></div></tr>';
 
@@ -1421,18 +1449,35 @@ function generateTable() {
                     "</a></td>";
                 //}
             } else {
+                var tdtitle = '';
+                var tdclass = '';
+                var descricon = '';
                 if (beentaken && curitems[j][6] == 1) {
-                    html +=
-                        '<td class="greystrike" title="' + _("Question Withdrawn") + '">';
-                } else {
-                    html += "<td>";
+                    tdclass = 'greystrike';
+                    tdtitle = _("Question Withdrawn");
+                } else if (curitems[j][10] == 1) {
+                    tdclass = 'qbroken';
                 }
+                if (curitems[j][10] == 1) {
+                    descricon = '<span title="' + _('Marked as broken') + '">' + 
+                    '<svg viewBox="0 0 24 24" width="16" height="16" stroke="#f66" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M19.7 1.3 19.6 9 16.2 6.3 13.8 11.3 10.5 8.3 7 11.7 3.6 9.2l0-7.9z" class="a"></path><path d="m19.7 22.9 0-7.8-2-1.4-3.1 4-3.3-3-3.8 3.8-4-3.9v8.4z" class="a"></path></svg>' + 
+                    '</span> ';
+                }
+                html += '<td';
+                if (tdclass !== '') {
+                    html += ' class="' + tdclass + '"';
+                }
+                if (tdtitle !== '') {
+                    html += ' title="' + tdtitle + '"';
+                }
+                html += '>' + descricon;
                 html +=
                     '<input type=hidden name="curq[]" id="oqc' +
                     ln +
                     '" value="' +
                     curitems[j][1] +
                     '"/>';
+                
                 html += curitems[j][2] + "</td>"; //description
                 html += '<td class="nowrap">';
                 if ((curitems[j][7] & 32) == 32) {
@@ -1451,6 +1496,13 @@ function generateTable() {
                 } else {
                     var showicons = "_no";
                     var altadd = _(" disabled");
+                }
+                if ((curitems[j][7] & 128) == 128) {
+                    var showiconsWE = "";
+                    var altaddWE = "";
+                } else {
+                    var showiconsWE = "_no";
+                    var altaddWE = _(" disabled");
                 }
                 if ((curitems[j][7] & 4) == 4) {
                     if ((curitems[j][7] & 16) == 16) {
@@ -1490,11 +1542,11 @@ function generateTable() {
                         '<img src="' +
                         staticroot +
                         "/img/assess_tiny" +
-                        showicons +
+                        showiconsWE +
                         '.png" alt="'+('Written solution') +
                         altadd +
                         '" title="'+('Written solution') +
-                        altadd +
+                        altaddWE +
                         '"/>';
                 }
                 html += "</td>";
@@ -1554,6 +1606,12 @@ function generateTable() {
                             itemarray[i][2][j][4] = grppoints;
                         }
                     }
+                    if (grpextracredit == -1) {
+                        grpextracredit = curitems[j][9];
+                    } else if (curitems[j][9] != grpextracredit) {
+                        //fix it
+                        itemarray[i][2][j][9] = grpextracredit;
+                    }
                 }
                 if (curisgroup) {
                     html += "<td></td>";
@@ -1561,16 +1619,20 @@ function generateTable() {
                     //	html += "<td class=c><span class=noticehighlight>"+curpt+"</span></td>"; //points
                 } else {
                     if (beentaken) {
-                        html += "<td class=c>" + curpt + "</td>";
+                        html += "<td>" + curpt + 
+                            (curitems[j][9] > 0 ? ECmark : '') +
+                            "</td>";
                     } else {
                         html +=
-                            '<td class=c><input size=2 id="pts-' +
+                            '<td><input size=2 id="pts-' +
                             i +
                             '" value="' +
                             curpt +
                             '" data-lastval="' +
                             curpt +
-                            '"/></td>'; //points
+                            '"/>' +
+                            (curitems[j][9] > 0 ? ECmark : '') +
+                            '</td>'; //points
                     }
                 }
 
@@ -1697,7 +1759,9 @@ function generateTable() {
             ln++;
         }
         if (curistext == 0) {
-            pttotal += curpt * (curisgroup ? itemarray[i][0] : 1);
+            if (curisgroup || itemarray[i][9] == 0) {
+                pttotal += curpt * (curisgroup ? itemarray[i][0] : 1);
+            }
             curqnum += curisgroup ? itemarray[i][0] : 1;
         }
         alt = 1 - alt;
@@ -1830,6 +1894,7 @@ function submitChanges() {
     };
     if (!beentaken) {
         outdata["pts"] = JSON.stringify(data[2]);
+        outdata["extracredit"] = JSON.stringify(data[3]);
         outdata["defpts"] = $("#defpts").val();
     }
     $.ajax({
@@ -1913,7 +1978,7 @@ function addwithsettings() {
         checked.push(this.value);
     });
     if (checked.length == 0) { return; }
-    GB_show('Question Settings',qsettingsaddr + '&toaddqs=' + checked.join('-') + '&lih=' + lastitemhash,900,500);
+    GB_show('Question Settings',qsettingsaddr + '&toaddqs=' + encodeURIComponent(checked.join(';')) + '&lih=' + lastitemhash,900,500);
 }
 
 function modsettings() {
@@ -1922,7 +1987,7 @@ function modsettings() {
         checked.push(this.value);
     });
     if (checked.length == 0) { return; }
-    GB_show('Question Settings',qsettingsaddr + '&modqs=' + checked.join('-') + '&lih=' + lastitemhash,900,500);
+    GB_show('Question Settings',qsettingsaddr + '&modqs=' + encodeURIComponent(checked.join(';')) + '&lih=' + lastitemhash,900,500);
 }
 
 /*

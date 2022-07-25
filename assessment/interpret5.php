@@ -5,7 +5,11 @@
 
 //TODO:  handle for ($i=0..2) { to handle expressions, array var, etc. for 0 and 2
 
-$GLOBALS['mathfuncs'] = array("sin","cos","tan","sinh","cosh","tanh","arcsin","arccos","arctan","arcsinh","arccosh","arctanh","sqrt","ceil","floor","round","log","ln","abs","max","min","count");
+$GLOBALS['mathfuncs'] = array("sin","cos","tan","sec","csc","cot",
+ "sinh","cosh","tanh","sech","csch","coth",
+ "arcsin","arccos","arctan","arcsec","arccsc","arccot",
+ "arcsinh","arccosh","arctanh","arcsech","arccsch","arccoth",
+ "sqrt","ceil","floor","round","log","ln","abs","max","min","count");
 if (!isset($GLOBALS['allowedmacros'])) {
     $GLOBALS['allowedmacros'] = $GLOBALS['mathfuncs'];
 }
@@ -15,7 +19,7 @@ $GLOBALS['disallowedvar'] = array('$link','$qidx','$qnidx','$seed','$qdata','$to
   '$laarr','$shanspt','$GLOBALS','$laparts','$anstype','$kidx','$iidx','$tips',
   '$optionsPack','$partla','$partnum','$score','$disallowedvar','$allowedmacros',
   '$wherecount','$forloopcnt','$countcnt','$myrights','$myspecialrights',
-  '$this', '$quesData', '$toevalsoln', '$doShowAnswer', '$doShowAnswerParts');
+  '$this', '$quesData', '$toevalsoln', '$doShowAnswer', '$doShowAnswerParts','$teacherInGb');
 
 //main interpreter function.  Returns PHP code string, or HTML if blockname==qtext
 function interpret($blockname,$anstype,$str,$countcnt=1)
@@ -25,7 +29,7 @@ function interpret($blockname,$anstype,$str,$countcnt=1)
 		$str = str_replace('"','\"',$str);
 		$str = str_replace("\r\n","\n",$str);
 		$str = str_replace("\n\n","<br/><br/>\n",$str);
-		$str = removeDisallowedVarsString($str,$anstype,$countcnt);
+		$str = removeDisallowedVarsString($str,$anstype,$countcnt,'"');
 		return $str;
 	} else {
 		$str = str_replace(array('\\frac','\\tan','\\root','\\vec'),array('\\\\frac','\\\\tan','\\\\root','\\\\vec'),$str);
@@ -412,6 +416,7 @@ function tokenize($str,$anstype,$countcnt) {
 					} else if ($out=='rand') {
 						$out = '$GLOBALS[\'RND\']->rand';
 					} else {
+                        $out = preg_replace('/(ar|arg)(sinh|cosh|tanh|sech|csch|coth)/', 'arc$2', $out);
 						//check it's and OK function
 						if (!in_array($out,$allowedmacros)) {
 							echo sprintf(_('Eeek.. unallowed macro %s'), Sanitize::encodeStringForDisplay($out));
@@ -419,13 +424,14 @@ function tokenize($str,$anstype,$countcnt) {
 						}
 					}
 					//rewrite arctrig into atrig for PHP
-					$out = str_replace(array("arcsinh","arccosh","arctanh","arcsin","arccos","arctan"),array("asinh","acosh","atanh","safeasin","safeacos","atan"),$out);
+					$out = str_replace(array("arcsinh","arccosh","arctanh","arcsech","arccsch","arccoth","arcsin","arccos","arctan","arcsec","arccsc","arccot"),array("asinh","acosh","atanh","asech","acsch","acoth","safeasin","safeacos","atan","asec","acsc","acot"),$out);
 
 					//connect upcoming parens to function
 					$connecttolast = 2;
 				} else {
 					//not a function, so what is it?
-					if ($out=='true' || $out=='false' || $out=='null') {
+                    $outlower = strtolower($out);
+					if ($outlower=='true' || $outlower=='false' || $outlower=='null') {
 						//we like this - it's an acceptable unquoted string
 					} else {//
 						//an unquoted string!  give a warning to instructor,
@@ -570,7 +576,7 @@ function tokenize($str,$anstype,$countcnt) {
 			if ($c=='`') {
 				$out = _('"invalid - unquoted backticks"');
 			} else {
-				$out .= removeDisallowedVarsString($strtext,$anstype,$countcnt);
+				$out .= removeDisallowedVarsString($strtext,$anstype,$countcnt,$qtype);
 			}
 			$i++;
 			$c = $str[$i];
@@ -684,13 +690,27 @@ function tokenize($str,$anstype,$countcnt) {
 	return $syms;
 }
 
+function testIsEscaped($str,$c) {
+    $cnt = 0;
+    $i = $c-1;
+    while ($i >= 0 && $str[$i] == '\\') {
+        $cnt++;
+        $i--;
+    }
+    return (($cnt%2)==1);
+}
+
 //handle braces and variable variables in strings and qtext
-function removeDisallowedVarsString($str,$anstype,$countcnt=1) {
+function removeDisallowedVarsString($str,$anstype,$countcnt=1,$quotetype='"') {
 	global $disallowedvar;
 
 	//remove any blatent disallowed var
 	$str = preg_replace('/('.str_replace('$','\\$',implode('|',$disallowedvar)).')\b/',_('Invalid variable'),$str);
 	//$str = str_replace($disallowedvar,_('Invalid variable'),$str);
+
+    if ($quotetype!='"') {
+        return $str;
+    }
 
 	$startmarker = 0; $lastend = 0;
 	$invarvar = false;
@@ -698,7 +718,7 @@ function removeDisallowedVarsString($str,$anstype,$countcnt=1) {
 	$outstr = '';
 	$depth = 0;
 	for ($c=0;$c<strlen($str);$c++) {
-		if ($str[$c]=='{') {
+		if ($str[$c]=='{' && !testIsEscaped($str,$c)) {
 			if ($invarvar || $inbraces) {
 				$depth++;
 			} else { //may be starting new brace or varvar item
@@ -731,7 +751,7 @@ function removeDisallowedVarsString($str,$anstype,$countcnt=1) {
 					//interpret stuff in braces as code
 					$insidebrace = interpretline(substr($str,$startmarker+1,$c-$startmarker-1),$anstype,$countcnt+1);
 					if ($insidebrace!='error') {
-						$outstr .= '{'.$insidebrace.'}';
+						$outstr .= '".('.$insidebrace.')."';
 					}
 				} else if ($invarvar) {
 					$insidebrace = substr($str,$startmarker+1,$c-$startmarker-2);

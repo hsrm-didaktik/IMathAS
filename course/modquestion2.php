@@ -49,6 +49,7 @@ if (!(isset($teacherid))) {
             $showhints = -1;
             $showwork = -1;
             $fixedseeds = null;
+            $extracredit = 0;
             $_POST['copies'] = 1;
         } else {
             if (trim($_POST['points']) == "") {$points = 9999;} else { $points = intval($_POST['points']);}
@@ -74,7 +75,12 @@ if (!(isset($teacherid))) {
             $showans = Sanitize::simpleASCII($_POST['showans']);
             $showwork = Sanitize::onlyInt($_POST['showwork']);
             $rubric = intval($_POST['rubric']);
-            $showhints = intval($_POST['showhints']);
+            $showhints = !empty($_POST['showhintsusedef']) ? -1 : (
+                (empty($_POST['showhints1']) ? 0 : 1) +
+                (empty($_POST['showhints2']) ? 0 : 2) +
+                (empty($_POST['showhints4']) ? 0 : 4)
+            );
+            $extracredit = !empty($_POST['ec']) ? 1 : 0;
         }
         if (isset($_GET['id'])) { //already have id - updating
             $stm = $DBH->prepare("SELECT * FROM imas_questions WHERE id=?");
@@ -82,20 +88,21 @@ if (!(isset($teacherid))) {
             $old_settings = $stm->fetch(PDO::FETCH_ASSOC);
             if (isset($_POST['replacementid']) && $_POST['replacementid'] != '' && intval($_POST['replacementid']) != 0) {
                 $query = "UPDATE imas_questions SET points=:points,attempts=:attempts,penalty=:penalty,regen=:regen,showans=:showans,showwork=:showwork,rubric=:rubric,showhints=:showhints,fixedseeds=:fixedseeds";
-                $query .= ',questionsetid=:questionsetid WHERE id=:id';
+                $query .= ',questionsetid=:questionsetid,extracredit=:extracredit WHERE id=:id';
                 $stm = $DBH->prepare($query);
                 $settings = array(':points' => $points, ':attempts' => $attempts,
                     ':penalty' => $penalty, ':regen' => $regen, ':showans' => $showans, ':showwork' => $showwork,
                     ':rubric' => $rubric, ':showhints' => $showhints, ':fixedseeds' => $fixedseeds,
-                    ':questionsetid' => $_POST['replacementid'], ':id' => $_GET['id']);
+                    ':questionsetid' => $_POST['replacementid'], ':extracredit' => $extracredit, 
+                    ':id' => $_GET['id']);
                 $stm->execute($settings);
             } else {
-                $query = "UPDATE imas_questions SET points=:points,attempts=:attempts,penalty=:penalty,regen=:regen,showans=:showans, showwork=:showwork, rubric=:rubric,showhints=:showhints,fixedseeds=:fixedseeds";
+                $query = "UPDATE imas_questions SET points=:points,attempts=:attempts,penalty=:penalty,regen=:regen,showans=:showans, showwork=:showwork, rubric=:rubric,showhints=:showhints,fixedseeds=:fixedseeds,extracredit=:extracredit";
                 $query .= " WHERE id=:id";
                 $stm = $DBH->prepare($query);
                 $settings = array(':points' => $points, ':attempts' => $attempts,
                     ':penalty' => $penalty, ':regen' => $regen, ':showans' => $showans, ':showwork' => $showwork,
-                    ':rubric' => $rubric, ':showhints' => $showhints, ':fixedseeds' => $fixedseeds,
+                    ':rubric' => $rubric, ':showhints' => $showhints, ':fixedseeds' => $fixedseeds, ':extracredit' => $extracredit,
                     ':id' => $_GET['id']);
                 $stm->execute($settings);
             }
@@ -125,11 +132,11 @@ if (!(isset($teacherid))) {
             $stm->execute(array(':id' => $aid));
             list($itemorder, $defpoints) = $stm->fetch(PDO::FETCH_NUM);
             for ($i = 0; $i < $_POST['copies']; $i++) {
-                $query = "INSERT INTO imas_questions (assessmentid,points,attempts,penalty,regen,showans,showwork,questionsetid,rubric,showhints,fixedseeds) ";
-                $query .= "VALUES (:assessmentid, :points, :attempts, :penalty, :regen, :showans, :showwork, :questionsetid, :rubric, :showhints, :fixedseeds)";
+                $query = "INSERT INTO imas_questions (assessmentid,points,attempts,penalty,regen,showans,showwork,questionsetid,rubric,showhints,fixedseeds,extracredit) ";
+                $query .= "VALUES (:assessmentid, :points, :attempts, :penalty, :regen, :showans, :showwork, :questionsetid, :rubric, :showhints, :fixedseeds, :extracredit)";
                 $stm = $DBH->prepare($query);
                 $stm->execute(array(':assessmentid' => $aid, ':points' => $points, ':attempts' => $attempts, ':penalty' => $penalty, ':regen' => $regen,
-                    ':showans' => $showans, ':showwork' => $showwork, ':questionsetid' => $_GET['qsetid'], ':rubric' => $rubric, ':showhints' => $showhints, ':fixedseeds' => $fixedseeds));
+                    ':showans' => $showans, ':showwork' => $showwork, ':questionsetid' => $_GET['qsetid'], ':rubric' => $rubric, ':showhints' => $showhints, ':fixedseeds' => $fixedseeds, ':extracredit' => $extracredit));
                 $qid = $DBH->lastInsertId();
 
                 //add to itemorder
@@ -175,7 +182,7 @@ if (!(isset($teacherid))) {
     } else { //DEFAULT DATA MANIPULATION
 
         if (isset($_GET['id'])) {
-            $stm = $DBH->prepare("SELECT points,attempts,penalty,regen,showans,showwork,rubric,showhints,questionsetid,fixedseeds FROM imas_questions WHERE id=:id");
+            $stm = $DBH->prepare("SELECT points,attempts,penalty,regen,showans,showwork,rubric,showhints,questionsetid,fixedseeds,extracredit FROM imas_questions WHERE id=:id");
             $stm->execute(array(':id' => $_GET['id']));
             $line = $stm->fetch(PDO::FETCH_ASSOC);
             if ($line['penalty'][0] === 'S') {
@@ -202,6 +209,7 @@ if (!(isset($teacherid))) {
             $line['showwork'] = -1;
             $line['rubric'] = 0;
             $line['showhints'] = -1;
+            $line['extracredit'] = 0;
             $qsetid = $_GET['qsetid'];
         }
 
@@ -211,6 +219,7 @@ if (!(isset($teacherid))) {
         if (isset($_GET['loc'])) {
             $qdescrip = $_GET['loc'] . ': ' . $qdescrip;
         }
+        $qingroup = (strpos($_GET['loc'],'-') !== false);
 
         $rubric_vals = array(0);
         $rubric_names = array('None');
@@ -256,12 +265,18 @@ if (!(isset($teacherid))) {
         }
         if ($defaults['showhints'] == 0) {
             $defaults['showhints'] = _('No');
-        } else if ($defaults['showhints'] == 1) {
-            $defaults['showhints'] = _('Hints');
-        } else if ($defaults['showhints'] == 2) {
-            $defaults['showhints'] = _('Video/text buttons');
-        } else if ($defaults['showhints'] == 3) {
-            $defaults['showhints'] = _('Hints and Video/text buttons');
+        } else {
+            $ht = [];
+            if ($defaults['showhints']&1) {
+                $ht[] = _('Hints');
+            } 
+            if ($defaults['showhints']&2) {
+                $ht[] = _('Videos');
+            } 
+            if ($defaults['showhints']&4) {
+                $ht[] = _('Examples');
+            } 
+            $defaults['showhints'] = implode(' &amp; ', $ht);
         }
 
         if ($defaults['showwork'] == 0) {
@@ -282,6 +297,11 @@ function previewq(qn) {
   previewpop = window.open(imasroot+"/course/testquestion2.php?fixedseeds=1&cid="+cid+"&qsetid="+qn,"Testing","width="+(.4*screen.width)+",height="+(.8*screen.height)+",scrollbars=1,resizable=1,status=1,top=20,left="+(.6*screen.width-20));
   previewpop.focus();
 }
+$(function() {
+    $(".showhintsdef").on("change", function() {
+        $(this).closest("span").find("span").toggle(!this.checked);
+    });
+});
 </script>';
 require "../header.php";
 
@@ -302,6 +322,7 @@ if (isset($_GET['id'])) {
     ?>
 </h1></div>
 <p><?php
+
 echo '<b>' . Sanitize::encodeStringForDisplay($qdescrip) . '</b> ';
     echo '<button type="button" onclick="previewq(' . Sanitize::encodeStringForJavascript($qsetid) . ')">' . _('Preview') . '</button>';
     ?>
@@ -359,13 +380,28 @@ if (!isset($_GET['id']) || $beentaken) {
    </select><br/><i class="grey"><?php echo _('Default:'); ?> <?php echo Sanitize::encodeStringForDisplay($defaults['showwork']); ?></i></span><br class="form"/>
 
 <span class=form><?php echo _('Show hints and video/text buttons?'); ?></span><span class=formright>
-    <select name="showhints">
-     <option value="-1" <?php if ($line['showhints'] == -1) {echo 'selected="1"';}?>><?php echo _('Use Default'); ?></option>
-     <option value="0" <?php if ($line['showhints'] == 0) {echo 'selected="1"';}?>><?php echo _('No'); ?></option>
-     <option value="1" <?php if ($line['showhints'] == 1) {echo 'selected="1"';}?>><?php echo _('Hints'); ?></option>
-     <option value="2" <?php if ($line['showhints'] == 2) {echo 'selected="1"';}?>><?php echo _('Video/text buttons'); ?></option>
-     <option value="3" <?php if ($line['showhints'] == 3) {echo 'selected="1"';}?>><?php echo _('Hints and Video/text buttons'); ?></option>
-    </select><br/><i class="grey"><?php echo _('Default:'); ?> <?php echo $defaults['showhints']; ?></i></span><br class="form"/>
+    <label>
+        <input type=checkbox class=showhintsdef name="showhintsusedef" value=1 <?php if ($line['showhints'] == -1) {echo 'checked';}?>>
+        <?php echo _('Use Default'); ?>
+    </label>
+    <span <?php if ($line['showhints'] == -1) {echo 'style="display:none"';}?>>
+    <br/>
+    <label>
+        &nbsp; <input type=checkbox name="showhints1" value=1 <?php if ($line['showhints']&1) {echo 'checked';}?>>
+        <?php echo _('Hints'); ?>
+    </label>
+    <br/>
+    <label>
+        &nbsp; <input type=checkbox name="showhints2" value=2 <?php if ($line['showhints']&2) {echo 'checked';}?>>
+        <?php echo _('Videos/Text'); ?>
+    </label>
+    <br/>
+    <label>
+        &nbsp; <input type=checkbox name="showhints4" value=4 <?php if ($line['showhints']&4) {echo 'checked';}?>>
+        <?php echo _('Written Examples'); ?>
+    </label>
+    </span>
+    <br/><i class="grey"><?php echo _('Default:'); ?> <?php echo $defaults['showhints']; ?></i></span><br class="form"/>
 
 <span class=form><?php echo _('Use Scoring Rubric'); ?></span><span class=formright>
 <?php
@@ -375,6 +411,14 @@ writeHtmlSelect('rubric', $rubric_vals, $rubric_names, $line['rubric']);
     ?>
     </span><br class="form"/>
 <?php
+if (!$qingroup) {
+?>
+<span class="form"><label for="ec"><?php echo _('Count as extra credit?');?></label></span>
+<span class=formright>
+    <input type=checkbox value=1 name=ec id=ec <?php if ($line['extracredit'] > 0) { echo 'checked';} ?>>
+</span><br class="form"/>
+<?php
+}
 if (isset($_GET['qsetid'])) { //adding new question
         echo "<span class=form>" . _("Number of copies of question to add:") . "</span><span class=formright><input type=text size=4 name=copies value=\"1\"/></span><br class=form />";
     } else if (!$beentaken) {

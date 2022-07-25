@@ -48,7 +48,7 @@ $allowedmacros[] = "jsxUnsuspendUpdate";
 $allowedmacros[] = "jsxSetChild";
 
 function jsx_getlibrarylink() {
-	return "//cdn.jsdelivr.net/npm/jsxgraph@1.2.1/distrib/jsxgraphcore.js";
+	return "//cdn.jsdelivr.net/npm/jsxgraph@1.4.5/distrib/jsxgraphcore.js";
 }
 
 function jsx_idlen() {
@@ -1289,10 +1289,12 @@ function jsxText (&$board, $param, $ops=array()) {
 			$out .= "anchor: {$anchor},"; 
 		}
 		if($anchorX !== false) {
-			$out .= "anchorX: {$anchorX},"; 
+            $anchorX = preg_replace('/[^\w\-]/','',$anchorX);
+			$out .= "anchorX: '{$anchorX}',"; 
 		}
 		if($anchorY !== false) {
-			$out .= "anchorY: {$anchorY},"; 
+            $anchorY = preg_replace('/[^\w\-]/','',$anchorY);
+			$out .= "anchorY: '{$anchorY}',"; 
 		}
         $out .= "})";
 		

@@ -170,8 +170,9 @@ class AssessStandalone {
       }
     }
 
-    $showans = !empty($this->getOpVal($options, 'showans', false)) || $showans;
-    $showhints = $this->getOpVal($options, 'showhints', 3);
+    $showans = (!empty($this->getOpVal($options, 'showans', false)) || $showans) &&
+        !$this->getOpVal($options, 'hideans', false);
+    $showhints = $this->getOpVal($options, 'showhints', 7);
     $rawscores = $this->state['rawscores'][$qn] ?? [];
 
     if ($hidescoremarkers) {
@@ -251,7 +252,12 @@ class AssessStandalone {
       $jsparams['disabled'] = $disabled;
     }
 
-    return array('html' => $qout, 'jsparams' => $jsparams, 'errors'=>$question->getErrors());
+    return array(
+        'html' => $qout, 
+        'jsparams' => $jsparams, 
+        'errors'=>$question->getErrors(),
+        'soln'=>$question->getSolutionContentDetailed()
+    );
   }
 
   /*
