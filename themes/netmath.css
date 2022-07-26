@@ -513,6 +513,10 @@ button#timerbox:focus {
 	background-color: #e0ffff;
 }
 
+.dropdown-toggle {
+  color:hsl(198, 65%, 40%)
+}
+
 .subdued {
 	color: green;
 }

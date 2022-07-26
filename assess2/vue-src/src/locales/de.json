@@ -9,6 +9,7 @@
   "next": "Nächste",
   "previous": "Vorherige",
   "question_n": "Frage {n}",
+  "extracredit": "Zusatzpunkte",
   "jumptocontent": "Navigation überspringen",
   "launch": {
     "continue_assess": "Test fortsetzen",
@@ -183,7 +184,9 @@
     "parseerror": "Der Server hat eine ungültige Antwort gesendet",
     "livepoll_wrongquestion": "Die eingereichte Frage ist nicht die aktuelle Frage.",
     "livepoll_notopen": "Keine Einreichung zu dieser Frage möglich.",
-    "need_relaunch": "Benötigte Informationen fehlen. Bitte gehen Sie zurück in Ihr Lernmanagementsystem und öffnen Sie den Test erneut."
+    "need_relaunch": "Benötigte Informationen fehlen. Bitte gehen Sie zurück in Ihr Lernmanagementsystem und öffnen Sie den Test erneut.",
+    "ytnotready": "YouTube ist noch nicht bereit",
+    "file_upload_error": "Fehler beim Hochladen der Datei"
   },
   "confirm": {
     "ok": "OK",
@@ -258,7 +261,8 @@
     "gbscore": "Gespeicherte Punkte",
     "bestpractice": "Höchste erreichte Punktzahl",
     "lastscore": "Punkte im letzten Versuch",
-    "license": "Lizenz"
+    "license": "Lizenz",
+    "extracredit": "Dies ist eine Frage für Zusatzpunkte"
   },
   "timer": {
     "hrs": "hr | hrs",
@@ -396,6 +400,7 @@
     "msg_owner": "Den Eigentümer über Probleme informieren",
     "had_help": "Hilfe verfügbar",
     "save": "Änderungen speichern",
+    "savenext": "Speichern und zum nächsten Studierenden",
     "return": "Zurück zur Notenübersicht",
     "gb_score": "Punkte in der Notenübersicht",
     "override": "Punkte korrigieren",
@@ -461,7 +466,8 @@
     "used_timeext": "Hat eine Verlängerung um {n} Minuten genutzt",
     "attemptext": "Ausnahme für {n} zusätzliche Versionen genehmigt",
     "preview_files": "Vorschau aller Dateien",
-    "introtexts": "Einführung und Text zwischen den Fragen"
+    "introtexts": "Einführung und Text zwischen den Fragen",
+    "floating_scoreboxes": "Variable Punktanzeige"
   },
   "work": {
     "add": "Lösung hinzufügen",
@@ -479,5 +485,9 @@
     "qnav": "Fragen-Navigation",
     "qvidnav": "Video- und Fragen-Navigation",
     "aheader": "Test-Info"
+  },
+  "links": {
+    "settings": "Einstellungen",
+    "questions": "Fragen"
   }
 }
