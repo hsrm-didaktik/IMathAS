@@ -514,7 +514,12 @@ button#timerbox:focus {
 }
 
 .dropdown-toggle {
-  color:hsl(198, 65%, 40%)
+  color: #369;
+  background-color: #e0ffff;
+}
+
+#cursearchtype.dropdown-toggle:hover {
+  color: #e0ffff;
 }
 
 .subdued {
