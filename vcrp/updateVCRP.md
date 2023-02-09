@@ -1,5 +1,7 @@
 # Note for updating the VCRP version feature_vcrp
 
+## This is not necessary for updating the productive instance from the branch feature_vcrp
+
 * Checkout master
 * pull https://github.com/drlippman/IMathAS.git In case of conflicts remove conflicting files before pull, e.g. assess2/vue/gbviewassess.html
 * Checkout feature_vcrp
