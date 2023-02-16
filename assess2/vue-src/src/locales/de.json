@@ -467,7 +467,8 @@
     "attemptext": "Ausnahme für {n} zusätzliche Versionen genehmigt",
     "preview_files": "Vorschau aller Dateien",
     "introtexts": "Einführung und Text zwischen den Fragen",
-    "floating_scoreboxes": "Variable Punktanzeige"
+    "floating_scoreboxes": "Variable Punktanzeige",
+    "no_edit": "Sie befinden sich in der Punkteübersicht. Hier können Sie keine Antworten bearbeiten oder einreichen."
   },
   "work": {
     "add": "Lösung hinzufügen",

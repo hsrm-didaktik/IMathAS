@@ -860,7 +860,8 @@ function parseFloat($input) {
 // ######################################################################
 
 function parseString($input) {
-  $parts = preg_split("/\s*U\s*/i",$input);
+  //$parts = preg_split("/\s*U\s*/i",$input);
+  $parts = preg_split("/\s*(U|cup)\s*/",$input);
 
   return parseParts($parts);
 }

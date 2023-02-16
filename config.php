@@ -161,11 +161,13 @@ $emailconfirmation = false;
 
 // Activate logging of errors in question
 $CFG['logquestionerrors']=true;
+$CFG['hooks']['util/questionerrors'] = "../vcrp/correctquestionerrors.php";
 
 // GROUP: TESTS
 
 //color shift icons as deadline approaches?
 $colorshift = true;
+
 
 // -----------------------
 
