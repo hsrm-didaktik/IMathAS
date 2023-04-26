@@ -6,9 +6,14 @@
 global $allowedmacros;
 array_push($allowedmacros,"copyButton" );
 
-function copyButton($arg="",$label="Copy to clipboard") {
+function copyButton($arg="",$label="Copy to clipboard",$successMessage="Copied to clipboard",$failMessage="Copy failed!") {
     $js_cp="
     <script>
+    function reportSuccess (success) {
+      let responseDiv=document.getElementById('js_cp_response');
+      let response=(success)?'$successMessage':'$failMessage';
+      alert(response);
+    }
     function fallbackCopyTextToClipboard(text) {
         var textArea = document.createElement('textarea');
         textArea.value = text;
@@ -24,8 +29,7 @@ function copyButton($arg="",$label="Copy to clipboard") {
       
         try {
           var successful = document.execCommand('copy');
-          var msg = successful ? 'successful' : 'unsuccessful';
-          console.log('Fallback: Copying text command was ' + msg);
+          reportSuccess(successful);
         } catch (err) {
           console.error('Fallback: Oops, unable to copy', err);
         }
@@ -38,8 +42,10 @@ function copyButton($arg="",$label="Copy to clipboard") {
           return;
         }
         navigator.clipboard.writeText(text).then(function() {
+          reportSuccess(true);
           console.log('Async: Copying to clipboard was successful!');
         }, function(err) {
+          reportSuccess(false);
           console.error('Async: Could not copy text: ', err);
         });
       }
@@ -51,7 +57,8 @@ function copyButton($arg="",$label="Copy to clipboard") {
     return "
     <div style='display:inline-block; vertical-align:top;'>
       <button class='js-copy-btn'>$label</button>
-    </div>".$js_cp;
+    </div>
+    ".$js_cp;
 }
 
 ?>
