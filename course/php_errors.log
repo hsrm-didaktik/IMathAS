@@ -1,0 +1,8 @@
+[25-Apr-2023 08:56:04 Europe/Berlin] Caught error by QuestionGenerator in /var/www/html/IMathAS/assessment/libs/copy.php in QSID 47:52 -- A non-numeric value encountered
+[25-Apr-2023 08:56:04 Europe/Berlin] Caught error by QuestionGenerator in /var/www/html/IMathAS/assessment/libs/copy.php in QSID 47:52 -- A non-numeric value encountered
+[25-Apr-2023 08:57:00 Europe/Berlin] Caught error by QuestionGenerator in /var/www/html/IMathAS/assessment/libs/copy.php in QSID 47:52 -- A non-numeric value encountered
+[25-Apr-2023 08:57:00 Europe/Berlin] Caught error by QuestionGenerator in /var/www/html/IMathAS/assessment/libs/copy.php in QSID 47:52 -- A non-numeric value encountered
+[25-Apr-2023 08:57:00 Europe/Berlin] Caught error by QuestionGenerator in /var/www/html/IMathAS/assessment/libs/copy.php in QSID 47:52 -- A non-numeric value encountered
+[25-Apr-2023 08:57:00 Europe/Berlin] Caught error by QuestionGenerator in /var/www/html/IMathAS/assessment/libs/copy.php in QSID 47:52 -- A non-numeric value encountered
+[23-May-2023 10:00:28 Europe/Berlin] Caught error by QuestionGenerator in /var/www/html/IMathAS/assess2/questions/QuestionHtmlGenerator.php(209) : eval()'d code in QSID 40:1 -- Use of undefined constant error - assumed 'error' (this will throw an Error in a future version of PHP)
+[23-May-2023 10:07:29 Europe/Berlin] Caught error by QuestionGenerator in /var/www/html/IMathAS/assess2/questions/QuestionHtmlGenerator.php(209) : eval()'d code in QSID 40:1 -- Use of undefined constant error - assumed 'error' (this will throw an Error in a future version of PHP)

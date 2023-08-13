@@ -1,0 +1,8 @@
+[25-Jul-2022 18:37:08 Europe/Berlin] PHP Warning:  require(loginpage.php): failed to open stream: Datei oder Verzeichnis nicht gefunden in /var/www/html/IMathAS/validate.php on line 753
+[25-Jul-2022 18:37:08 Europe/Berlin] PHP Fatal error:  require(): Failed opening required 'loginpage.php' (include_path='.:/usr/share/php') in /var/www/html/IMathAS/validate.php on line 753
+[26-Jul-2022 12:22:10 Europe/Berlin] PHP Warning:  require(loginpage.php): failed to open stream: Datei oder Verzeichnis nicht gefunden in /var/www/html/IMathAS/validate.php on line 753
+[26-Jul-2022 12:22:10 Europe/Berlin] PHP Fatal error:  require(): Failed opening required 'loginpage.php' (include_path='.:/usr/share/php') in /var/www/html/IMathAS/validate.php on line 753
+[26-Jul-2022 12:22:12 Europe/Berlin] PHP Warning:  require(loginpage.php): failed to open stream: Datei oder Verzeichnis nicht gefunden in /var/www/html/IMathAS/validate.php on line 753
+[26-Jul-2022 12:22:12 Europe/Berlin] PHP Fatal error:  require(): Failed opening required 'loginpage.php' (include_path='.:/usr/share/php') in /var/www/html/IMathAS/validate.php on line 753
+[26-Jul-2022 12:22:20 Europe/Berlin] PHP Warning:  require(loginpage.php): failed to open stream: Datei oder Verzeichnis nicht gefunden in /var/www/html/IMathAS/validate.php on line 753
+[26-Jul-2022 12:22:20 Europe/Berlin] PHP Fatal error:  require(): Failed opening required 'loginpage.php' (include_path='.:/usr/share/php') in /var/www/html/IMathAS/validate.php on line 753
