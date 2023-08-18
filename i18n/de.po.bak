@@ -3,19 +3,20 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
+#: mathquill/mathquill.js:1530 mathquill/mathquill.min.js:1
+#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
+"Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-24 22:27+0200\n"
-"PO-Revision-Date: 2023-08-13 22:33+0200\n"
-"Language: de\n"
+"POT-Creation-Date: 2023-08-13 22:34+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Last-Translator: \n"
-"Language-Team: \n"
-"X-Generator: Poedit 2.3\n"
 
 #: DEembedq.php:171 OEAembedq.php:315 admin/forms.php:1252 admin/forms.php:1520
 #: assessment/showtest.php:292 assessment/showtest.php:1929
@@ -5668,7 +5669,7 @@ msgstr "Fehler beim Hochladen der Datei"
 #: assessment/displayq2.php:7828 javascript/AMhelpers2.js:1807
 #: javascript/AMhelpers2.js:1813 assess2/questions/answerboxhelpers.php:159
 #: assess2/questions/scorepart/ComplexScorePart.php:320
-#: javascript/AMhelpers2.js:1826
+#: javascript/AMhelpers2.js:1826 javascript/AMhelpers2.js:1828
 msgid "error - more than 1 i in expression"
 msgstr "Fehler - mehr als ein i im Ausdruck"
 
@@ -5770,6 +5771,8 @@ msgstr "Fehler - mehr als ein i im Ausdruck"
 #: assess2/questions/scorepart/ComplexScorePart.php:382
 #: javascript/AMhelpers2.js:1847 javascript/AMhelpers2.js:1863
 #: javascript/AMhelpers2.js:1874 javascript/AMhelpers2.js:1885
+#: javascript/AMhelpers2.js:1849 javascript/AMhelpers2.js:1865
+#: javascript/AMhelpers2.js:1876 javascript/AMhelpers2.js:1887
 msgid "error - invalid form"
 msgstr "Fehler - ungültige Form"
 
@@ -6541,6 +6544,7 @@ msgstr "Angezeigter Text, Farbe %s, bei %s gelesen: %s"
 #: assessment/macros.php:2450 assessment/macros.php:2471
 #: assessment/macros.php:2539 assessment/macros.php:2694
 #: assessment/macros.php:2786 assessment/macros.php:2794
+#: assessment/macros.php:2795
 msgid "he"
 msgstr "er"
 
@@ -6551,6 +6555,7 @@ msgstr "er"
 #: assessment/macros.php:2450 assessment/macros.php:2471
 #: assessment/macros.php:2539 assessment/macros.php:2694
 #: assessment/macros.php:2786 assessment/macros.php:2794
+#: assessment/macros.php:2795
 msgid "him"
 msgstr "ihm"
 
@@ -6561,6 +6566,7 @@ msgstr "ihm"
 #: assessment/macros.php:2450 assessment/macros.php:2471
 #: assessment/macros.php:2539 assessment/macros.php:2694
 #: assessment/macros.php:2786 assessment/macros.php:2794
+#: assessment/macros.php:2795
 msgid "his"
 msgstr "sein"
 
@@ -6571,6 +6577,7 @@ msgstr "sein"
 #: assessment/macros.php:2452 assessment/macros.php:2473
 #: assessment/macros.php:2541 assessment/macros.php:2696
 #: assessment/macros.php:2788 assessment/macros.php:2796
+#: assessment/macros.php:2797
 msgid "she"
 msgstr "sie"
 
@@ -6581,6 +6588,7 @@ msgstr "sie"
 #: assessment/macros.php:2452 assessment/macros.php:2473
 #: assessment/macros.php:2541 assessment/macros.php:2696
 #: assessment/macros.php:2788 assessment/macros.php:2796
+#: assessment/macros.php:2797
 msgid "her"
 msgstr "ihr(e)"
 
@@ -6591,6 +6599,7 @@ msgstr "ihr(e)"
 #: assessment/macros.php:2452 assessment/macros.php:2473
 #: assessment/macros.php:2541 assessment/macros.php:2696
 #: assessment/macros.php:2788 assessment/macros.php:2796
+#: assessment/macros.php:2797
 msgid "hers"
 msgstr "ihre"
 
@@ -6602,6 +6611,7 @@ msgstr "ihre"
 #: assessment/macros.php:3702 assessment/macros.php:3927
 #: assessment/macros.php:3929 assessment/macros.php:4148
 #: assessment/macros.php:4247 assessment/macros.php:4256
+#: assessment/macros.php:4268
 msgid "No answer selected. Try again."
 msgstr "Keine Antwort ausgewählt. Bitte erneut versuchen."
 
@@ -6613,6 +6623,7 @@ msgstr "Keine Antwort ausgewählt. Bitte erneut versuchen."
 #: assessment/macros.php:3744 assessment/macros.php:3969
 #: assessment/macros.php:3993 assessment/macros.php:4212
 #: assessment/macros.php:4311 assessment/macros.php:4320
+#: assessment/macros.php:4332
 msgid "This answer does not appear to be a valid number."
 msgstr "Diese Antwort scheint keine gültige Zahl zu sein."
 
@@ -17814,7 +17825,7 @@ msgstr "Anonym"
 #: javascript/AMhelpers2.js:1813 javascript/AMhelpers2.js:1826
 #: javascript/AMhelpers2.js:1913 javascript/AMhelpers2.js:1918
 #: javascript/AMhelpers2.js:1922 javascript/AMhelpers2.js:1928
-#: javascript/AMhelpers2.js:1941
+#: javascript/AMhelpers2.js:1941 javascript/AMhelpers2.js:1943
 msgid "Invalid use of a comma."
 msgstr "Ungültige Verwendung des Komma."
 
@@ -17844,7 +17855,8 @@ msgstr "Ungültige Verwendung des Komma."
 #: javascript/AMhelpers2.js:2040 javascript/AMhelpers2.js:2057
 #: javascript/AMhelpers2.js:2061 javascript/AMhelpers2.js:1516
 #: javascript/AMhelpers2.js:2053 javascript/AMhelpers2.js:2070
-#: javascript/AMhelpers2.js:2074
+#: javascript/AMhelpers2.js:2074 javascript/AMhelpers2.js:1518
+#: javascript/AMhelpers2.js:2072 javascript/AMhelpers2.js:2076
 msgid "syntax incomplete"
 msgstr "Syntax unvollständig"
 
@@ -17877,7 +17889,8 @@ msgstr "nicht beantwortet"
 #: javascript/AMhelpers2.js:1239 javascript/AMhelpers2.js:1275
 #: javascript/AMhelpers2.js:1299 javascript/AMhelpers2.js:1333
 #: javascript/AMhelpers2.js:1369 javascript/AMhelpers2.js:1334
-#: javascript/AMhelpers2.js:1370
+#: javascript/AMhelpers2.js:1370 javascript/AMhelpers2.js:1336
+#: javascript/AMhelpers2.js:1372
 msgid "invalid inequality notation"
 msgstr "Ungültige Ungleichungs-Schreibweise"
 
@@ -17887,7 +17900,7 @@ msgstr "Ungültige Ungleichungs-Schreibweise"
 #: javascript/AMhelpers2.js:1265 javascript/AMhelpers2.js:1268
 #: javascript/AMhelpers2.js:1276 javascript/AMhelpers2.js:1277
 #: javascript/AMhelpers2.js:1301 javascript/AMhelpers2.js:1371
-#: javascript/AMhelpers2.js:1372
+#: javascript/AMhelpers2.js:1372 javascript/AMhelpers2.js:1374
 msgid "invalid interval notation"
 msgstr "ungültige Intervallschreibweise"
 
@@ -17898,6 +17911,7 @@ msgstr "ungültige Intervallschreibweise"
 #: javascript/AMhelpers2.js:1378 javascript/AMhelpers2.js:1379
 #: javascript/AMhelpers2.js:1403 javascript/AMhelpers2.js:1406
 #: javascript/AMhelpers2.js:1472 javascript/AMhelpers2.js:1473
+#: javascript/AMhelpers2.js:1475
 msgid "Invalid notation"
 msgstr "Ungültige Schreibweise"
 
@@ -17919,6 +17933,7 @@ msgstr "Syntax OK"
 #: javascript/AMhelpers.js:1099 javascript/AMhelpers2.js:1709
 #: javascript/AMhelpers2.js:1714 javascript/AMhelpers2.js:1718
 #: javascript/AMhelpers2.js:1724 javascript/AMhelpers2.js:1736
+#: javascript/AMhelpers2.js:1738
 msgid "syntax error"
 msgstr "Syntaxfehler"
 
@@ -17937,6 +17952,7 @@ msgstr "Warnung"
 #: javascript/AMhelpers.js:1184 javascript/AMhelpers2.js:1949
 #: javascript/AMhelpers2.js:1954 javascript/AMhelpers2.js:1958
 #: javascript/AMhelpers2.js:1964 javascript/AMhelpers2.js:1977
+#: javascript/AMhelpers2.js:1979
 msgid "Your answer contains an unrecognized symbol"
 msgstr "Ihre Antwort enthält ein unbekanntes Symbol"
 
@@ -17949,6 +17965,7 @@ msgstr "Ihre Antwort enthält ein unbekanntes Symbol"
 #: javascript/AMhelpers.js:1114 javascript/AMhelpers2.js:1679
 #: javascript/AMhelpers2.js:1684 javascript/AMhelpers2.js:1688
 #: javascript/AMhelpers2.js:1694 javascript/AMhelpers2.js:1705
+#: javascript/AMhelpers2.js:1707
 msgid "syntax error: this is not an equation"
 msgstr "Syntaxfehler: Das ist keine Gleichung"
 
@@ -17961,6 +17978,7 @@ msgstr "Syntaxfehler: Das ist keine Gleichung"
 #: javascript/AMhelpers.js:1115 javascript/AMhelpers2.js:1673
 #: javascript/AMhelpers2.js:1676 javascript/AMhelpers2.js:1680
 #: javascript/AMhelpers2.js:1686 javascript/AMhelpers2.js:1697
+#: javascript/AMhelpers2.js:1699
 msgid "syntax error: you gave an equation, not an expression"
 msgstr "Syntaxfehler: Sie haben eine Gleichung eingegeben, keinen Ausdruck"
 
@@ -17973,6 +17991,7 @@ msgstr "Syntaxfehler: Sie haben eine Gleichung eingegeben, keinen Ausdruck"
 #: javascript/AMhelpers.js:1156 javascript/AMhelpers2.js:1921
 #: javascript/AMhelpers2.js:1926 javascript/AMhelpers2.js:1930
 #: javascript/AMhelpers2.js:1936 javascript/AMhelpers2.js:1949
+#: javascript/AMhelpers2.js:1951
 msgid " invalid entry format"
 msgstr " Ungültiges Eingabeformat"
 
@@ -17985,6 +18004,7 @@ msgstr " Ungültiges Eingabeformat"
 #: javascript/AMhelpers.js:1162 javascript/AMhelpers2.js:1927
 #: javascript/AMhelpers2.js:1932 javascript/AMhelpers2.js:1936
 #: javascript/AMhelpers2.js:1942 javascript/AMhelpers2.js:1955
+#: javascript/AMhelpers2.js:1957
 msgid "not a valid fraction"
 msgstr "Kein gültiger Bruch"
 
@@ -17997,6 +18017,7 @@ msgstr "Kein gültiger Bruch"
 #: javascript/AMhelpers.js:1166 javascript/AMhelpers2.js:1931
 #: javascript/AMhelpers2.js:1936 javascript/AMhelpers2.js:1940
 #: javascript/AMhelpers2.js:1946 javascript/AMhelpers2.js:1959
+#: javascript/AMhelpers2.js:1961
 msgid "not a valid mixed number"
 msgstr "keine gültige gemischte Zahl"
 
@@ -18009,6 +18030,7 @@ msgstr "keine gültige gemischte Zahl"
 #: javascript/AMhelpers.js:1174 javascript/AMhelpers2.js:1939
 #: javascript/AMhelpers2.js:1944 javascript/AMhelpers2.js:1948
 #: javascript/AMhelpers2.js:1954 javascript/AMhelpers2.js:1967
+#: javascript/AMhelpers2.js:1969
 msgid "not valid scientific notation"
 msgstr "keine gültige wissenschaftliche Schreibweise"
 
@@ -18021,6 +18043,7 @@ msgstr "keine gültige wissenschaftliche Schreibweise"
 #: javascript/AMhelpers.js:1176 javascript/AMhelpers2.js:1941
 #: javascript/AMhelpers2.js:1946 javascript/AMhelpers2.js:1950
 #: javascript/AMhelpers2.js:1956 javascript/AMhelpers2.js:1969
+#: javascript/AMhelpers2.js:1971
 msgid "not valid decimal or scientific notation"
 msgstr "keine gültige Dezimal- oder wissenschaftliche Schreibweise"
 
@@ -18033,6 +18056,7 @@ msgstr "keine gültige Dezimal- oder wissenschaftliche Schreibweise"
 #: javascript/AMhelpers.js:1181 javascript/AMhelpers2.js:1946
 #: javascript/AMhelpers2.js:1951 javascript/AMhelpers2.js:1955
 #: javascript/AMhelpers2.js:1961 javascript/AMhelpers2.js:1974
+#: javascript/AMhelpers2.js:1976
 msgid " not a valid integer or decimal number"
 msgstr " keine ganze Zahl oder Dezimalzahl"
 
@@ -18045,6 +18069,7 @@ msgstr " keine ganze Zahl oder Dezimalzahl"
 #: javascript/AMhelpers.js:1192 javascript/AMhelpers2.js:1959
 #: javascript/AMhelpers2.js:1964 javascript/AMhelpers2.js:1968
 #: javascript/AMhelpers2.js:1974 javascript/AMhelpers2.js:1987
+#: javascript/AMhelpers2.js:1989
 msgid "no trig functions allowed"
 msgstr "Trigonometrische Funktionen (sin, cos, etc.) sind nicht erlaubt"
 
@@ -18057,6 +18082,7 @@ msgstr "Trigonometrische Funktionen (sin, cos, etc.) sind nicht erlaubt"
 #: javascript/AMhelpers.js:1194 javascript/AMhelpers2.js:1961
 #: javascript/AMhelpers2.js:1966 javascript/AMhelpers2.js:1970
 #: javascript/AMhelpers2.js:1976 javascript/AMhelpers2.js:1989
+#: javascript/AMhelpers2.js:1991
 msgid "no decimals allowed"
 msgstr "Dezimalwerte sind nicht erlaubt"
 
@@ -18069,6 +18095,7 @@ msgstr "Dezimalwerte sind nicht erlaubt"
 #: javascript/AMhelpers.js:1197 javascript/AMhelpers2.js:1964
 #: javascript/AMhelpers2.js:1969 javascript/AMhelpers2.js:1973
 #: javascript/AMhelpers2.js:1979 javascript/AMhelpers2.js:1992
+#: javascript/AMhelpers2.js:1994
 msgid "mixed numbers are not allowed"
 msgstr "Gemischte Zahlen sind nicht erlaubt"
 
@@ -18081,6 +18108,7 @@ msgstr "Gemischte Zahlen sind nicht erlaubt"
 #: javascript/AMhelpers.js:1214 javascript/AMhelpers2.js:1983
 #: javascript/AMhelpers2.js:1988 javascript/AMhelpers2.js:1992
 #: javascript/AMhelpers2.js:1998 javascript/AMhelpers2.js:2011
+#: javascript/AMhelpers2.js:2013
 msgid "unmatched parens"
 msgstr "Klammerfehler"
 
@@ -18093,6 +18121,7 @@ msgstr "Klammerfehler"
 #: javascript/AMhelpers.js:1217 javascript/AMhelpers2.js:1986
 #: javascript/AMhelpers2.js:1991 javascript/AMhelpers2.js:1995
 #: javascript/AMhelpers2.js:2001 javascript/AMhelpers2.js:2014
+#: javascript/AMhelpers2.js:2016
 msgid "unmatched absolute value bars"
 msgstr "Die Striche für den Absolutbetrag passen nicht"
 
@@ -18105,6 +18134,7 @@ msgstr "Die Striche für den Absolutbetrag passen nicht"
 #: javascript/AMhelpers.js:1226 javascript/AMhelpers2.js:1995
 #: javascript/AMhelpers2.js:2000 javascript/AMhelpers2.js:2004
 #: javascript/AMhelpers2.js:2010 javascript/AMhelpers2.js:2023
+#: javascript/AMhelpers2.js:2025
 msgid "use function notation"
 msgstr "Funktionsschreibweise verwenden"
 
@@ -18117,6 +18147,7 @@ msgstr "Funktionsschreibweise verwenden"
 #: javascript/AMhelpers.js:1226 javascript/AMhelpers2.js:1995
 #: javascript/AMhelpers2.js:2000 javascript/AMhelpers2.js:2004
 #: javascript/AMhelpers2.js:2010 javascript/AMhelpers2.js:2023
+#: javascript/AMhelpers2.js:2025
 msgid "use $1 instead of $2"
 msgstr "Benutze $1 statt $2"
 
@@ -18129,6 +18160,7 @@ msgstr "Benutze $1 statt $2"
 #: javascript/AMhelpers.js:1231 javascript/AMhelpers2.js:2002
 #: javascript/AMhelpers2.js:2007 javascript/AMhelpers2.js:2011
 #: javascript/AMhelpers2.js:2017 javascript/AMhelpers2.js:2030
+#: javascript/AMhelpers2.js:2032
 msgid " Check your variables - you might be using an incorrect one"
 msgstr " Überprüfen Sie Ihre Variablen! Verwenden Sie nur zulässige Variable"
 
@@ -18141,6 +18173,7 @@ msgstr " Überprüfen Sie Ihre Variablen! Verwenden Sie nur zulässige Variable"
 #: javascript/AMhelpers.js:1238 javascript/AMhelpers2.js:2009
 #: javascript/AMhelpers2.js:2014 javascript/AMhelpers2.js:2018
 #: javascript/AMhelpers2.js:2024 javascript/AMhelpers2.js:2037
+#: javascript/AMhelpers2.js:2039
 msgid ""
 " You may want to use abs(x) instead of |x| for absolute values to avoid "
 "ambiguity"
@@ -18157,6 +18190,7 @@ msgstr ""
 #: javascript/AMhelpers.js:1244 javascript/AMhelpers2.js:2015
 #: javascript/AMhelpers2.js:2020 javascript/AMhelpers2.js:2024
 #: javascript/AMhelpers2.js:2030 javascript/AMhelpers2.js:2043
+#: javascript/AMhelpers2.js:2045
 msgid " Do not use the percent symbol, %"
 msgstr " Benutzen Sie nicht das Prozentzeichen %"
 
@@ -18235,7 +18269,7 @@ msgstr "Lösung ansehen"
 #: javascript/AMhelpers2.js:1227 javascript/AMhelpers2.js:1229
 #: javascript/AMhelpers2.js:1237 javascript/AMhelpers2.js:1238
 #: javascript/AMhelpers2.js:1262 javascript/AMhelpers2.js:1332
-#: javascript/AMhelpers2.js:1333
+#: javascript/AMhelpers2.js:1333 javascript/AMhelpers2.js:1335
 msgid "you may have used the wrong variable"
 msgstr "Sie haben vielleicht die falsche Variable verwendet"
 
@@ -18246,7 +18280,7 @@ msgstr "Sie haben vielleicht die falsche Variable verwendet"
 #: javascript/AMhelpers2.js:1546 javascript/AMhelpers2.js:1549
 #: javascript/AMhelpers2.js:1622 javascript/AMhelpers2.js:1625
 #: javascript/AMhelpers2.js:1629 javascript/AMhelpers2.js:1635
-#: javascript/AMhelpers2.js:1646
+#: javascript/AMhelpers2.js:1646 javascript/AMhelpers2.js:1648
 msgid "Invalid matrix format"
 msgstr "Ungültiges Format der Matrix"
 
@@ -18257,7 +18291,7 @@ msgstr "Ungültiges Format der Matrix"
 #: javascript/AMhelpers2.js:1574 javascript/AMhelpers2.js:1587
 #: javascript/AMhelpers2.js:1661 javascript/AMhelpers2.js:1664
 #: javascript/AMhelpers2.js:1668 javascript/AMhelpers2.js:1674
-#: javascript/AMhelpers2.js:1685
+#: javascript/AMhelpers2.js:1685 javascript/AMhelpers2.js:1687
 msgid "syntax error: you gave an inequality, not an equation"
 msgstr "Syntaxfehler: Sie haben eine Ungleichung eingegeben, keine Gleichung"
 
@@ -18268,7 +18302,7 @@ msgstr "Syntaxfehler: Sie haben eine Ungleichung eingegeben, keine Gleichung"
 #: javascript/AMhelpers2.js:1576 javascript/AMhelpers2.js:1589
 #: javascript/AMhelpers2.js:1663 javascript/AMhelpers2.js:1666
 #: javascript/AMhelpers2.js:1670 javascript/AMhelpers2.js:1676
-#: javascript/AMhelpers2.js:1687
+#: javascript/AMhelpers2.js:1687 javascript/AMhelpers2.js:1689
 msgid "syntax error: you gave an inequality, not an expression"
 msgstr "Syntaxfehler: Sie haben eine Ungleichung eingegeben, keinen Ausdruck"
 
@@ -18279,7 +18313,7 @@ msgstr "Syntaxfehler: Sie haben eine Ungleichung eingegeben, keinen Ausdruck"
 #: javascript/AMhelpers2.js:1579 javascript/AMhelpers2.js:1592
 #: javascript/AMhelpers2.js:1666 javascript/AMhelpers2.js:1669
 #: javascript/AMhelpers2.js:1673 javascript/AMhelpers2.js:1679
-#: javascript/AMhelpers2.js:1690
+#: javascript/AMhelpers2.js:1690 javascript/AMhelpers2.js:1692
 msgid "syntax error: your inequality should only contain one inequality symbol"
 msgstr ""
 "Syntaxfehler: Ihre Ungleichung sollte nur ein Vergleichssymbol enthalten"
@@ -18291,7 +18325,7 @@ msgstr ""
 #: javascript/AMhelpers2.js:1584 javascript/AMhelpers2.js:1597
 #: javascript/AMhelpers2.js:1671 javascript/AMhelpers2.js:1674
 #: javascript/AMhelpers2.js:1678 javascript/AMhelpers2.js:1684
-#: javascript/AMhelpers2.js:1695
+#: javascript/AMhelpers2.js:1695 javascript/AMhelpers2.js:1697
 msgid "syntax error: you gave an equation, not an inequality"
 msgstr "Syntaxfehler: Sie haben eine Gleichung eingegeben, keine Ungleichung"
 
@@ -18302,7 +18336,7 @@ msgstr "Syntaxfehler: Sie haben eine Gleichung eingegeben, keine Ungleichung"
 #: javascript/AMhelpers2.js:1588 javascript/AMhelpers2.js:1601
 #: javascript/AMhelpers2.js:1675 javascript/AMhelpers2.js:1678
 #: javascript/AMhelpers2.js:1682 javascript/AMhelpers2.js:1688
-#: javascript/AMhelpers2.js:1699
+#: javascript/AMhelpers2.js:1699 javascript/AMhelpers2.js:1701
 msgid "syntax error: your equation should only contain one equal sign"
 msgstr ""
 "Syntaxfehler: Ihre Gleichung sollte nur ein Gleichheitszeichen enthalten"
@@ -18314,7 +18348,7 @@ msgstr ""
 #: javascript/AMhelpers2.js:1594 javascript/AMhelpers2.js:1607
 #: javascript/AMhelpers2.js:1681 javascript/AMhelpers2.js:1686
 #: javascript/AMhelpers2.js:1690 javascript/AMhelpers2.js:1696
-#: javascript/AMhelpers2.js:1707
+#: javascript/AMhelpers2.js:1707 javascript/AMhelpers2.js:1709
 msgid "syntax error: this is not an inequality"
 msgstr "Syntaxfehler: Das ist keine Ungleichung"
 
@@ -18435,6 +18469,7 @@ msgstr " Ersetzen"
 #: javascript/AMhelpers2.js:2151 javascript/AMhelpers2.js:2145
 #: javascript/AMhelpers2.js:2157 javascript/AMhelpers2.js:2158
 #: javascript/AMhelpers2.js:2170 javascript/addqsort2.js:1246
+#: javascript/AMhelpers2.js:2160 javascript/AMhelpers2.js:2172
 msgid "Collapse"
 msgstr "Schließen"
 
@@ -18448,6 +18483,7 @@ msgstr "Schließen"
 #: javascript/AMhelpers2.js:2147 javascript/AMhelpers2.js:2145
 #: javascript/AMhelpers2.js:2153 javascript/AMhelpers2.js:2158
 #: javascript/AMhelpers2.js:2166 javascript/addqsort2.js:1255
+#: javascript/AMhelpers2.js:2160 javascript/AMhelpers2.js:2168
 msgid "Expand"
 msgstr "Öffnen"
 
@@ -20300,7 +20336,7 @@ msgstr "Es wurden noch keine Elemente hinzugefügt"
 #: assessment/macros.php:2442 assessment/macros.php:2450
 #: assessment/macros.php:2471 assessment/macros.php:2539
 #: assessment/macros.php:2694 assessment/macros.php:2786
-#: assessment/macros.php:2794
+#: assessment/macros.php:2794 assessment/macros.php:2795
 msgid "himself"
 msgstr "ihm"
 
@@ -20309,7 +20345,7 @@ msgstr "ihm"
 #: assessment/macros.php:2444 assessment/macros.php:2452
 #: assessment/macros.php:2473 assessment/macros.php:2541
 #: assessment/macros.php:2696 assessment/macros.php:2788
-#: assessment/macros.php:2796
+#: assessment/macros.php:2796 assessment/macros.php:2797
 msgid "herself"
 msgstr "ihr"
 
@@ -20323,7 +20359,8 @@ msgstr "ihr"
 #: assessment/macros.php:2547 assessment/macros.php:2700
 #: assessment/macros.php:2702 assessment/macros.php:2792
 #: assessment/macros.php:2794 assessment/macros.php:2800
-#: assessment/macros.php:2802
+#: assessment/macros.php:2802 assessment/macros.php:2801
+#: assessment/macros.php:2803
 msgid "they"
 msgstr "sie"
 
@@ -20337,7 +20374,8 @@ msgstr "sie"
 #: assessment/macros.php:2547 assessment/macros.php:2700
 #: assessment/macros.php:2702 assessment/macros.php:2792
 #: assessment/macros.php:2794 assessment/macros.php:2800
-#: assessment/macros.php:2802
+#: assessment/macros.php:2802 assessment/macros.php:2801
+#: assessment/macros.php:2803
 msgid "them"
 msgstr "ihnen"
 
@@ -20351,7 +20389,8 @@ msgstr "ihnen"
 #: assessment/macros.php:2547 assessment/macros.php:2700
 #: assessment/macros.php:2702 assessment/macros.php:2792
 #: assessment/macros.php:2794 assessment/macros.php:2800
-#: assessment/macros.php:2802
+#: assessment/macros.php:2802 assessment/macros.php:2801
+#: assessment/macros.php:2803
 msgid "their"
 msgstr "ihr"
 
@@ -20365,7 +20404,8 @@ msgstr "ihr"
 #: assessment/macros.php:2547 assessment/macros.php:2700
 #: assessment/macros.php:2702 assessment/macros.php:2792
 #: assessment/macros.php:2794 assessment/macros.php:2800
-#: assessment/macros.php:2802
+#: assessment/macros.php:2802 assessment/macros.php:2801
+#: assessment/macros.php:2803
 msgid "theirs"
 msgstr "ihre"
 
@@ -20379,7 +20419,8 @@ msgstr "ihre"
 #: assessment/macros.php:2547 assessment/macros.php:2700
 #: assessment/macros.php:2702 assessment/macros.php:2792
 #: assessment/macros.php:2794 assessment/macros.php:2800
-#: assessment/macros.php:2802
+#: assessment/macros.php:2802 assessment/macros.php:2801
+#: assessment/macros.php:2803
 msgid "themself"
 msgstr "ihnen"
 
@@ -21480,7 +21521,7 @@ msgstr "Termin hinzufügen"
 #: javascript/assess2_min.js:2 javascript/AMhelpers2.js:1143
 #: javascript/AMhelpers2.js:1151 javascript/AMhelpers2.js:1152
 #: javascript/AMhelpers2.js:1176 javascript/AMhelpers2.js:1195
-#: javascript/AMhelpers2.js:1196
+#: javascript/AMhelpers2.js:1196 javascript/AMhelpers2.js:1198
 msgid ""
 "Units must be given as [decimal number]*[unit]^[power]*[unit]^[power].../"
 "[unit]^[power]*[unit]^[power]..."
@@ -21493,7 +21534,7 @@ msgstr ""
 #: javascript/assess2_min.js:2 javascript/AMhelpers2.js:1145
 #: javascript/AMhelpers2.js:1153 javascript/AMhelpers2.js:1154
 #: javascript/AMhelpers2.js:1178 javascript/AMhelpers2.js:1197
-#: javascript/AMhelpers2.js:1198
+#: javascript/AMhelpers2.js:1198 javascript/AMhelpers2.js:1200
 msgid "Answer must start with a number. "
 msgstr "Die Antwort muss mit einer Zahl beginnen. "
 
@@ -21501,7 +21542,7 @@ msgstr "Die Antwort muss mit einer Zahl beginnen. "
 #: javascript/assess2_min.js:2 javascript/AMhelpers2.js:1157
 #: javascript/AMhelpers2.js:1165 javascript/AMhelpers2.js:1166
 #: javascript/AMhelpers2.js:1190 javascript/AMhelpers2.js:1231
-#: javascript/AMhelpers2.js:1232
+#: javascript/AMhelpers2.js:1232 javascript/AMhelpers2.js:1234
 msgid "Invalid exponents. "
 msgstr "Ungültige Exponenten. "
 
@@ -21509,7 +21550,7 @@ msgstr "Ungültige Exponenten. "
 #: javascript/assess2_min.js:2 javascript/AMhelpers2.js:1161
 #: javascript/AMhelpers2.js:1169 javascript/AMhelpers2.js:1170
 #: javascript/AMhelpers2.js:1194 javascript/AMhelpers2.js:1235
-#: javascript/AMhelpers2.js:1236
+#: javascript/AMhelpers2.js:1236 javascript/AMhelpers2.js:1238
 msgid "Only one division symbol allowed in the units. "
 msgstr "In den Einheiten ist nur ein Bruchstrich erlaubt. "
 
@@ -21517,7 +21558,7 @@ msgstr "In den Einheiten ist nur ein Bruchstrich erlaubt. "
 #: javascript/assess2_min.js:2 javascript/AMhelpers2.js:1170
 #: javascript/AMhelpers2.js:1178 javascript/AMhelpers2.js:1179
 #: javascript/AMhelpers2.js:1203 javascript/AMhelpers2.js:1269
-#: javascript/AMhelpers2.js:1270
+#: javascript/AMhelpers2.js:1270 javascript/AMhelpers2.js:1272
 msgid "Unknown unit "
 msgstr "Unbekannte Einheit "
 
@@ -21525,7 +21566,7 @@ msgstr "Unbekannte Einheit "
 #: javascript/assess2_min.js:2 javascript/AMhelpers2.js:1174
 #: javascript/AMhelpers2.js:1182 javascript/AMhelpers2.js:1183
 #: javascript/AMhelpers2.js:1207 javascript/AMhelpers2.js:1273
-#: javascript/AMhelpers2.js:1274
+#: javascript/AMhelpers2.js:1274 javascript/AMhelpers2.js:1276
 msgid "Missing units"
 msgstr "Einheit fehlt"
 
@@ -21533,7 +21574,7 @@ msgstr "Einheit fehlt"
 #: javascript/assess2_min.js:2 javascript/AMhelpers2.js:1178
 #: javascript/AMhelpers2.js:1186 javascript/AMhelpers2.js:1187
 #: javascript/AMhelpers2.js:1211 javascript/AMhelpers2.js:1277
-#: javascript/AMhelpers2.js:1278
+#: javascript/AMhelpers2.js:1278 javascript/AMhelpers2.js:1280
 msgid "This is not an integer."
 msgstr "Das ist keine ganze Zahl."
 
@@ -21541,7 +21582,7 @@ msgstr "Das ist keine ganze Zahl."
 #: javascript/assess2_min.js:2 javascript/AMhelpers2.js:1182
 #: javascript/AMhelpers2.js:1190 javascript/AMhelpers2.js:1191
 #: javascript/AMhelpers2.js:1215 javascript/AMhelpers2.js:1281
-#: javascript/AMhelpers2.js:1282
+#: javascript/AMhelpers2.js:1282 javascript/AMhelpers2.js:1284
 msgid "This is not a decimal or integer value."
 msgstr "Das ist keine ganze Zahl oder Dezimalzahl."
 
@@ -21551,7 +21592,7 @@ msgstr "Das ist keine ganze Zahl oder Dezimalzahl."
 #: javascript/AMhelpers2.js:1864 javascript/AMhelpers2.js:1877
 #: javascript/AMhelpers2.js:1966 javascript/AMhelpers2.js:1971
 #: javascript/AMhelpers2.js:1975 javascript/AMhelpers2.js:1981
-#: javascript/AMhelpers2.js:1994
+#: javascript/AMhelpers2.js:1994 javascript/AMhelpers2.js:1996
 msgid "no degree symbols allowed"
 msgstr "Grad-Symbole sind nicht erlaubt"
 
@@ -25375,35 +25416,39 @@ msgstr ""
 
 #: javascript/AMhelpers2.js:1181 javascript/AMhelpers2_min.js:1
 #: javascript/assess2_min.js:2 javascript/AMhelpers2.js:1182
+#: javascript/AMhelpers2.js:1184
 msgid "Invalid set notation"
 msgstr "Üngültige Mengen-Schreibweise"
 
 #: javascript/AMhelpers2.js:1201 javascript/AMhelpers2_min.js:1
 #: javascript/assess2_min.js:2 javascript/AMhelpers2.js:1202
+#: javascript/AMhelpers2.js:1204
 msgid "Invalid base for exponent. "
 msgstr "Ungültige Basis für den Exponenten. "
 
 #: javascript/AMhelpers2.js:1206 javascript/AMhelpers2_min.js:1
 #: javascript/assess2_min.js:2 javascript/AMhelpers2.js:1207
+#: javascript/AMhelpers2.js:1209
 msgid "Missing unit before \"per\". "
 msgstr "Fehlende Einheit vor \"pro\". "
 
 #: javascript/AMhelpers2.js:1211 javascript/AMhelpers2_min.js:1
 #: javascript/assess2_min.js:2 javascript/AMhelpers2.js:1212
+#: javascript/AMhelpers2.js:1214
 msgid "Missing unit after \"per\". "
 msgstr "Fehlende Einheit nach \"pro\". "
 
 #: javascript/AMhelpers2.js:1607 javascript/AMhelpers2_min.js:1
 #: javascript/assess2_min.js:2 javascript/AMhelpers2.js:1610
 #: javascript/AMhelpers2.js:1614 javascript/AMhelpers2.js:1620
-#: javascript/AMhelpers2.js:1631
+#: javascript/AMhelpers2.js:1631 javascript/AMhelpers2.js:1633
 msgid "No elements of the matrix should be left blank."
 msgstr "Es darf kein feld der Matrix leer bleiben."
 
 #: javascript/AMhelpers2.js:1951 javascript/AMhelpers2_min.js:1
 #: javascript/assess2_min.js:2 javascript/AMhelpers2.js:1956
 #: javascript/AMhelpers2.js:1960 javascript/AMhelpers2.js:1966
-#: javascript/AMhelpers2.js:1979
+#: javascript/AMhelpers2.js:1979 javascript/AMhelpers2.js:1981
 msgid "You gave an equation, not an expression"
 msgstr "Sie haben eine Gleichung angegeben, keinen Ausdruck"
 
@@ -25797,6 +25842,7 @@ msgstr "NC"
 #: javascript/AMhelpers2.js:1682 javascript/AMhelpers2_min.js:1
 #: javascript/assess2_min.js:2 javascript/AMhelpers2.js:1686
 #: javascript/AMhelpers2.js:1692 javascript/AMhelpers2.js:1703
+#: javascript/AMhelpers2.js:1705
 msgid "syntax error: this is not an equation or inequality"
 msgstr "Syntax-Fehler: Dies ist keine Gleichung oder Ungleichung"
 
