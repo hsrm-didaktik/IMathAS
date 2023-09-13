@@ -12,7 +12,6 @@ function copyButton($arg="",$label="Copy to clipboard",$successMessage="Copied t
     function reportSuccess (success) {
       let responseDiv=document.getElementById('js_cp_response');
       let response=(success)?'$successMessage':'$failMessage';
-      console.log(response)
       alert(response);
     }
     function fallbackCopyTextToClipboard(text) {
@@ -34,6 +33,7 @@ function copyButton($arg="",$label="Copy to clipboard",$successMessage="Copied t
       document.body.removeChild(textArea);
     }
     async function copyTextToClipboard(text) {
+        console.log('copytextToClipboard called');
         if (!navigator.clipboard) {
         fallbackCopyTextToClipboard(text);
         return;
@@ -42,15 +42,15 @@ function copyButton($arg="",$label="Copy to clipboard",$successMessage="Copied t
         await navigator.clipboard.writeText(text).then(function() {
         reportSuccess(true);
         console.log('Async: Copying to clipboard was successful!');
-      } catch (err) {
+      })} catch (err) {
         reportSuccess(false);
         console.error('Async: Could not copy text: ', err);
-      });
+      };
     }
     </script>
   ";
   
-  $html = "<button onclick=\"copyTextToClipboard('$arg')\">$label</button>";
+  $html = "<button type=\"button\" onclick=\"copyTextToClipboard('$arg')\">$label</button>";
   return $js_cp.$html;
 }
 
