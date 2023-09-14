@@ -49,7 +49,6 @@ function copyButton($arg="",$label="Copy to clipboard",$successMessage="Copied t
     }
     </script>
   ";
-  
   $html = "<button type=\"button\" onclick=\"copyTextToClipboard('$arg')\">$label</button>";
   return $js_cp.$html;
 }
