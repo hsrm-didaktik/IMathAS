@@ -6,7 +6,7 @@
 global $allowedmacros;
 array_push($allowedmacros,"copyButton" );
 
-function copyButton($arg="",$label="Copy to clipboard",$successMessage="Copied to clipboard",$failMessage="Copy failed!") {
+function copyButton($arg="",$label="Copy to clipboard",$successMessage="Copied to clipboard",$failMessage="Copy failed!",$formatPrompt="Der folgende Text kann Formeln in ASCIIMath-Format zwischen Backticks `...` enthalten. Die Antwort sollte Formeln mit LaTeX darstellen.\\n") {
   $js_cp="
   <script>
     function reportSuccess (success) {
@@ -32,8 +32,8 @@ function copyButton($arg="",$label="Copy to clipboard",$successMessage="Copied t
       }
       document.body.removeChild(textArea);
     }
-    async function copyTextToClipboard(text) {
-        console.log('copytextToClipboard called');
+    async function copyTextToClipboard(textEncoded) {
+        var text = '$formatPrompt'+atob(textEncoded);        
         if (!navigator.clipboard) {
         fallbackCopyTextToClipboard(text);
         return;
@@ -49,7 +49,7 @@ function copyButton($arg="",$label="Copy to clipboard",$successMessage="Copied t
     }
     </script>
   ";
-  $html = "<button type=\"button\" onclick=\"copyTextToClipboard('$arg')\">$label</button>";
+  $html = "<button type=\"button\" onclick=\"copyTextToClipboard('" . base64_encode($arg) . "')\">$label</button>";
   return $js_cp.$html;
 }
 
