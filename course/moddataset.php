@@ -9,13 +9,13 @@
 //3 - CC-BY-SA-NC
 //4 - CC-BY-SA
 
-	require("../init.php");
+	require_once "../init.php";
 
 
 	if ($myrights<20) {
-		require("../header.php");
+		require_once "../header.php";
 		echo _("You need to log in as a teacher to access this page");
-		require("../footer.php");
+		require_once "../footer.php";
 		exit;
 	}
 
@@ -98,7 +98,7 @@
 	$outputmsg = '';
 	$errmsg = '';
 	if (isset($_POST['qtext'])) {
-		require_once("../includes/filehandler.php");
+		require_once "../includes/filehandler.php";
 		$now = time();
 		foreach (array('qcontrol','answer','solution') as $v) {
 			if (!isset($_POST[$v])) {$_POST[$v] = '';}
@@ -116,7 +116,7 @@
 		}
 
 		if (strpos($_POST['qtext'],'data:image')!==false) {
-			require_once("../includes/htmLawed.php");
+			require_once "../includes/htmLawed.php";
 			$_POST['qtext'] = convertdatauris($_POST['qtext']);
 		}
 
@@ -559,10 +559,10 @@
 			} else if ($errmsg == '' && $frompot==0) {
 				header('Location: ' . $GLOBALS['basesiteurl'] . '/course/'.$addq.'.php?cid='.$cid.'&aid='.Sanitize::onlyInt($_GET['aid']).'&r='.Sanitize::randomQueryStringParam());
 			} else {
-				require("../header.php");
+				require_once "../header.php";
 				echo $errmsg;
 				echo $outputmsg;
-				require("../footer.php");
+				require_once "../footer.php";
 			}
 			exit;
 		}
@@ -1009,7 +1009,7 @@
 	$placeinhead .= "<link href=\"$staticroot/course/solver.css?ver=230616\" rel=\"stylesheet\">";
 	$placeinhead .= "<style>.quickSaveButton {display:none;}</style>";
 
-	require("../header.php");
+	require_once "../header.php";
 
 
 	if (isset($_GET['aid'])) {
@@ -1527,5 +1527,5 @@ $placeinfooter='
 ?>
 
 <?php
-	require("../footer.php");
+	require_once "../footer.php";
 ?>

@@ -10,7 +10,7 @@ if (!isset($myrights)) {
 }
 //Look to see if a hook file is defined, and include if it is
 if (isset($CFG['hooks']['header'])) {
-    require_once($CFG['hooks']['header']);
+    require_once $CFG['hooks']['header'];
 }
 ?>
 <head>
@@ -77,7 +77,7 @@ div.breadcrumb { display:none;}
 var imasroot = '<?php echo $imasroot; ?>'; var cid = <?php echo (isset($cid) && is_numeric($cid))?$cid:0; ?>;
 var staticroot = '<?php echo $staticroot; ?>';
 </script>
-<script type="text/javascript" src="<?php echo $staticroot;?>/javascript/general.js?v=061323"></script>
+<script type="text/javascript" src="<?php echo $staticroot;?>/javascript/general.js?v=092823"></script>
 <?php
 //$_SESSION['mathdisp'] = 3;
 //
@@ -229,7 +229,7 @@ if (!isset($_SESSION['mathdisp'])) {
 }
 echo "<script src=\"$staticroot/javascript/mathjs.js?v=20230729\" type=\"text/javascript\"></script>\n";
 if (isset($_SESSION['graphdisp']) && $_SESSION['graphdisp']==1) {
-	echo "<script src=\"$staticroot/javascript/ASCIIsvg_min.js?ver=011923\" type=\"text/javascript\"></script>\n";
+	echo "<script src=\"$staticroot/javascript/ASCIIsvg_min.js?ver=110123\" type=\"text/javascript\"></script>\n";
 	echo "<script type=\"text/javascript\">var usingASCIISvg = true;</script>";
 	//echo "<script src=\"$imasroot/course/editor/plugins/AsciiSvg/ASCIIsvgAddon.js\" type=\"text/javascript\"></script>\n";
 } else if (isset($_SESSION['graphdisp'])) {
@@ -264,7 +264,7 @@ if (isset($placeinhead)) {
 }
 $curdir = rtrim(dirname(__FILE__), '/\\');
 if (isset($CFG['GEN']['headerscriptinclude'])) {
-	require("$curdir/{$CFG['GEN']['headerscriptinclude']}");
+	require_once "$curdir/{$CFG['GEN']['headerscriptinclude']}";
 }
 if (function_exists('insertIntoHead')) {
     insertIntoHead();
@@ -303,7 +303,7 @@ if (!isset($flexwidth) && !isset($hideAllHeaderNav)) {
 }
 if (isset($CFG['GEN']['headerinclude']) && !isset($flexwidth) && !isset($hideAllHeaderNav)) {
     $prepend = '/' == substr($CFG['GEN']['headerinclude'], 0, 1) ? '' : $curdir;
-	require("$prepend/{$CFG['GEN']['headerinclude']}");
+	require_once "$prepend/{$CFG['GEN']['headerinclude']}";
 }
 $didnavlist = false;  $essentialsnavcnt = 0;
 function getactivetab() {
@@ -364,7 +364,7 @@ echo '<div class="midwrapper" role="main">';
 
 //load filter
 $curdir = rtrim(dirname(__FILE__), '/\\');
-require_once("$curdir/filter/filter.php");
+require_once "$curdir/filter/filter.php";
 
 //CUSTOMIZE:  put a small (max 120px wide) logo on upper right of course pages
 

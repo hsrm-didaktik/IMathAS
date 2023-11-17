@@ -11,7 +11,7 @@ if (isset($_GET['callength'])) {
 	$_COOKIE["callength".$cid] = Sanitize::onlyInt($_GET['callength']);
 }
 
-require_once("filehandler.php");
+require_once "filehandler.php";
 
 function showcalendar($refpage) {
 global $DBH;
@@ -230,7 +230,7 @@ while ($row = $stm->fetch(PDO::FETCH_ASSOC)) {
 			 }
 			 if ($row['reqscoretype']&2) { //using percent-based
 				 if ($reqscoreptsposs==-1) {
-					 require("../includes/updateptsposs.php");
+					 require_once "../includes/updateptsposs.php";
 					 $reqscoreptsposs = updatePointsPossible($row['reqscoreaid']);
 				 }
 				 if (round(100*$reqascore/$reqscoreptsposs,1)+.02<abs($row['reqscore'])) {
@@ -954,7 +954,7 @@ function flattenitems($items,&$addto,&$folderholder,&$hiddenholder,&$greyitems,$
 function addBlockItems($items, $parent, &$tags,&$colors,&$assess,&$names,&$itemidref) {
 	foreach ($items as $i=>$item) {
 		if (is_array($item)) {
-			if ($item['startdate'] > 0) {
+			if ($item['avail'] == 1 && $item['startdate'] > 0) {
 				$moday = tzdate('Y-n-j',$item['startdate']);
 				$json = array(
 					"type"=>"BS",
@@ -969,7 +969,7 @@ function addBlockItems($items, $parent, &$tags,&$colors,&$assess,&$names,&$itemi
 				$names[$k] = $item['name'];
 				$itemidref[$k] = 'BS'.$item['id'].':'.$parent.'-'.$i;
 			}
-			if ($item['enddate'] < 2000000000) {
+			if ($item['avail'] == 1 && $item['enddate'] < 2000000000) {
 				$moday = tzdate('Y-n-j',$item['enddate']);
 				$json = array(
 					"type"=>"BE",

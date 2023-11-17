@@ -4,14 +4,14 @@
  * (c) 2019 David Lippman
  */
 
-require_once(__DIR__ . '/AssessUtils.php');
-require_once(__DIR__ . '/../filter/filter.php');
-require_once(__DIR__ . '/questions/QuestionGenerator.php');
-require_once(__DIR__ . '/questions/models/QuestionParams.php');
-require_once(__DIR__ . '/questions/models/ShowAnswer.php');
-require_once(__DIR__ . '/questions/ScoreEngine.php');
-require_once(__DIR__ . '/questions/models/ScoreQuestionParams.php');
-require_once(__DIR__ . '/../includes/TeacherAuditLog.php');
+require_once __DIR__ . '/AssessUtils.php';
+require_once __DIR__ . '/../filter/filter.php';
+require_once __DIR__ . '/questions/QuestionGenerator.php';
+require_once __DIR__ . '/questions/models/QuestionParams.php';
+require_once __DIR__ . '/questions/models/ShowAnswer.php';
+require_once __DIR__ . '/questions/ScoreEngine.php';
+require_once __DIR__ . '/questions/models/ScoreQuestionParams.php';
+require_once __DIR__ . '/../includes/TeacherAuditLog.php';
 
 use IMathAS\assess2\questions\QuestionGenerator;
 use IMathAS\assess2\questions\models\QuestionParams;
@@ -50,7 +50,7 @@ class AssessRecord
    * @param object $DBH PDO Database Handler
    * @param object $assess_info  AssessInfo instance
    */
-  function __construct($DBH, $assess_info = null, $is_practice = false) {
+  public function __construct($DBH, $assess_info = null, $is_practice = false) {
     $this->DBH = $DBH;
     $this->assess_info = $assess_info;
     $this->curAid = $assess_info->getSetting('id');
@@ -237,7 +237,7 @@ class AssessRecord
   public function updateLTIscore($sendnow = true, $isstu = true) {
     $lti_sourcedid = $this->getLTIsourcedId();
     if (strlen($lti_sourcedid) > 1) {
-        require_once(__DIR__ . '/../includes/ltioutcomes.php');
+        require_once __DIR__ . '/../includes/ltioutcomes.php';
         $gbscore = $this->getGbScore();
         $aidposs = $this->assess_info->getSetting('points_possible');
         calcandupdateLTIgrade($lti_sourcedid, $this->curAid, $this->curUid, $gbscore['gbscore'], $sendnow, $aidposs, $isstu);
@@ -556,6 +556,19 @@ class AssessRecord
   }
 
   /**
+   * Determine if they've started the current version yet
+   * * @return boolean true if they've started
+   */
+  public function hasStartedAssess() {
+    if (empty($this->assessRecord)) {
+      //no assessment record at all
+      return false;
+    }
+    $aver = $this->getAssessVer('last');
+    return ($aver['starttime'] > 0);
+  }
+
+  /**
    * Update the LTI sourcedid if needed
    * @param  string $sourcedid  The full IMathAS-format sourcedid
    * @return void
@@ -676,7 +689,7 @@ class AssessRecord
         $this->assessRecord['status'] = $this->assessRecord['status'] & ~128;
       } else if (!$active && $submitby == 'by_assessment') {
         // for by-assess, set "accept work after" status on end
-        if ($accept_work_after) {
+        if ($accept_work_after && $this->data['assess_versions'][$lastver]['starttime'] > 0) {
           $this->assessRecord['status'] |= 128;
         } else {
           $this->assessRecord['status'] = $this->assessRecord['status'] & ~128;
@@ -868,7 +881,7 @@ class AssessRecord
       $filename = basename(str_replace('\\','/',$_FILES["qn$qref"]['name']));
       $filename = preg_replace('/[^\w\.]/','',$filename);
       $s3object = "adata/$s3asid/$filename";
-      require_once(__DIR__."/../includes/filehandler.php");
+      require_once __DIR__."/../includes/filehandler.php";
       if (storeuploadedfile("qn$qref",$s3object)) {
         return "@FILE:$s3asid/$filename@";
       }
@@ -1902,6 +1915,9 @@ class AssessRecord
           }
         } else {
           if (is_array($stuanswers[$qn+1]) || $numParts > 1 || isset($autosave['post']['qn'.(($qn+1)*1000 + $pn)])) {
+            if (isset($autosaves[$qn+1]) && !is_array($autosaves[$qn+1])) { // isn't array yet for some reason; make it one
+                $autosaves[$qn+1] = array($autosaves[$qn+1]);
+            }
             $autosaves[$qn+1][$pn] = $autosave['stuans'][$pn];
           } else {
             $autosaves[$qn+1] = $autosave['stuans'][$pn];
@@ -2451,6 +2467,9 @@ class AssessRecord
     $aScoredVer = 0;
     $allAssessVerScores = array();
     $totalTime = 0;
+    if (!isset($this->data['assess_versions'])) {
+        return 0;
+    }
     $lastAver = count($this->data['assess_versions']) - 1;
     // loop through all the assessment versions
     for ($av = 0; $av < count($this->data['assess_versions']); $av++) {
@@ -2458,6 +2477,11 @@ class AssessRecord
       $verTime = 0;
       // loop through the question numbers
       $aVerScore = 0;
+      if (!isset($curAver['questions'])) {
+        // should never happen; some glitched caused assess version with no questions
+        // should probably remove glitched entry, but for now just skip
+        continue;
+      }
       for ($qn = 0; $qn < count($curAver['questions']); $qn++) {
         // if not rescoring this question, or if withdrawn,
         // or retotalling indiv questions and not latest assess version,
@@ -3263,7 +3287,7 @@ class AssessRecord
       if ($qptsposs > -1) {
         $ptsposs = $qptsposs;
       } else {
-        $ptsposs = $assess_info->getQuestionSetting($qdata['qid'], 'points_possible');
+        $ptsposs = $this->assess_info->getQuestionSetting($qdata['qid'], 'points_possible');
       }
       if ($ptsposs == 0) {
         $adjscore = 0;
