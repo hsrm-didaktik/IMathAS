@@ -317,4 +317,7 @@ var i18njs = {"Submit":"Absenden",
 "syntax error: this is not an equation or inequality":"Syntax-Fehler: Dies ist keine Gleichung oder Ungleichung",
 "Not Randomized":"Nicht randomisiert",
 "Square root":"Quadratwurzel",
-"Enter the starting point of the square root, then another point on the graph":"Geben Sie den Startpunkt der Quadratwurzel an, dann einen anderen Punkt auf dem Graphen"};
+"Enter the starting point of the square root, then another point on the graph":"Geben Sie den Startpunkt der Quadratwurzel an, dann einen anderen Punkt auf dem Graphen",
+"syntax error: your inequality should have expressions on both sides":"Syntaxfehler: Ihre Ungleichung sollte auf beiden Seiten Ausdrücke haben",
+"syntax error: your equation should have expressions on both sides":"Syntaxfehler: Ihre Gleichung sollte auf beiden Seiten Ausdrücke haben",
+"Are you SURE you want to give all students full credit on manually-graded parts?":"Sind Sie SICHER, dass Sie allen Studierenden für manuell bewertete Teile die volle Punktzahl geben wollen?"};
