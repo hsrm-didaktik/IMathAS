@@ -625,12 +625,23 @@ function histogram($a,$label,$start,$cw,$startlabel=false,$upper=false,$width=30
 // fill (optional) = the fill color of the bins; default is blue
 // stroke (optional) = the color of the bin line; default is black
 
-function fdhistogram($freq,$label,$start,$cw,$startlabel=false,$upper=false,$width=300,$height=200,$showgrid=true,$fill='blue',$stroke='black') {
+function fdhistogram($freq,$label,$start,$cw,$labelstart=false,$upper=false,$width=300,$height=200,$showgrid=true,$fill='blue',$stroke='black') {
 	if (!is_array($freq)) {echo "freqarray must be an array"; return 0;}
 	if ($cw<0) { $cw *= -1;} else if ($cw==0) { echo "Error - classwidth cannot be 0"; return 0;}
 	$x = $start;
-	$alt = "Histogram for $label <table class=stats><thead><tr><th>Label on left of box</th><th>Frequency</th></tr></thead>\n<tbody>\n";
+    $vertlabel = 'Frequency';
+    if (is_array($labelstart)) {
+        $opts = $labelstart;
+        $labelstart = false;
+        foreach (['labelstart','upper','width','height','showgrid','fill','stroke','vertlabel'] as $v) {
+            if (isset($opts[$v])) {
+                ${$v} = $opts[$v];
+            }
+        }
+    }
+	$alt = "Histogram for $label <table class=stats><thead><tr><th>Label on left of box</th><th>$vertlabel</th></tr></thead>\n<tbody>\n";
 	$maxfreq = 0;
+    
 	if ($upper===false) {
 		$dx = $cw;
 		$dxdiff = 0;
@@ -665,12 +676,12 @@ function fdhistogram($freq,$label,$start,$cw,$startlabel=false,$upper=false,$wid
 	}
 	
 	
-	if ($startlabel===false) {
+	if ($labelstart===false) {
 		//$outst .= "axes($cw,$step,1,1000,$step); fill=\"blue\"; textabs([". ($width/2+15)  .",0],\"$label\",\"above\");";
-		$startlabel = $start;
+		$labelstart = $start;
 	} //else {
-		$outst .= "axes(1000,$step,1,1000,$gdy); fill=\"$fill\"; stroke=\"$stroke\"; textabs([". ($width/2+15)  .",0],\"$label\",\"above\");";
-		$x = $startlabel;
+		$outst .= "axes(1000,$step,1,1000,$gdy); fill=\"$fill\"; stroke=\"$stroke\";";
+		$x = $labelstart;
 		$tm = -.02*$maxfreq;
 		$tx = .02*$maxfreq;
 		for ($curr=0; $curr<count($freq)+1; $curr++) {
@@ -680,7 +691,8 @@ function fdhistogram($freq,$label,$start,$cw,$startlabel=false,$upper=false,$wid
 	//}
 	//$outst .= "text([".($start-.1*($x-$start)).",".(.5*$maxfreq)."],\"Freq\",,90)";
 	//$outst .= "axes($cw,$step,1,1000,$step); fill=\"blue\"; text([". ($start + .5*($x-$start))  .",". (-.1*$maxfreq) . "],\"$label\");";
-	$outst .= "textabs([0,". ($height/2+15)  ."],\"Frequency\",\"right\",90);";
+
+	$outst .= "textabs([". ($width/2+15)  .",0],\"$label\",\"above\");textabs([0,". ($height/2+15)  ."],\"$vertlabel\",\"right\",90);";
 	$outst .= $st;
 	return showasciisvg($outst,$width,$height);
 }
@@ -771,7 +783,7 @@ function fdbargraph($bl,$freq,$label,$width=300,$height=200,$options=array()) {
 	$leftborder = min(60, 9*max(strlen($maxfreq),strlen($maxfreq-$step))+10) + ($usevertlabel?30:0);
 	//$outst = "setBorder(10);  initPicture(". ($start-.1*($x-$start)) .",$x,". (-.1*$maxfreq) .",$maxfreq);";
 	$bottomborder = 25+($label===''?0:20);
-	$outst = "setBorder($leftborder,$bottomborder,0,$topborder);  initPicture(".($start>0?(max($start-.9*$cw,0)):$start).",$x,0,$maxfreq);";
+	$outst = "setBorder($leftborder,$bottomborder,0,$topborder);  initPicture(".$start.",$x,0,$maxfreq);";
 
 	if (isset($options['showgrid']) && $options['showgrid']==false) {
 		$gdy = 0;
@@ -806,7 +818,7 @@ function piechart($pcts,$labels,$w=250,$h=130) {
         return '';
     }
 	if ($_SESSION['graphdisp']==0) {
-		$out .= '<table><caption>'._('Pie Chart').'</caption>';
+		$out = '<table><caption>'._('Pie Chart').'</caption>';
 		$out .= '<tr><th>'._('Label').'</th>';
 		$out .= '<th>'._('Percent').'</th></tr>';
 		foreach ($labels as $k=>$label) {
@@ -2828,7 +2840,7 @@ function anova2way_f($arr, $replication=False){
 function anova_table(array $array, int $factor = 1, $rep=False, int $roundto=12, string $f1="Factor A", string $f2="Factor B"){
 	if ($factor!=1 && $factor!=2) { echo 'error: the factor variable only expects 1 for one-way and 2 for two-way ANOVA'; return '';}
 	/*if (!function_exists('calconarray')) {
-       // require_once(__DIR__.'/assessment/macros.php');
+       // require_once __DIR__.'/assessment/macros.php';
 	}*/
 	array_walk_recursive($array, function(&$x) use ($roundto) { $x = round($x,$roundto);});
 	

@@ -31,13 +31,7 @@ function parseMathQuiet($str, $vars = '', $allowedfuncs = array(), $fvlist = '',
       echo ". Error: ".$t->getMessage();
     }
     return false;
-  } catch (Exception $t) { //fallback for PHP5
-    if ($GLOBALS['myrights'] > 10 && !$hideerrors) {
-      echo "Parse error on: ".Sanitize::encodeStringForDisplay($str);
-      echo ". Error: ".$t->getMessage();
-    }
-    return false;
-  }
+  } 
   return $parser;
 }
 
@@ -69,21 +63,13 @@ function makeMathFunction($str, $vars = '', $allowedfuncs = array(), $fvlist = '
       echo ". Error: ".$t->getMessage();
     }
     return false;
-  } catch (Exception $t) { //fallback for PHP5
-    if ($GLOBALS['myrights'] > 10 && (!empty($GLOBALS['inQuestionTesting']) || !$hideerrors)) {
-      echo "Parse error on: ".Sanitize::encodeStringForDisplay($str);
-      echo ". Error: ".$t->getMessage();
-    }
-    return false;
-  }
+  } 
   return function($varvals) use ($parser) {
     try {
       return $parser->evaluate($varvals);
     } catch (Throwable $t) {
       return sqrt(-1);
-    } catch (Exception $t) { //fallback for PHP5
-      return sqrt(-1);
-    }
+    } 
   };
 }
 
@@ -138,7 +124,7 @@ class MathParser
    *                            set of standard math functions.
    * @param string $fvlist   A comma-separated list of variables to treat as functions
    */
-  function __construct($variables, $allowedfuncs = array(), $fvlist = '', $docomplex = false) {
+  public function __construct($variables, $allowedfuncs = array(), $fvlist = '', $docomplex = false) {
     if ($variables != '') {
       $this->variables = array_values(array_filter(array_map('trim', explode(',', $variables)), 'strlen'));
     }
@@ -340,7 +326,7 @@ class MathParser
    * @param  array  $variableValues  Associative array of variables values
    * @return float  value of the function
    */
-  function evaluate($variableValues = array()) {
+  public function evaluate($variableValues = array()) {
     foreach ($this->variables as $v) {
       if ($v == 'pi' || $v == 'e' || ($this->docomplex && $v == 'i')) { continue; }
       if (!isset($variableValues[$v])) {
@@ -366,14 +352,12 @@ class MathParser
    * @param  array  $variableValues  Associative array of variables values
    * @return float  value of the function
    */
-  function evaluateQuiet($variableValues = array()) {
+  public function evaluateQuiet($variableValues = array()) {
     try {
       return $this->evaluate($variableValues);
     } catch (Throwable $t) {
       return sqrt(-1);
-    } catch (Exception $t) { //fallback for PHP5
-      return sqrt(-1);
-    }
+    } 
   }
 
   /**
@@ -540,7 +524,7 @@ class MathParser
               }
             } else if ($nextSymbol == 'root') {
               // found a root.  Parse the index
-              if (preg_match('/^[\(\[]?(-?\d+)[\)\]]?/', substr($str,$n+1), $sub)) {
+              if (preg_match('/^[\(\[]*(-?\d+)[\)\]]*/', substr($str,$n+1), $sub)) {
                 // replace the last node with an nthroot node
                 $tokens[count($tokens)-1] = [
                   'type' => 'function',
@@ -851,9 +835,7 @@ class MathParser
    */
   private function evalNode($node) {
     if (empty($node)) {
-        error_log("evaluate empty node error on str " . $this->origstr);
         throw new MathParserException("Cannot evaluate an empty expression");
-        return;
     }
     if ($node['type'] === 'number') {
       if ($this->docomplex) {
@@ -876,7 +858,6 @@ class MathParser
         return [0,1];
       } else {
         throw new MathParserException("Variable found without a provided value");
-        return;
       }
     } else if ($node['type'] === 'function') {
       // find the value of the input to the function
@@ -1394,13 +1375,13 @@ class MathParser
 class MathParserException extends Exception
 {
   private $data = '';
-  function __construct($message, $data = '') {
+  public function __construct($message, $data = '') {
     parent::__construct($message);
     $this->data = $data;
   }
 
   public function getData() {
-    return $data;
+    return $this->data;
   }
 }
 
