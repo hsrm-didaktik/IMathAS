@@ -7,4 +7,4 @@
 mathjax-b
 HTMLPurifier
 /config.php
-php_errors.log
+**/php_errors.log
