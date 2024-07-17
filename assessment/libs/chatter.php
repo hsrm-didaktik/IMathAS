@@ -79,14 +79,9 @@ function ascii2texText($ascii) {
 
 function essayText($html) {
   $dom = new DOMDocument();
-  //$html1 = '<html><body><div id="myDiv"><b>Some text'.$html.' inside the div</b></div></body></html>';
   $html1 = '<html><body><div id="myDiv">'.$html.'</div></body></html>';
- 
   $dom->loadHTML($html1);
   $divTag = $dom->getElementById('myDiv');
-  //$myhtml='<html><body><div id="_myhtml">'.$html.'</div></body></html>';
-  //$dom->loadHTML($myhtml);
-  //$divtag = $dom->getElementById('_myhtml');
   $extractedText = $divTag->textContent;
   return ascii2texText($extractedText);
 }
