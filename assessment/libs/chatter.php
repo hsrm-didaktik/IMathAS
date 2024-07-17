@@ -2,12 +2,12 @@
 //Chat extension
 
 global $allowedmacros;
-array_push($allowedmacros,"asciimath2tex", "copyButton");
+array_push($allowedmacros,"asciimath2tex", "copyButton", "essayText");
 
-require "ASCIIMath2TeX.php";
+require(__DIR__."/../../filter/math/ASCIIMath2TeX.php");
 
 function asciimath2tex($AMstring) {
-    $AMT = new AMtoTeX;
+  $AMT = new AMtoTeX;
 	$tex = $AMT->convert($AMstring); //convert ASCIIMath string to TeX
     return "$ $tex $";
 }
@@ -58,6 +58,37 @@ function copyButton($arg="",$label="Copy to clipboard",$successMessage="Copied t
   ";
   $html = "<button type=\"button\" onclick=\"copyTextToClipboard('" . base64_encode($arg) . "')\">$label</button>";
   return $js_cp.$html;
+}
+
+function ascii2texText($ascii) {
+  $pos=stripos($ascii,'`');
+  if ($pos === false ) {
+    return $ascii;
+  }
+  $parts=explode("`",$ascii);
+  $result="";
+  for ($i=0; $i<count($parts); $i++) {
+    if ($i % 2 == 1) {
+      $result.=asciimath2tex($parts[$i]);
+    } else {
+      $result.=$parts[$i];
+    }
+  }
+  return $result;
+}
+
+function essayText($html) {
+  $dom = new DOMDocument();
+  //$html1 = '<html><body><div id="myDiv"><b>Some text'.$html.' inside the div</b></div></body></html>';
+  $html1 = '<html><body><div id="myDiv">'.$html.'</div></body></html>';
+ 
+  $dom->loadHTML($html1);
+  $divTag = $dom->getElementById('myDiv');
+  //$myhtml='<html><body><div id="_myhtml">'.$html.'</div></body></html>';
+  //$dom->loadHTML($myhtml);
+  //$divtag = $dom->getElementById('_myhtml');
+  $extractedText = $divTag->textContent;
+  return ascii2texText($extractedText);
 }
 
 ?>
