@@ -13,7 +13,7 @@ function asciimath2tex($AMstring) {
 }
 
 
-function copyButton($arg="",$label="Copy to clipboard",$successMessage="Copied to clipboard",$failMessage="Copy failed!",$formatPrompt="Der folgende Text kann Formeln in ASCIIMath-Format zwischen Backticks `...` enthalten. Die Antwort sollte Formeln mit LaTeX darstellen.\\n") {
+function copyButton($arg="",$label="Copy to clipboard",$successMessage="Copied to clipboard",$failMessage="Copy failed!",$formatPrompt="") {
   $js_cp="
   <script>
     function reportSuccess (success) {
