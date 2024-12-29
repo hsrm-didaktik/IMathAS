@@ -32,6 +32,7 @@ class EssayAnswerBox implements AnswerBox
         $la = $this->answerBoxParams->getStudentLastAnswers();
         $options = $this->answerBoxParams->getQuestionWriterVars();
         $colorbox = $this->answerBoxParams->getColorboxKeyword();
+        $isConditional = $this->answerBoxParams->getIsConditional();
 
         $out = '';
         $tip = '';
@@ -52,17 +53,31 @@ class EssayAnswerBox implements AnswerBox
             $cols = 50;
         } else if (strpos($answerboxsize, ',') > 0) {
             list($rows, $cols) = explode(',', $answerboxsize);
+            $rows = intval($rows);
+            $cols = intval($cols);
         } else {
             $cols = 50;
-            $rows = $answerboxsize;
+            $rows = intval($answerboxsize);
+        }
+        $nopaste = false;
+        if ($displayformat == 'editornopaste') {
+            $nopaste = true;
+            $displayformat = 'editor';
         }
         if ($displayformat == 'editor') {
             $rows += 5;
         }
+
+        if (!isset($GLOBALS['useeditor'])) { // should be defined, but avoid errors if not
+            $GLOBALS['useeditor'] = 1;
+        }
+
         if ($GLOBALS['useeditor'] == 'review' || ($GLOBALS['useeditor'] == 'reviewifneeded' && trim($la) == '')) {
             $la = str_replace('&quot;', '"', $la);
 
-            if ($displayformat != 'editor') {
+            if ($displayformat == 'pre') {
+                $la = str_replace(['<','>'],['&lt;','&gt;'], $la);
+            } else if ($displayformat != 'editor') {
                 $la = preg_replace('/\n/', '<br/>', $la);
             }
             if ($colorbox == '') {
@@ -70,7 +85,14 @@ class EssayAnswerBox implements AnswerBox
             } else {
                 $out .= '<div class="introtext ' . $colorbox . '" id="qnwrap' . $qn . '">';
             }
-            $out .= filter($la);
+            if ($displayformat == 'pre') {
+                $out .= '<pre>';
+                $out .= $la;
+                $out .= '</pre>';
+            } else {
+                $out .= filter($la);
+            }
+            
             $out .= "</div>";
         } else {
             $arialabel = $this->answerBoxParams->getQuestionIdentifierString() .
@@ -95,10 +117,15 @@ class EssayAnswerBox implements AnswerBox
             }
             if ($displayformat == 'editor' && $GLOBALS['useeditor'] == 1) {
                 $params['usetinymce'] = 1;
+                if ($nopaste) {
+                    $params['nopaste'] = 1;
+                }
             }
         }
         $tip .= _('Enter your answer as text.  This question is not automatically graded.');
-        $sa .= $answer;
+        if (is_scalar($answer) && !$isConditional) {
+            $sa .= $answer;
+        }
 
         if ($scoremethod == 'takeanythingorblank' && trim($la) == '') {
             $params['submitblank'] = 1;

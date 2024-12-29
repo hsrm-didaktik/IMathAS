@@ -4,7 +4,7 @@
 //(c) 2010 David Lippman
 
 /*** master includes ***/
-require("./init.php");
+require_once "./init.php";
 $now = time();
 
 //0: classes you're teaching
@@ -134,7 +134,7 @@ if ($showmessagesgadget) {
 $page_studentCourseData = array();
 
 // check to see if the user is enrolled as a student
-$query = "SELECT imas_courses.name,imas_courses.id,imas_courses.startdate,imas_courses.enddate,imas_students.hidefromcourselist,";
+$query = "SELECT imas_courses.name,imas_courses.id,imas_courses.startdate,imas_courses.enddate,imas_students.hidefromcourselist,imas_students.locked,";
 $query .= "IF(UNIX_TIMESTAMP()<imas_courses.startdate OR UNIX_TIMESTAMP()>imas_courses.enddate,0,1) as active ";
 $query .= "FROM imas_students,imas_courses ";
 $query .= "WHERE imas_students.courseid=imas_courses.id AND imas_students.userid=:userid ";
@@ -366,9 +366,13 @@ if ($myrights==100) {
 		$brokencnt[$row[0]] = $row[1];
 	}
 }
-
+if (!empty($CFG['logquestionerrors']) && $myrights >= 20) {
+    $stm = $DBH->prepare('SELECT count(DISTINCT iqe.qsetid) FROM imas_questionerrors AS iqe JOIN imas_questionset AS iqs ON iqe.qsetid=iqs.id WHERE iqs.ownerid=?');
+    $stm->execute([$userid]);
+    $qerrcnt = $stm->fetchColumn(0);
+}
 /*** done pulling stuff.  Time to display something ***/
-require("header.php");
+require_once "header.php";
 $msgtotal = array_sum($newmsgcnt);
 if (!isset($CFG['GEN']['homelinkbox'])) {
 	echo '<div class="floatright" id="homelinkbox" role="navigation" aria-label="'._('Site tools').'">';
@@ -419,6 +423,9 @@ if (isset($_SESSION['emulateuseroriginaluser'])) {
 
 if ($myrights==100 && count($brokencnt)>0) {
 	echo '<div><span class="noticetext">'.Sanitize::onlyFloat(array_sum($brokencnt)).'</span> questions, '.(array_sum($brokencnt)-$brokencnt[0]).' public, reported broken systemwide</div>';
+}
+if (!empty($CFG['logquestionerrors']) && $myrights>=20 && $qerrcnt>0) {
+    echo '<div><span class="noticetext">'.Sanitize::onlyInt($qerrcnt).'</span> ' . _('of your questions have logged errors') . '. <a target="_blank" href="util/questionerrors.php">' . _('View errors') . '</a></div>';
 }
 if ($myrights<75 && ($myspecialrights&(16+32))!=0) {
 	echo '<div>';
@@ -489,10 +496,10 @@ for ($i=0; $i<3; $i++) {
 	}
 }
 
-require('footer.php');
+require_once 'footer.php';
 
 function printCourses($data,$title,$type=null,$hashiddencourses=false) {
-	global $myrights, $shownewmsgnote, $shownewpostnote, $imasroot, $userid, $username, $courseListOrder;
+	global $myrights, $shownewmsgnote, $shownewpostnote, $imasroot, $userid, $username, $courseListOrder, $myspecialrights;
 	if (count($data)==0 && $type=='tutor' && !$hashiddencourses) {return;}
 
 	echo '<div role="navigation" aria-label="'.$title.'">';
@@ -607,7 +614,11 @@ function printCourseLine($data, $type=null) {
 		echo ' <em style="color:green;">', _('Lockdown'), '</em>';
 	}
 	if ($shownewmsgnote && isset($newmsgcnt[$data['id']]) && $newmsgcnt[$data['id']]>0) {
-		echo ' <a class="noticetext" href="msgs/msglist.php?page=-1&cid='.$data['id'].'">', sprintf(_('Messages (%d)'), $newmsgcnt[$data['id']]), '</a>';
+        if ($type == 'take' && $data['locked'] > 0) {
+		    echo ' <a class="noticetext" href="msgs/msglist.php?page=-1&cid=0&filtercid='.$data['id'].'">', sprintf(_('Messages (%d)'), $newmsgcnt[$data['id']]), '</a>';
+        } else {
+		    echo ' <a class="noticetext" href="msgs/msglist.php?page=-1&cid='.$data['id'].'">', sprintf(_('Messages (%d)'), $newmsgcnt[$data['id']]), '</a>';
+        }
 	}
 	if ($shownewpostnote && isset($newpostcnt[$data['id']]) && $newpostcnt[$data['id']]>0) {
 		printf(' <a class="noticetext" href="forums/newthreads.php?from=home&cid=%d">%s</a>',$data['id'],
@@ -661,7 +672,7 @@ function printMessagesGadget() {
 			$line['fullname'] = sprintf('%s, %s', $line['LastName'], $line['FirstName']);
 		}
 		echo '<td><span class="pii-full-name">'.Sanitize::encodeStringForDisplay($line['fullname']).'</span></td>';
-		echo '<td>'.Sanitize::encodeStringForDisplay($page_coursenames[$line['courseid']]).'</td>';
+		echo '<td>'.Sanitize::encodeStringForDisplay($page_coursenames[$line['courseid']] ?? '').'</td>';
 		echo '<td>'.tzdate("D n/j/y, g:i a",$line['senddate']).'</td>';
 		echo '</tr>';
 	}

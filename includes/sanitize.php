@@ -1,22 +1,22 @@
 <?php
 
-require_once(__DIR__ . "/htmLawed.php");
+require_once __DIR__ . "/htmLawed.php";
 
 class Sanitize
 {
 
 	private static $blacklistedFilenames = array(
 		'/^\./',
-		'/\.php\d?($|\.)/',
-		'/\.bat($|\.)/',
-		'/\.com($|\.)/',
-		'/\.exe($|\.)/',
-		'/\.pl($|\.)/',
-		'/\.ph\d($|\.)/',
-		'/\.phtml?($|\.)/',
-		'/\.sh($|\.)/',
-		'/\.asp($|\.)/',
-		'/\.p($|\.)/'
+		'/\.php\d?$/',
+		'/\.bat$/',
+		'/\.com$/',
+		'/\.exe$/',
+		'/\.pl$/',
+		'/\.ph\d$/',
+		'/\.phtml?$/',
+		'/\.sh$/',
+		'/\.asp$/',
+		'/\.p$/'
 	);
 
 	/**
@@ -97,6 +97,8 @@ class Sanitize
 	 */
 	public static function encodeStringForDisplay($string, $doubleencode = false)
 	{
+        if ($string === null) { return '';}
+        $string = (string) $string; //force to string type
 		return htmlspecialchars($string, ENT_QUOTES | ENT_HTML401, ini_get("default_charset"), $doubleencode);
 	}
 
@@ -221,7 +223,7 @@ class Sanitize
 	public static function url($url)
 	{
 		// Sanitize url parts
-		$parsed_url = parse_url($url);
+		$parsed_url = parse_url(trim($url));
 		$scheme = isset($parsed_url['scheme'])
 			? preg_replace('/[^a-z]/i', '', $parsed_url['scheme']) : '';
 		$user = isset($parsed_url['user']) ? rawurlencode(rawurldecode($parsed_url['user'])) : '';
@@ -230,6 +232,7 @@ class Sanitize
 			? preg_replace('/[^\da-z\.-]/i', '', $parsed_url['host']) : '';
 		$port = isset($parsed_url['port']) ? preg_replace('/[^\d]/', '', $parsed_url['port']) : '';
 		$fragment = isset($parsed_url['fragment']) ? rawurlencode(rawurldecode($parsed_url['fragment'])) : '';
+        $fragment = str_replace('%3D', '=', $fragment);
 
         // Sanitize the path
         if (isset($parsed_url['path'])) {
@@ -299,6 +302,7 @@ class Sanitize
 	public static function generateAttributeString($args) {
 		$out = '';
 		foreach ($args as $k=>$v) {
+            if (is_array($v)) { continue; } // skip bad values
 			$out .= preg_replace('/[^\w\-_]/','', $k) .
 							'="' .
 							htmlspecialchars($v, ENT_QUOTES | ENT_HTML401, ini_get("default_charset"), false) .
@@ -386,14 +390,16 @@ class Sanitize
 
 	/**
 	 * Sanitize data so it only contains ASCII 32-127.
-	 * Also strips HTML tags
+	 * Also strips HTML tags and encodes quotes
 	 *
 	 * @param $data mixed A variable containing a string.
 	 * @return string A sanitized variable containing ASCII 32-127.
 	 */
 	public static function simpleASCII($data)
 	{
-		return filter_var($data, FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH);
+        //return filter_var($data, FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH);
+        // FILTER_SANITIZE_STRING is deprecated.
+        return htmlspecialchars(preg_replace('/[^\x20-\x7E]/','',strip_tags($data)));
 	}
 	/**
 	 * Sanitize a domain name without a port.
@@ -461,7 +467,8 @@ class Sanitize
 				return '';
 			}
 			$displayname = str_replace(array('\\','"'),'',trim($match[1]));
-			$displayname = filter_var($displayname, FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_NO_ENCODE_QUOTES);
+			//$displayname = filter_var($displayname, FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_NO_ENCODE_QUOTES);
+            $displayname = self::simpleASCII($displayname);
 			$email = filter_var($match[2], FILTER_SANITIZE_EMAIL);
 			return '"'.$displayname.'" <'.$email.'>';
 		} else if (!filter_var($address, FILTER_VALIDATE_EMAIL)) {
@@ -479,7 +486,7 @@ class Sanitize
 	 */
 	public static function courseId($courseId)
 	{
-		if ("admin" == strtolower(trim($courseId))) {
+		if ("admin" == strtolower(trim($courseId ?? ''))) {
 			return "admin";
 		} else {
 			return self::onlyInt($courseId);
@@ -594,4 +601,11 @@ class Sanitize
         return preg_replace('/(<p>(&nbsp;)?<\/p>\s*)+$/','', $str);
     }
 
+    public static function gzexpand($data) {
+        if (mb_strpos($data , "\x1f" . "\x8b" . "\x08") === 0) {
+            return gzdecode($data);
+        } else {
+            return gzuncompress($data);
+        }
+    }
 }

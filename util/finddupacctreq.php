@@ -1,6 +1,6 @@
 <?php
 
-require("../init.php");
+require_once "../init.php";
 
 if ($myrights<100 && ($myspecialrights&64)!=64) {exit;}
 
@@ -29,9 +29,11 @@ if (!empty($_POST['todel'])) {
     }
 
     // unenroll from any instructor-enroll courses
-    if (isset($CFG['GEN']['enrollonnewinstructor'])) {
-        require("../includes/unenroll.php");
-        foreach ($CFG['GEN']['enrollonnewinstructor'] as $rcid) {
+    if (isset($CFG['GEN']['enrollonnewinstructor']) || isset($CFG['GEN']['enrolloninstructorapproval'])) {
+        $allInstrEnroll = array_unique(array_merge($CFG['GEN']['enrollonnewinstructor'] ?? [], $CFG['GEN']['enrolloninstructorapproval'] ?? [])); 
+
+        require_once "../includes/unenroll.php";
+        foreach ($allInstrEnroll as $rcid) {
             unenrollstu($rcid, $todel);
         }
     }
@@ -65,7 +67,7 @@ $status = [
 ];
 
 $placeinhead = '<style>tbody tr:nth-child(odd) {background-color: #eee;}</style>';
-require('../header.php');
+require_once '../header.php';
 echo '<h1>'._('Duplicate Pending Account Requests').'</h1>';
 echo '<form method="POST" action="finddupacctreq.php">';
 
@@ -137,4 +139,4 @@ echo '</form>';
 
 echo '<p>'.$fixedcnt.' '._('requests had already been upgraded, and have been updated').'</p>';
 
-require('../footer.php');
+require_once '../footer.php';

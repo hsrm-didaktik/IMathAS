@@ -40,6 +40,7 @@
 	5.4:  vector
 	6: parabola
 	6.1: horiz parabola
+	6.2: half parabola
 	6.3: cubic
 	6.5: square root
 	6.6: cube root
@@ -98,7 +99,7 @@ var clickmightbenewcurve = false;
 var hasTouchTimer = null;
 var tpModeN = {
 	"5": 2, "5.2": 2, "5.3": 2, "5.4": 2,
-	"6": 2, "6.1": 2, "6.3": 2, "6.5": 2, "6.6": 2,
+	"6": 2, "6.1": 2, "6.2": 2, "6.3": 2, "6.5": 2, "6.6": 2,
 	"7": 2, "7.2": 2, "7.4": 2, "7.5": 2,
 	"8": 2, "8.2": 2, "8.3": 2, "8.4": 2, "8.5": 3, "8.6": 3,
 	"9": 2, "9.1": 2,
@@ -241,7 +242,9 @@ function addA11yTarget(canvdata, thisdrawla, imgpath) {
 			"ray": [{"mode":5.2, "descr":_("Ray"), inN: 2, "input":_("Enter the starting point of the ray and another point on the ray")}],
 			"parab": [{"mode":6, "descr":_("Parabola"), inN: 2, "input":_("Enter the vertex, then another point on the parabola")}],
 			"horizparab": [{"mode":6.1, "descr":_("Parabola opening right or left"), inN: 2, "input":_("Enter the vertex, then another point on the parabola")}],
+			"halfparab": [{"mode":6.2, "descr":_("Half Parabola"), inN: 2, "input":_("Enter the vertex, then another point on the half parabola")}],
 			"cubic": [{"mode":6.3, "descr":_("Cubic"), inN: 2, "input":_("Enter the inflection point, then another point on the cubic")}],
+			"sqrt": [{"mode":6.5, "descr":_("Square root"), inN: 2, "input":_("Enter the starting point of the square root, then another point on the graph")}],			
 			"cuberoot": [{"mode":6.6, "descr":_("Cube root"), inN: 2, "input":_("Enter the inflection point of the cube root, then another point on the graph")}],
 			"abs": [{"mode":8, "descr":_("Absolute value"), inN: 2, "input":_("Enter the corner point of the absolute value, then another point on the graph")}],
 			"rational": [{"mode":8.2, "descr":_("Rational"), inN: 2, "input":_("Enter the point where the vertical and horizontal asymptote cross, then a point on the graph")}],
@@ -468,6 +471,7 @@ function encodea11ydraw(qn) {
 		$("#a11ydraw"+tarnum).find(".a11ydrawrow").each(function(i,el) {
             var input = $(el).find("input").val();
             var mode = el.getAttribute('data-mode');
+            var expectedn = $(el).find("input").attr('data-n');
 			saveinput.push("["+mode+',"'+input+'"]');
 			input = input.replace(/[\(\)]/g,'').split(/\s*,\s*/);
 			var outpts = [];
@@ -488,6 +492,9 @@ function encodea11ydraw(qn) {
 				outpts.push(Math.round(input[i-1])+','+Math.round(input[i]));
                 outptsraw.push([input[i-1], input[i]]);
 			}
+            if (expectedn !== 'list' && expectedn != outpts.length) {
+                return;
+            }
 			if (mode==1) {
 				encdots.push('('+outpts.join('),(')+')');
                 dots[tarnum].push(outptsraw);
@@ -497,11 +504,11 @@ function encodea11ydraw(qn) {
 			} else if (mode<1) {
 				enclines.push('('+outpts.join('),(')+')');
                 lines[tarnum].push(outptsraw);
-			} else if (mode>=5 && mode<10 && outpts.length==2) {
+			} else if (mode>=5 && mode<10) {
 				enctplines.push('('+mode+','+outpts.join(',')+')');
                 tplines[tarnum].push(outptsraw);
                 tptypes[tarnum].push(mode);
-			} else if (mode>=10 && outpts.length==3) {
+			} else if (mode>=10) {
 				enctpineq.push('('+mode+','+outpts.join(',')+')');
                 ineqlines[tarnum].push(outptsraw);
                 ineqtypes[tarnum].push(mode);
@@ -931,7 +938,7 @@ function drawTarget(x,y,skipencode) {
 					}
 				}
 			}
-		} else if (tptypes[curTarget][i]==6 || tptypes[curTarget][i]==6.1) {//if a tp parabola
+		} else if (tptypes[curTarget][i]==6 || tptypes[curTarget][i]==6.1 || tptypes[curTarget][i]==6.2) {//if a tp parabola
 			var y2 = null;
 			var x2 = null;
 			if (tplines[curTarget][i].length==2) {
@@ -1006,8 +1013,39 @@ function drawTarget(x,y,skipencode) {
 						ctx.moveTo(qx,inta);
 						ctx.bezierCurveTo(cp1x,cp1y,cp2x,cp2y,qx,intb);
 					}
-				}
-
+				} else if (tptypes[curTarget][i]==6.2) {
+					if (y2==tplines[curTarget][i][0][1]) {
+						ctx.moveTo(tplines[curTarget][i][0][0],y2);
+						ctx.lineTo(x2 < tplines[curTarget][i][0][0] ? 0 : targets[curTarget].imgwidth,y2);
+					} else if (x2 == tplines[curTarget][i][0][0]) {
+						ctx.moveTo(x2,tplines[curTarget][i][0][1]);
+						if (y2>tplines[curTarget][i][0][1]) {
+							ctx.lineTo(x2,targets[curTarget].imgheight);
+						} else {
+							ctx.lineTo(x2,0);
+						}
+					} else {
+						var stretch = (y2 - tplines[curTarget][i][0][1])/((x2 - tplines[curTarget][i][0][0])*(x2 - tplines[curTarget][i][0][0]));
+						var xm = (x2 < tplines[curTarget][i][0][0]) ? -1 : 1;
+                        if (y2>tplines[curTarget][i][0][1]) {
+							//crosses at y=imgheight
+                            var xs = Math.sqrt((targets[curTarget].imgheight - tplines[curTarget][i][0][1])/stretch);
+							var qy = targets[curTarget].imgheight;
+						} else {
+                            var xs = Math.sqrt((0 - tplines[curTarget][i][0][1])/stretch);
+							var qy = 0;
+						}
+                        if (x2 < tplines[curTarget][i][0][0]) {
+                            xs *= -1;
+                        }
+						var cp1x = tplines[curTarget][i][0][0] + 1.0/3.0*xs;
+						var cp1y = tplines[curTarget][i][0][1];
+						var cp2x = tplines[curTarget][i][0][0] + 2.0/3.0*xs;
+						var cp2y = tplines[curTarget][i][0][1] + 1.0/3.0*stretch*xs*xs;
+						ctx.moveTo(tplines[curTarget][i][0][0],tplines[curTarget][i][0][1]);
+						ctx.bezierCurveTo(cp1x,cp1y,cp2x,cp2y,tplines[curTarget][i][0][0] + xs,qy);
+					}
+                }
 			}
 		} else if (tptypes[curTarget][i]==6.5) {//if a tp sqrtt
 			var y2 = null;
@@ -1035,7 +1073,8 @@ function drawTarget(x,y,skipencode) {
 
 					do {
 						curx += flip*3;
-						ctx.lineTo(curx, stretch*Math.sqrt(flip*(curx - tplines[curTarget][i][0][0])) + tplines[curTarget][i][0][1]);
+                        cury = stretch*Math.sqrt(flip*(curx - tplines[curTarget][i][0][0])) + tplines[curTarget][i][0][1];
+						ctx.lineTo(curx, cury);
 					} while (curx > 0 && curx < targets[curTarget].imgwidth && cury > 0 && cury < targets[curTarget].imgheight);
 				}
 			}
@@ -1110,8 +1149,25 @@ function drawTarget(x,y,skipencode) {
 			}
 			if (x2 != null && (x2!=tplines[curTarget][i][0][0] || y2!=tplines[curTarget][i][0][1])) {
 				if (tptypes[curTarget][i]==7) { //is a tp circle
-					var rad = Math.sqrt((x2-tplines[curTarget][i][0][0])*(x2-tplines[curTarget][i][0][0]) + (y2-tplines[curTarget][i][0][1])*(y2-tplines[curTarget][i][0][1]));
-					ctx.arc(tplines[curTarget][i][0][0],tplines[curTarget][i][0][1],rad,0,2*Math.PI,true);
+                    // old code: required square grid
+					//var rad = Math.sqrt((x2-tplines[curTarget][i][0][0])*(x2-tplines[curTarget][i][0][0]) + (y2-tplines[curTarget][i][0][1])*(y2-tplines[curTarget][i][0][1]));
+					//ctx.arc(tplines[curTarget][i][0][0],tplines[curTarget][i][0][1],rad,0,2*Math.PI,true);
+                    // new code: draw as ellipse
+                    var dx = Math.abs(x2-tplines[curTarget][i][0][0]);
+					var dy = Math.abs(y2-tplines[curTarget][i][0][1]);
+                    // convert to coordinate values to find radius
+                    var dxv = dx / targets[curTarget].pixperx;
+                    var dyv = dy / targets[curTarget].pixpery;
+                    var rad = Math.sqrt(dxv*dxv+dyv*dyv);
+                    ctx.save(); // save state
+					ctx.beginPath();
+                    // scale to grid
+                    var rx = rad*targets[curTarget].pixperx;
+                    var ry = rad*targets[curTarget].pixpery;
+					ctx.translate(tplines[curTarget][i][0][0]-rx, tplines[curTarget][i][0][1]-ry);
+					ctx.scale(rx, ry);
+					ctx.arc(1, 1, 1, 0, 2 * Math.PI, false);
+					ctx.restore(); // restore to original state
 				} else if (tptypes[curTarget][i]==7.2) { //if a tp ellipse
 					var rx = Math.abs(x2-tplines[curTarget][i][0][0]);
 					var ry = Math.abs(y2-tplines[curTarget][i][0][1]);
@@ -1670,6 +1726,11 @@ function deleteCurve(curveType,num) {
 	}
 	drawTarget();
 }
+function roundToDec(val, dec) {
+    // no reason for any of the values to be anything but integers
+    return Math.round(val);
+    //return Math.round(val*Math.pow(10,dec))/Math.pow(10,dec);
+}
 function encodeDraw() {
 	var out = '';
 	var outline = [];
@@ -1687,7 +1748,7 @@ function encodeDraw() {
 			if (j!=0) {
 				out += ',';
 			}
-			out +=	'('+outline[j][0]+','+outline[j][1]+')';
+			out +=	'('+roundToDec(outline[j][0],4)+','+roundToDec(outline[j][1],4)+')';
 
 		}
 	}
@@ -1696,14 +1757,14 @@ function encodeDraw() {
 		if (i!=0) {
 			out += ',';
 		}
-		out += '('+dots[curTarget][i][0]+','+dots[curTarget][i][1]+')';
+		out += '('+roundToDec(dots[curTarget][i][0],4)+','+roundToDec(dots[curTarget][i][1],4)+')';
 	}
 	out += ';;';
 	for (var i=0; i<odots[curTarget].length; i++) {
 		if (i!=0) {
 			out += ',';
 		}
-		out += '('+odots[curTarget][i][0]+','+odots[curTarget][i][1]+')';
+		out += '('+roundToDec(odots[curTarget][i][0],4)+','+roundToDec(odots[curTarget][i][1],4)+')';
 	}
 	out += ';;';
 	var tplineout = [];
@@ -1712,7 +1773,7 @@ function encodeDraw() {
 		if (tplines[curTarget][i].length==tpModeN[tptypes[curTarget][i]]) {
 			tpoutstr = '('+tptypes[curTarget][i];
 			for (var j=0; j<tplines[curTarget][i].length; j++) {
-				tpoutstr += ','+tplines[curTarget][i][j][0]+','+tplines[curTarget][i][j][1];
+				tpoutstr += ','+roundToDec(tplines[curTarget][i][j][0],4)+','+roundToDec(tplines[curTarget][i][j][1],4);
 			}
 			tplineout.push(tpoutstr + ')');
 		}
@@ -1725,7 +1786,7 @@ function encodeDraw() {
 		//	out += ',';
 		//}
 		if (ineqlines[curTarget][i].length>2) {
-			tpineqout.push('('+ineqtypes[curTarget][i]+','+ineqlines[curTarget][i][0][0]+','+ineqlines[curTarget][i][0][1]+','+ineqlines[curTarget][i][1][0]+','+ineqlines[curTarget][i][1][1]+','+ineqlines[curTarget][i][2][0]+','+ineqlines[curTarget][i][2][1]+')');
+			tpineqout.push('('+ineqtypes[curTarget][i]+','+roundToDec(ineqlines[curTarget][i][0][0],4)+','+roundToDec(ineqlines[curTarget][i][0][1],4)+','+roundToDec(ineqlines[curTarget][i][1][0],4)+','+roundToDec(ineqlines[curTarget][i][1][1],4)+','+roundToDec(ineqlines[curTarget][i][2][0],4)+','+roundToDec(ineqlines[curTarget][i][2][1],4)+')');
 		}
 	}
 	out += tpineqout.join(",");
@@ -2198,6 +2259,7 @@ function drawMouseMove(ev) {
 	var tempTarget = null;
 	clickmightbenewcurve = false;
 	var mousePos = mouseCoords(ev);
+
 	//$(".tips").html("move"+didMultiTouch);
 	//document.getElementById("ans0-0").innerHTML = dragObj + ';' + curTPcurve;
 	//if (curTarget==null) {

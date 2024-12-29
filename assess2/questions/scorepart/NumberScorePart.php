@@ -2,8 +2,8 @@
 
 namespace IMathAS\assess2\questions\scorepart;
 
-require_once(__DIR__ . '/ScorePart.php');
-require_once(__DIR__ . '/../models/ScorePartResult.php');
+require_once __DIR__ . '/ScorePart.php';
+require_once __DIR__ . '/../models/ScorePartResult.php';
 
 use IMathAS\assess2\questions\models\ScorePartResult;
 use IMathAS\assess2\questions\models\ScoreQuestionParams;
@@ -49,7 +49,7 @@ class NumberScorePart implements ScorePart
         
         $hasUnits = in_array('units',$ansformats);
         if ($hasUnits) {
-            require_once(__DIR__.'/../../../assessment/libs/units.php');
+            require_once __DIR__.'/../../../assessment/libs/units.php';
         }
         
         $givenans = normalizemathunicode($givenans);
@@ -171,7 +171,9 @@ class NumberScorePart implements ScorePart
             sort($tmp);
             $anarr = array($tmp[0]);
             for ($i=1;$i<count($tmp);$i++) {
-                if ($tmp[$i]-$tmp[$i-1]>1E-12) {
+                if (!is_numeric($tmp[$i]) || !is_numeric($tmp[$i-1]) || 
+                    $tmp[$i]-$tmp[$i-1]>1E-12
+                ) {
                     $anarr[] = $tmp[$i];
                 }
             }
@@ -210,12 +212,16 @@ class NumberScorePart implements ScorePart
                     $v = 'DNE';
                 } else {
                     $givenansUnits = parseunits($v);
-                    $v = evalMathParser($givenansUnits[0]);
-                    $gaunitsarr[$k] = $givenansUnits;
+                    if (is_array($givenansUnits)) {
+                        $v = $givenansUnits[0];
+                        $gaunitsarr[$k] = $givenansUnits;
+                    } else { // handle invalid
+                        $gaunitsarr[$k] = [0,'invalid',0,0];
+                    }
                 }
             }
 
-            $gaarr[$k] = trim(str_replace(array('$',',',' ','/','^','*'),'',$v));
+            $gaarr[$k] = trim(str_replace(array('$',',',' '),'',$v));
             if (strtoupper($gaarr[$k])=='DNE') {
                 $gaarr[$k] = 'DNE';
             } else if ($gaarr[$k]=='oo' || $gaarr[$k]=='-oo' || $gaarr[$k]=='-oo') {
@@ -223,7 +229,8 @@ class NumberScorePart implements ScorePart
             } else if (preg_match('/\d\s*(x|y|z|r|t|i|X|Y|Z|I|pi)([^a-zA-Z]|$)/', $gaarr[$k])) {
                 //has a variable - don't strip
             } else {
-                $gaarr[$k] = preg_replace('/^((-|\+)?(\d+\.?\d*|\.\d+)[Ee]?[+\-]?\d*)[^+\-]*$/','$1',$gaarr[$k]); //strip out units
+                //strip out units. Must start with a letter
+                $gaarr[$k] = preg_replace('/^((-|\+)?(\d+\.?\d*|\.\d+)([Ee]([+\-]\d+|\d+)))?\s*[a-zA-Z][^+\-]*$/','$1',$gaarr[$k]);
             }
         }
         if (in_array('orderedlist',$ansformats)) {
@@ -254,8 +261,13 @@ class NumberScorePart implements ScorePart
                         $anans = 'DNE';
                     } else {
                         $anssUnits = parseunits($anans);
-                        $anss[$k] = evalMathParser($anssUnits[0]);
-                        $anssunits[$k] = $anssUnits;
+                        if (is_array($anssUnits)) {
+                            $anss[$k] = $anssUnits[0];
+                            $anssunits[$k] = $anssUnits;
+                        } else {
+                            //echo "Invalid answer $anans";
+                            $anssunits[$j] = [0,'invalidans',0,0];
+                        }
                     }
                 }
             }
@@ -265,7 +277,7 @@ class NumberScorePart implements ScorePart
                 }
                 foreach ($anss as $k=>$anans) {
                     if (!is_numeric($anans)) {
-                        if (preg_match('/(\(|\[)(-?[\d\.]+|-?[\d\.]+[Ee]?[+\-]?\d+|-oo)\,(-?[\d\.]+|-?[\d\.]+[Ee]?[+\-]?\d+|oo)(\)|\])/',$anans,$matches) && is_numeric($givenans)) {
+                        if (preg_match('/(\(|\[)\s*(-?[\d\.]+|-?[\d\.]+[Ee]?[+\-]?\d+|-oo)\s*\,\s*(-?[\d\.]+|-?[\d\.]+[Ee]?[+\-]?\d+|oo)\s*(\)|\])/',$anans,$matches) && is_numeric($givenans)) {
                             //check reqdecimals/sigfigs
                             if ($reqdecimals !== '') {
                                 $decimalsingivenans = ($p = strpos($givenans,'.'))===false ? 0 : (strlen($givenans)-$p-1);
@@ -274,9 +286,13 @@ class NumberScorePart implements ScorePart
                                         continue;
                                     }
                                 } else {
+                                    /*  Don't bother to check in this case, since 
+                                        0.1 could be considered as 0.100, so if not exact,
+                                        no reason to bother checking
                                     if ($reqdecimals > $decimalsingivenans ) {
                                         continue;
                                     }
+                                    */
                                 }
                             }
                             if ($reqsigfigs !== '') {

@@ -31,44 +31,58 @@ $(function() {
 function parseAdvSearch() {
     var search = document.getElementById("search").value;
     var matches;
-    if (matches = search.match(/(author|type|id|regex|used|avgtime|mine|unused|private|res|order|lastmod|avgscore):("[^"]+?"|\w+)/g)) {
+    if (matches = search.match(/(author|type|id|regex|used|avgtime|mine|unused|private|res|order|lastmod|created|avgscore|isrand|isbroken|wronglib)(:|=)("[^"]+?"|\w+)/g)) {
         var pts;
         for (var i=0;i<matches.length;i++) {
-            pts = matches[i].split(/:/);
-            pts[1] = pts[1].replace(/"/g,'');
+            pts = matches[i].split(/(:|=)/);
+            pts[2] = pts[2].replace(/"/g,'');
             if (pts[0] == 'author') {
-                $("#search-author").val(pts[1]);
+                $("#search-author").val(pts[2]);
             } else if (pts[0] == 'type') {
-                $("#search-type").val(pts[1]);
+                $("#search-type").val(pts[2]);
             } else if (pts[0] == 'id') {
-                $("#search-id").val(pts[1]);
+                $("#search-id").val(pts[2]);
             } else if (pts[0] == 'avgtime') {
-                var avgt = pts[1].split(/,/);
+                var avgt = pts[2].split(/,/);
                 $("#search-avgtime-min").val(avgt[0]);
                 $("#search-avgtime-max").val(avgt[1]);
             } else if (pts[0] == 'avgscore') {
-                var avgs = pts[1].split(/,/);
+                var avgs = pts[2].split(/,/);
                 $("#search-avgscore-min").val(avgs[0]);
                 $("#search-avgscore-max").val(avgs[1]);
             } else if (pts[0] == 'lastmod') {
-                var avgt = pts[1].split(/,/);
+                var avgt = pts[2].split(/,/);
                 $("#search-lastmod-min").val(avgt[0]);
                 $("#search-lastmod-max").val(avgt[1]);
+            } else if (pts[0] == 'created') {
+                var avgt = pts[2].split(/,/);
+                $("#search-created-min").val(avgt[0]);
+                $("#search-created-max").val(avgt[1]);
             } else if (pts[0] == 'mine') {
-                $("#search-mine").prop('checked', pts[1] == 1)
+                $("#search-mine").prop('checked', pts[2] == 1)
             } else if (pts[0] == 'unused') {
-                $("#search-unused").prop('checked', pts[1] == 1)
+                $("#search-unused").prop('checked', pts[2] == 1)
+            } else if (pts[0] == 'private') {
+                $("#search-nopriv").prop('checked', pts[2] == 0);
+            } else if (pts[0] == 'public') {
+                $("#search-nopub").prop('checked', pts[2] == 0);
+            } else if (pts[0] == 'isrand') {
+                $("#search-nounrand").prop('checked', pts[2] == 1)
             } else if (pts[0] == 'res') {
-                var helps = pts[1].split(/,/);
+                var helps = pts[2].split(/,/);
                 for (var j=0; j<helps.length;j++) {
                     $("#search-res-"+helps[j]).prop('checked', true);
                 }
             } else if (pts[0] == 'order') {
-                $("#search-newest").prop('checked', pts[1] == 'newest');
+                $("#search-newest").prop('checked', pts[2] == 'newest');
+            } else if (pts[0] == 'isbroken') {
+                $("#search-broken").prop('checked', pts[2] == 1);
+            } else if (pts[0] == 'wronglib') {
+                $("#search-wronglib").prop('checked', pts[2] == 1);
             }
         }
     }
-    search = search.replace(/(author|type|id|regex|used|avgtime|mine|unused|private|res|order|lastmod|avgscore):("[^"]+?"|\w+)/g, '');
+    search = search.replace(/(author|type|id|regex|used|avgtime|mine|unused|private|public|res|order|lastmod|created|avgscore|isrand|isbroken|wronglib)(:|=)("[^"]+?"|\w+)/g, '');
     var words = search.split(/\s+/);
     var haswords = [];
     var excwords = [];
@@ -122,6 +136,13 @@ function doAdvSearch() {
     if (lastmodmin != '' || lastmodmax != '') {
         outstr += 'lastmod:"' + lastmodmin + ',' + lastmodmax + '" ';
     }
+    if (document.getElementById("search-created-min")) {
+        var createdmin = $("#search-created-min").val();
+        var createdmax = $("#search-created-max").val();
+        if (createdmin != '' || createdmax != '') {
+            outstr += 'created:"' + createdmin + ',' + createdmax + '" ';
+        }
+    }
     if ($("#search-mine").is(':checked')) {
         outstr += 'mine:1 ';
     }
@@ -130,6 +151,21 @@ function doAdvSearch() {
     }
     if ($("#search-newest").is(':checked')) {
         outstr += 'order:newest ';
+    }
+    if ($("#search-nounrand").is(':checked')) {
+        outstr += 'isrand:1 ';
+    }
+    if ($("#search-nopriv").is(':checked')) {
+        outstr += 'private:0 ';
+    }
+    if ($("#search-nopub").is(':checked')) {
+        outstr += 'public:0 ';
+    }
+    if ($("#search-broken").is(':checked')) {
+        outstr += 'isbroken:1 ';
+    }
+    if ($("#search-wronglib").is(':checked')) {
+        outstr += 'wronglib:1 ';
     }
     var helps = [];
     $("input[id^=search-res-]:checked").each(function(i,el) {
@@ -212,6 +248,11 @@ var wronglibicon = '<span class="wronglibicon" title="' + _('Marked as in wrong 
     '</span> ';
 var wrongLibState = {};
 function displayQuestionList(results) {
+    if (typeof results === 'string') {  // error message
+        $("#searcherror").html(results).show();
+        $("#search").focus();
+        return;
+    }
     var searchtype = 'libs';
     var colcnt = 9;
     var thead = '<thead><tr>'
@@ -222,8 +263,14 @@ function displayQuestionList(results) {
         + '<th>'+_('ID')+'</th>'
         + '<th>'+_('Type')+'</th>'
         + '<th>'+_('Times Used')+'</th>'
-        + '<th>'+_('Avg Time')+'</th>'
+        + (curaid > 0 ? '<th>'+_('Avg Time')+'</th>' :
+            '<th>'+_('Last Mod')+'</th>')
+        + (curcid == 'admin' ? '<th>'+_('Owner')+'</th>' : '')
         + '</tr></thead>';
+    var sortinit = [false,'S',false,'S','N','S','N', curaid > 0 ? 'N' : 'D'];
+    if (curcid == 'admin') {
+        sortinit.push('S');
+    }
     var tbody = '<tbody>';
     var i,q,row,features,descrclass,descricon;
     var lastlib = -1;
@@ -286,6 +333,11 @@ function displayQuestionList(results) {
                 '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>' +
                 '</span>';
         }
+        if (q['isrand'] == 0) {
+            features += '<span title="' + _('Not Randomized') + '" aria-label="' + _('Not Randomized') + '">' + 
+                '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path><line stroke="#f00" x1="5" y1="1" x2="19" y2="23"></line></svg>' +
+                '</span>';
+        }
         descrclass = '';
         descricon = '';
         if (q['broken'] == 1) {
@@ -298,6 +350,8 @@ function displayQuestionList(results) {
             descricon = wronglibicon;
         } else if (existingq.indexOf(parseInt(q['id'])) !== -1) {
             descrclass = ' class="qinassess"';
+        } else if (q['userights'] == 0) {
+            descrclass = ' class="qisprivate"';
         }
         // build action dropdown
 
@@ -308,19 +362,33 @@ function displayQuestionList(results) {
             "&cid=" + curcid +
             '&from=addq2';
         var editqaddr = 'moddataset.php?id=' + q['id'] +
-            "&aid=" + curaid +
+            (curaid > 0 ? ("&aid=" + curaid) : "") +
             "&cid=" + curcid +
-            '&from=addq2&frompot=1';
+            (curaid > 0 ? ('&from=addq2&frompot=1') : "");
 
         var actions2 = '<button role="button" class="dropdown-toggle arrow-down secondary" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' + 
-            '<span class="sr-only">More</span></button><ul role="menu" class="dropdown-menu dropdown-menu-right">' + 
-            '<li><a href="' + addqaddr + '">' + _('Add') + '</a></li>' +
-            '<li><a href="' + editqaddr + '">' + (q['mine']==1 ? _('Edit') : _('View Code')) + '</a></li>' + 
-            '<li><a href="' + editqaddr + '&template=true">' + _('Template') + '</a></li>';
+            '<span class="sr-only">More</span></button><ul role="menu" class="dropdown-menu dropdown-menu-right">';
+        if (curaid > 0) { 
+            actions2 += '<li><a href="' + addqaddr + '">' + _('Add') + '</a></li>';
+        }
+        actions2 += '<li><a href="' + editqaddr + '&viewonly=1">' + _('View Code') + '</a></li>';
+        if (q['canedit']==1) {
+            actions2 += '<li><a href="' + editqaddr + '">' + _('Edit Code') + '</a></li>';
+        } 
+        actions2 += '<li><a href="' + editqaddr + '&template=true">' + _('Template (Copy)') + '</a></li>';
         if (results.type=='libs') {
             actions2 += '<li><a href="#" onclick="toggleWrongLibFlag('+i+'); return false;" class="wronglibtoggle">' + 
                 ((q['junkflag'] == 1) ? _('Un-mark as in wrong library') : _('Mark as in wrong library')) +
                 '</a></li>';
+        }
+        if (q['canedit']==1) {
+            actions2 += '<li class=divider></li>';
+            actions2 += '<li><a href="manageqset.php?cid=' + curcid + 
+                '&transfer=' + q['id'] + '">' + 
+                _('Transfer') + '</a></li>';
+            actions2 += '<li><a href="manageqset.php?cid=' + curcid + 
+                '&remove=' + q['id'] + '">' + 
+                _('Delete') + '</a></li>';
         }
         actions2 += '</ul>';
 
@@ -335,19 +403,27 @@ function displayQuestionList(results) {
             + '<td class="nowrap">' + features + '</td>'
             + '<td>' + q['id'] + '</td>'
             + '<td>' + q['qtype'] + '</td>'
-            + '<td class="c">' + q['times'] + '</td>'
-            + '<td class="c">' + (q['meantimen'] > 3 ? 
+            + '<td class="c">' + q['times'] + '</td>';
+
+        if (curaid > 0) {
+            tbody += '<td class="c">' + (q['meantimen'] > 3 ? 
                 ('<span onmouseenter="tipshow(this,\''+_('Avg score on first try: ')+q['meanscore']+'%'
                 + '<br/>'+_('Avg time on first try: ') + q['meantime'] + _(' min') + 
                 '<br/>N='+q['meantimen']+'\')" onmouseleave="tipout()">' + q['meantime'] + '</span>') :
-                '') + '</td>'
-            + '</tr>';
+                '') + '</td>';
+        } else {
+            tbody += '<td>' + q['lastmod'] + '</td>';
+        }
+        if (curcid == 'admin') {
+            tbody += '<td>' + q['ownershort'] + '</td>';
+        }
+        tbody += '</tr>';
     }
     tbody += '</tbody>';
     document.getElementById("myTable").innerHTML = thead + tbody;
     rendermathnode(document.getElementById("myTable"));
 
-    initSortTable('myTable',[false,'S',false,'S','N','S','N','N']);
+    initSortTable('myTable', sortinit);
     if (window.top == window.self && document.getElementById("addbar")) {
          $("#selq input[type=checkbox]").on("change", function () {
              $("#addbar.footerbar").toggleClass("sr-only", $("#selq input[type=checkbox]:checked").length == 0);
@@ -571,10 +647,17 @@ function previewq(formn,loc,qn,docheck,onlychk) {
  }
 
  var recentlibs = {'ids':[], 'names':[]};
- var cookierecentlibs = readCookie("recentlibs");
- if (cookierecentlibs !== null) {
-     recentlibs = JSON.parse(decodeURIComponent(cookierecentlibs));
- }
+ if (isLocalStorageAvailable()) {
+    var storagerecentlibs = window.localStorage.getItem('recentlibs');
+    if (storagerecentlibs !== null) {
+        recentlibs = JSON.parse(storagerecentlibs);
+    }
+ } else {
+    var cookierecentlibs = readCookie("recentlibs");
+    if (cookierecentlibs !== null) {
+        recentlibs = JSON.parse(decodeURIComponent(cookierecentlibs));
+    }
+}
 
  function setlibhistory() {
     var curloc = recentlibs.ids.indexOf(curlibs);
@@ -583,12 +666,19 @@ function previewq(formn,loc,qn,docheck,onlychk) {
         recentlibs.names.splice(curloc,1);
     }
     recentlibs.ids.unshift(curlibs);
-    recentlibs.names.unshift(document.getElementById("libnames").innerHTML);
+    let curnames = document.getElementById("libnames").innerHTML.replace(/&\w+;/g,'');
+    curnames = curnames.length > 50 ? curnames.substring(0,49) + "..." : curnames;
+    recentlibs.names.unshift(curnames);
+    
     if (recentlibs.ids.length > 6) {
         recentlibs.ids.pop();
         recentlibs.names.pop();
     }
-    document.cookie = "recentlibs=" + encodeURIComponent(JSON.stringify(recentlibs));
+    if (isLocalStorageAvailable()) {
+        window.localStorage.setItem('recentlibs', JSON.stringify(recentlibs));
+    } else {
+        document.cookie = "recentlibs=" + encodeURIComponent(JSON.stringify(recentlibs));
+    }
     if (recentlibs.ids.length > 1) {
         $('#searchtypemenu').children(":nth-child(n+4)").remove();
         $('#searchtypemenu').append($("<li>", {
@@ -597,8 +687,7 @@ function previewq(formn,loc,qn,docheck,onlychk) {
         }));
         for (var i=1; i<recentlibs.ids.length; i++) {
             const curi = i;
-            let libname = recentlibs.names[curi].replace(/&\w+;/g,'');
-            libname = libname.length > 50 ? libname.substring(0,49) + "..." : libname;
+            let libname = recentlibs.names[curi];
         
             $('#searchtypemenu').append($("<li>").append($("<a>", {
                 click: function (e) {
@@ -638,4 +727,15 @@ function previewq(formn,loc,qn,docheck,onlychk) {
      } else {
          return true;
      }
+ }
+
+ function isLocalStorageAvailable(){
+    var test = 'test';
+    try {
+        localStorage.setItem(test, test);
+        localStorage.removeItem(test);
+        return true;
+    } catch(e) {
+        return false;
+    }
  }

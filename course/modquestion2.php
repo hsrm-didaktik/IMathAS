@@ -3,8 +3,8 @@
 //(c) 2019 David Lippman
 
 /*** master php includes *******/
-require "../init.php";
-require "../includes/htmlutil.php";
+require_once "../init.php";
+require_once "../includes/htmlutil.php";
 require_once "../includes/TeacherAuditLog.php";
 
 //set some page specific variables and counters
@@ -39,6 +39,9 @@ if (!(isset($teacherid))) {
     $curBreadcrumb .= _("Modify Question Settings");
 
     if (!empty($_GET['process'])) {
+        $stm = $DBH->prepare("SELECT itemorder,defpoints,intro FROM imas_assessments WHERE id=:id");
+        $stm->execute(array(':id' => $aid));
+        list($itemorder, $defpoints, $intro) = $stm->fetch(PDO::FETCH_NUM);
         if (isset($_GET['usedef'])) {
             $points = 9999;
             $attempts = 9999;
@@ -53,6 +56,9 @@ if (!(isset($teacherid))) {
             $_POST['copies'] = 1;
         } else {
             if (trim($_POST['points']) == "") {$points = 9999;} else { $points = intval($_POST['points']);}
+            if ($points == $defpoints) {
+                $points = 9999;
+            }
             if (trim($_POST['attempts']) == "" || intval($_POST['attempts']) <= 0) {
                 $attempts = 9999;
             } else {
@@ -63,6 +69,10 @@ if (!(isset($teacherid))) {
             if (trim($_POST['fixedseeds']) == "") {$fixedseeds = null;} else { $fixedseeds = trim($_POST['fixedseeds']);}
             if ($penalty != 9999) {
                 $penalty_aftern = Sanitize::onlyInt($_POST['penalty_aftern']);
+                if ($penalty_aftern > 9) {
+                    echo "after __ tries must be less than 10";
+                    exit;
+                }
                 if ($penalty_aftern > 1 && $attempts > 1) {
                     $penalty = 'S' . $penalty_aftern . $penalty;
                 }
@@ -75,8 +85,17 @@ if (!(isset($teacherid))) {
             $showans = Sanitize::simpleASCII($_POST['showans']);
             $showwork = Sanitize::onlyInt($_POST['showwork']);
             $rubric = intval($_POST['rubric']);
-            $showhints = intval($_POST['showhints']);
+            $showhints = !empty($_POST['showhintsusedef']) ? -1 : (
+                (empty($_POST['showhints1']) ? 0 : 1) +
+                (empty($_POST['showhints2']) ? 0 : 2) +
+                (empty($_POST['showhints4']) ? 0 : 4)
+            );
             $extracredit = !empty($_POST['ec']) ? 1 : 0;
+
+            if ($beentaken) {
+                // prevent adding copies if beentaken
+                $_POST['copies'] = 0;
+            }
         }
         if (isset($_GET['id'])) { //already have id - updating
             $stm = $DBH->prepare("SELECT * FROM imas_questions WHERE id=?");
@@ -121,12 +140,29 @@ if (!(isset($teacherid))) {
                 $stm->execute(array(':id' => $_GET['id']));
                 $_GET['qsetid'] = $stm->fetchColumn(0);
             }
+
+            // see if question was in group if points changed, and change others in group to same
+            if ($old_settings['points'] != $points) {
+                $aitems = explode(',', $itemorder);
+                foreach ($aitems as $v) {
+                    if ($v == $_GET['id']) { break; }
+                    else if (is_numeric($v)) { continue; }
+                    $sub = explode('~', $v);
+                    if (in_array($_GET['id'], $sub)) {
+                        $grpparts = explode('|',$sub[0]);
+				        if (strpos($sub[0],'|')!==false && $grpparts[0]<count($sub)-1) { // only standardize points if n < count
+                            array_shift($sub);
+                            $tofix = implode(',', array_map('intval', $sub));
+                            $stm = $DBH->prepare("UPDATE imas_questions SET points=? WHERE id IN ($tofix)");
+                            $stm->execute([$points]);
+                        }
+                        break;
+                    }
+                }
+            }
         }
         require_once "../includes/updateptsposs.php";
         if (isset($_GET['qsetid'])) { //new - adding
-            $stm = $DBH->prepare("SELECT itemorder,defpoints FROM imas_assessments WHERE id=:id");
-            $stm->execute(array(':id' => $aid));
-            list($itemorder, $defpoints) = $stm->fetch(PDO::FETCH_NUM);
             for ($i = 0; $i < $_POST['copies']; $i++) {
                 $query = "INSERT INTO imas_questions (assessmentid,points,attempts,penalty,regen,showans,showwork,questionsetid,rubric,showhints,fixedseeds,extracredit) ";
                 $query .= "VALUES (:assessmentid, :points, :attempts, :penalty, :regen, :showans, :showwork, :questionsetid, :rubric, :showhints, :fixedseeds, :extracredit)";
@@ -149,8 +185,20 @@ if (!(isset($teacherid))) {
                     }
                 }
             }
-            $stm = $DBH->prepare("UPDATE imas_assessments SET itemorder=:itemorder WHERE id=:id");
-            $stm->execute(array(':itemorder' => $itemorder, ':id' => $aid));
+            if (isset($_GET['id']) && $_POST['copies'] > 0) {
+                if (($jsonintro=json_decode($intro,true))!==null) { //is json intro
+                    $toadd = intval($_POST['copies']);
+                    for ($j = 1; $j < count($jsonintro); $j++) {
+                        if ($jsonintro[$j]['displayBefore']>$key) {
+                            $jsonintro[$j]['displayBefore'] += $toadd;
+                            $jsonintro[$j]['displayUntil'] += $toadd;
+                        }
+                    }
+                    $intro = json_encode($jsonintro);
+                }
+            } 
+            $stm = $DBH->prepare("UPDATE imas_assessments SET itemorder=:itemorder,intro=:intro WHERE id=:id");
+            $stm->execute(array(':itemorder' => $itemorder, ':intro' => $intro, ':id' => $aid));
 
             updatePointsPossible($aid, $itemorder, $defpoints);
         } else {
@@ -159,13 +207,13 @@ if (!(isset($teacherid))) {
 
         // Delete any teacher or tutor attempts on this assessment
         $query = 'DELETE iar FROM imas_assessment_records AS iar JOIN
-      imas_teachers AS usr ON usr.userid=iar.userid AND usr.courseid=?
-      WHERE iar.assessmentid=?';
+            imas_teachers AS usr ON usr.userid=iar.userid AND usr.courseid=?
+            WHERE iar.assessmentid=?';
         $stm = $DBH->prepare($query);
         $stm->execute(array($cid, $aid));
         $query = 'DELETE iar FROM imas_assessment_records AS iar JOIN
-      imas_tutors AS usr ON usr.userid=iar.userid AND usr.courseid=?
-      WHERE iar.assessmentid=?';
+            imas_tutors AS usr ON usr.userid=iar.userid AND usr.courseid=?
+            WHERE iar.assessmentid=?';
         $stm = $DBH->prepare($query);
         $stm->execute(array($cid, $aid));
 
@@ -212,10 +260,11 @@ if (!(isset($teacherid))) {
         $stm = $DBH->prepare("SELECT description FROM imas_questionset WHERE id=:id");
         $stm->execute(array(':id' => $qsetid));
         $qdescrip = $stm->fetchColumn(0);
+        $qingroup = false;
         if (isset($_GET['loc'])) {
             $qdescrip = $_GET['loc'] . ': ' . $qdescrip;
+            $qingroup = (strpos($_GET['loc'],'-') !== false);
         }
-        $qingroup = (strpos($_GET['loc'],'-') !== false);
 
         $rubric_vals = array(0);
         $rubric_names = array('None');
@@ -243,6 +292,7 @@ if (!(isset($teacherid))) {
         $defaults = $stm->fetch(PDO::FETCH_ASSOC);
         $defaults['showwork'] = ($defaults['showwork'] & 3);
 
+        if ($defaults['defpenalty'] === '') { $defaults['defpenalty'] = '0'; }
         if ($defaults['defpenalty'][0] === 'S') {
             $defaults['penalty'] = sprintf(_('%d%% after %d full-credit tries'),
                 substr($defaults['defpenalty'], 2), $defaults['defpenalty'][1]);
@@ -261,12 +311,18 @@ if (!(isset($teacherid))) {
         }
         if ($defaults['showhints'] == 0) {
             $defaults['showhints'] = _('No');
-        } else if ($defaults['showhints'] == 1) {
-            $defaults['showhints'] = _('Hints');
-        } else if ($defaults['showhints'] == 2) {
-            $defaults['showhints'] = _('Video/text buttons');
-        } else if ($defaults['showhints'] == 3) {
-            $defaults['showhints'] = _('Hints and Video/text buttons');
+        } else {
+            $ht = [];
+            if ($defaults['showhints']&1) {
+                $ht[] = _('Hints');
+            } 
+            if ($defaults['showhints']&2) {
+                $ht[] = _('Videos');
+            } 
+            if ($defaults['showhints']&4) {
+                $ht[] = _('Examples');
+            } 
+            $defaults['showhints'] = implode(' &amp; ', $ht);
         }
 
         if ($defaults['showwork'] == 0) {
@@ -287,8 +343,13 @@ function previewq(qn) {
   previewpop = window.open(imasroot+"/course/testquestion2.php?fixedseeds=1&cid="+cid+"&qsetid="+qn,"Testing","width="+(.4*screen.width)+",height="+(.8*screen.height)+",scrollbars=1,resizable=1,status=1,top=20,left="+(.6*screen.width-20));
   previewpop.focus();
 }
+$(function() {
+    $(".showhintsdef").on("change", function() {
+        $(this).closest("span").find("span").toggle(!this.checked);
+    });
+});
 </script>';
-require "../header.php";
+require_once "../header.php";
 
 if ($overwriteBody == 1) {
     echo $body;
@@ -333,7 +394,7 @@ if (!isset($_GET['id']) || $beentaken) {
 <span class=form><?php echo _("Penalty on Tries:"); ?></span>
 <span class=formright><input type=text size=2 name=penalty value="<?php echo Sanitize::encodeStringForDisplay($line['penalty']); ?>">
   <?php echo sprintf(_('%% per try after %s full-credit tries'),
-        '<input type=text size=1 name="penalty_aftern" value="' . Sanitize::encodeStringForDisplay($penalty_aftern) . '">'); ?>
+        '<input type=number min=1 max=9 size=1 name="penalty_aftern" value="' . Sanitize::encodeStringForDisplay($penalty_aftern) . '">'); ?>
    <br/><i class="grey"><?php echo _('Default:'); ?> <?php echo Sanitize::encodeStringForDisplay($defaults['penalty']); ?></i>
 </span><BR class=form>
 <?php
@@ -365,19 +426,34 @@ if (!isset($_GET['id']) || $beentaken) {
    </select><br/><i class="grey"><?php echo _('Default:'); ?> <?php echo Sanitize::encodeStringForDisplay($defaults['showwork']); ?></i></span><br class="form"/>
 
 <span class=form><?php echo _('Show hints and video/text buttons?'); ?></span><span class=formright>
-    <select name="showhints">
-     <option value="-1" <?php if ($line['showhints'] == -1) {echo 'selected="1"';}?>><?php echo _('Use Default'); ?></option>
-     <option value="0" <?php if ($line['showhints'] == 0) {echo 'selected="1"';}?>><?php echo _('No'); ?></option>
-     <option value="1" <?php if ($line['showhints'] == 1) {echo 'selected="1"';}?>><?php echo _('Hints'); ?></option>
-     <option value="2" <?php if ($line['showhints'] == 2) {echo 'selected="1"';}?>><?php echo _('Video/text buttons'); ?></option>
-     <option value="3" <?php if ($line['showhints'] == 3) {echo 'selected="1"';}?>><?php echo _('Hints and Video/text buttons'); ?></option>
-    </select><br/><i class="grey"><?php echo _('Default:'); ?> <?php echo $defaults['showhints']; ?></i></span><br class="form"/>
+    <label>
+        <input type=checkbox class=showhintsdef name="showhintsusedef" value=1 <?php if ($line['showhints'] == -1) {echo 'checked';}?>>
+        <?php echo _('Use Default'); ?>
+    </label>
+    <span <?php if ($line['showhints'] == -1) {echo 'style="display:none"';}?>>
+    <br/>
+    <label>
+        &nbsp; <input type=checkbox name="showhints1" value=1 <?php if ($line['showhints']&1) {echo 'checked';}?>>
+        <?php echo _('Hints'); ?>
+    </label>
+    <br/>
+    <label>
+        &nbsp; <input type=checkbox name="showhints2" value=2 <?php if ($line['showhints']&2) {echo 'checked';}?>>
+        <?php echo _('Videos/Text'); ?>
+    </label>
+    <br/>
+    <label>
+        &nbsp; <input type=checkbox name="showhints4" value=4 <?php if ($line['showhints']&4) {echo 'checked';}?>>
+        <?php echo _('Written Examples'); ?>
+    </label>
+    </span>
+    <br/><i class="grey"><?php echo _('Default:'); ?> <?php echo $defaults['showhints']; ?></i></span><br class="form"/>
 
 <span class=form><?php echo _('Use Scoring Rubric'); ?></span><span class=formright>
 <?php
 writeHtmlSelect('rubric', $rubric_vals, $rubric_names, $line['rubric']);
-    echo " <a href=\"addrubric.php?cid=$cid&amp;id=new&amp;from=modq&amp;aid=" . Sanitize::encodeUrlParam($aid) . "&amp;qid=" . Sanitize::encodeUrlParam($_GET['id']) . "\">" . _("Add new rubric") . "</a> ";
-    echo "| <a href=\"addrubric.php?cid=$cid&amp;from=modq&amp;aid=" . Sanitize::encodeUrlParam($aid) . "&amp;qid=" . Sanitize::encodeUrlParam($_GET['id']) . "\">" . _("Edit rubrics") . "</a> ";
+    echo " <a href=\"addrubric.php?cid=$cid&amp;id=new&amp;from=modq&amp;aid=" . Sanitize::encodeUrlParam($aid) . "&amp;qid=" . Sanitize::encodeUrlParam($_GET['id'] ?? '') . "\">" . _("Add new rubric") . "</a> ";
+    echo "| <a href=\"addrubric.php?cid=$cid&amp;from=modq&amp;aid=" . Sanitize::encodeUrlParam($aid) . "&amp;qid=" . Sanitize::encodeUrlParam($_GET['id'] ?? '') . "\">" . _("Edit rubrics") . "</a> ";
     ?>
     </span><br class="form"/>
 <?php
@@ -422,5 +498,5 @@ if (isset($_GET['qsetid'])) { //adding new question
     echo '</form>';
 }
 
-require "../footer.php";
+require_once "../footer.php";
 ?>

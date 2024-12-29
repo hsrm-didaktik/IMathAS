@@ -3,9 +3,9 @@
 //(c) 2006 David Lippman
 
 /*** master php includes *******/
-require("../init.php");
-require("../includes/htmlutil.php");
-require_once("../includes/parsedatetime.php");
+require_once "../init.php";
+require_once "../includes/htmlutil.php";
+require_once "../includes/parsedatetime.php";
 
 
 /*** pre-html data manipulation, including function code *******/
@@ -72,7 +72,7 @@ if (isset($tutorid)) {
 if (!(isset($teacherid) || (isset($tutorid) && $tutoredit == 3))) { // loaded by a NON-teacher
 	$overwriteBody=1;
 	$body = "You need to log in as a teacher to access this page";
-} elseif (!(isset($_GET['cid']))) {
+} elseif (!(isset($_GET['cid'])) || !(isset($_GET['aid']))) {
 	$overwriteBody=1;
 	$body = "You need to access this page from the course page menu";
 } else { // PERMISSIONS ARE OK, PROCEED WITH PROCESSING
@@ -103,7 +103,7 @@ if (!(isset($teacherid) || (isset($tutorid) && $tutoredit == 3))) { // loaded by
                 // if time limit not expired, need to rewrite assess_versions[last]['timelimit_end']
                 //   and add timelimit_ext to note use of extension.
                 // if time limit is expired, then set eligibleForTimeExt
-                $adata = json_decode(gzdecode($row[0]), true);
+                $adata = json_decode(Sanitize::gzexpand($row[0]), true);
                 $lastver = &$adata['assess_versions'][count($adata['assess_versions'])-1];
                 if ($lastver['status']==0 && $lastver['timelimit_end'] > $now) {
                     // not submitted and time limit still active; extend now.
@@ -113,7 +113,7 @@ if (!(isset($teacherid) || (isset($tutorid) && $tutoredit == 3))) { // loaded by
                     }
                     $lastver['timelimit_ext'][] = $timelimitext;
                     $iarupdate = $DBH->prepare('UPDATE imas_assessment_records SET scoreddata=? WHERE userid=? AND assessmentid=?');
-                    $iarupdate->execute([gzencode(json_encode($adata)), $aid, $uid]);
+                    $iarupdate->execute([gzcompress(json_encode($adata)), $uid, $aid]);
                     $timelimitext *= -1; // mark as used
                 }
             }
@@ -202,11 +202,12 @@ if (!(isset($teacherid) || (isset($tutorid) && $tutoredit == 3))) { // loaded by
         $DBH->commit();
 
 		header('Location: ' . $backurl);
-
+        exit;
 	} else if (isset($_GET['clear'])) {
 		$stm = $DBH->prepare("DELETE FROM imas_exceptions WHERE id=:id");
 		$stm->execute(array(':id'=>$_GET['clear']));
 		header('Location: ' . $backurl);
+        exit;
 	} elseif (isset($_GET['aid']) && $_GET['aid']!='') {
 		$stm = $DBH->prepare("SELECT LastName,FirstName FROM imas_users WHERE id=:id");
 		$stm->execute(array(':id'=>$uid));
@@ -249,7 +250,7 @@ if (!(isset($teacherid) || (isset($tutorid) && $tutoredit == 3))) { // loaded by
 			$page_isExceptionMsg .=  'students different due dates, you should do so in your LMS, not here, as the date from the LMS will be given ';
 			$page_isExceptionMsg .= 'priority.  Only create a manual exception here if it is for a special purpose, like waiving a prerequisite.</p>';
 		}
-	}
+	} 
 	//DEFAULT LOAD DATA MANIPULATION
 	$address = $GLOBALS['basesiteurl'] . "/course/exception.php?" . Sanitize::generateQueryStringFromMap(array(
 			'cid' => $_GET['cid'], 'uid' => $_GET['uid'], 'asid' => $asid, 'stu' => $stu, 'from' => $from));
@@ -270,7 +271,7 @@ $latepasses = $stm->fetchColumn(0);
 
 /******* begin html output ********/
 $placeinhead = "<script type=\"text/javascript\" src=\"$staticroot/javascript/DatePicker.js\"></script>";
- require("../header.php");
+ require_once "../header.php";
 
 if ($overwriteBody==1) {
 	echo $body;
@@ -363,5 +364,5 @@ if ($aVer > 1) { // only for new assess
 <?php
 	}
 }
-require("../footer.php");
+require_once "../footer.php";
 ?>

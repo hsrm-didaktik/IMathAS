@@ -32,6 +32,7 @@ var tann = function(n,x) {return Math.pow(Math.tan(x),n)};
 var cscn = function(n,x) {return 1/Math.pow(Math.sin(x),n)};
 var secn = function(n,x) {return 1/Math.pow(Math.cos(x),n)};
 var cotn = function(n,x) {return 1/Math.pow(Math.tan(x),n)};
+var lnn = function(n,x) {return Math.pow(Math.log(x),n)};
 
 function factorial(x,n) {
   if (n==null) n=1;
@@ -56,7 +57,7 @@ function nthroot(n,base) {
 function nthlogten(n,v) {
 	return ((Math.log(v))/(Math.log(n)));
 }
-var funcstoindexarr = "sinh|cosh|tanh|sech|csch|coth|sqrt|ln|log|exp|sin|cos|tan|sec|csc|cot|abs|root|arcsin|arccos|arctan|arcsec|arccsc|arccot|arcsinh|arccosh|arctanh|arcsech|arccsch|arccoth".split("|");
+var funcstoindexarr = "sinh|cosh|tanh|sech|csch|coth|sqrt|ln|log|exp|sin|cos|tan|sec|csc|cot|abs|root|arcsin|arccos|arctan|arcsec|arccsc|arccot|arcsinh|arccosh|arctanh|arcsech|arccsch|arccoth|argsinh|argcosh|argtanh|argsech|argcsch|argcoth|arsinh|arcosh|artanh|arsech|arcsch|arcoth|pi".split("|");
 function functoindex(match) {
 	for (var i=0;i<funcstoindexarr.length;i++) {
 		if (funcstoindexarr[i]==match) {
@@ -97,11 +98,13 @@ function mathjs(st,varlist) {
   //slice and concat new formula string
   //parenthesizes the function variables
   st = st.replace(/(\+\s*-|-\s*\+)/g,'-').replace(/-\s*-/g,'+');
-  st = st.replace("[","(");
-  st = st.replace("]",")");
+  st = st.replace(/\[/g,"(");
+  st = st.replace(/\]/g,")");
+  st = st.replace(/\b00+\./g,'0.');
   st = st.replace(/root\s*(\d+)/,"root($1)");
   st = st.replace(/\|(.*?)\|/g,"abs($1)");
   st = st.replace(/arc(sin|cos|tan|sec|csc|cot|sinh|cosh|tanh|sech|csch|coth)/gi,"$1^-1");
+  st = st.replace(/(ar|arg)(sinh|cosh|tanh|sech|csch|coth)/gi,"$2^-1");
   st = st.replace(/(Sin|Cos|Tan|Sec|Csc|Cot|Arc|Abs|Log|Exp|Ln|Sqrt)/gi, matchtolower);
   //hide functions for now
   st = st.replace(/(sinh|cosh|tanh|sech|csch|coth|sqrt|ln|log|exp|sin|cos|tan|sec|csc|cot|abs|root)/g, functoindex);
@@ -142,6 +145,8 @@ function mathjs(st,varlist) {
 
   st = st.replace(/\*?\s*degrees?/g,"*((pi)/180)");
 
+  st = st.replace(/div/,'/');
+
   //convert named constants
   st = st.replace(/e/g, "(E)");
 
@@ -154,12 +159,12 @@ function mathjs(st,varlist) {
   st = st.replace(/log_(\(@v\d+@\))\s*\(/g,"nthlog($1,");
   st = st.replace(/log/g,"logten");
   st = st.replace(/(sin|cos|tan|sec|csc|cot|sinh|cosh|tanh|sech|csch|coth)\^(-1|\(-1\))/g,"arc$1");
-  st = st.replace(/(sin|cos|tan|sec|csc|cot)\^(\d+)\s*\(/g,"$1n($2,");
-  st = st.replace(/(sin|cos|tan|sec|csc|cot)\^\((\d+)\)\s*\(/g,"$1n($2,");
+  st = st.replace(/(sin|cos|tan|sec|csc|cot|ln)\^(\d+)\s*\(/g,"$1n($2,");
+  st = st.replace(/(sin|cos|tan|sec|csc|cot|ln)\^\((\d+)\)\s*\(/g,"$1n($2,");
   st = st.replace(/root\s*\((\d+)\)\s*\(/g,"nthroot($1,");
 
   //add implicit mult for "3 4"
-  st = st.replace(/([0-9])\s+([0-9])/g,"$1*$2");
+  st = st.replace(/([0-9]\.?)\s+([0-9])/g,"$1*$2");
 
   //clean up
   st = st.replace(/#/g,"");
@@ -173,7 +178,7 @@ function mathjs(st,varlist) {
   }
 
   //add implicit multiplication
-  st = st.replace(/([0-9])([\(a-zA-Z])/g,"$1*$2");
+  st = st.replace(/([0-9]\.?)([\(a-zA-Z])/g,"$1*$2");
   st = st.replace(/(!)([0-9\(a-zA-Z])/g,"$1*$2");
   st = st.replace(/\)([\(0-9a-zA-Z]|\.\d+)/g,"\)*$1");
 
@@ -188,7 +193,7 @@ function mathjs(st,varlist) {
     if (i==0) return "Error: missing argument";
     j = i-1;
     ch = st.charAt(j);
-    if (ch>="0" && ch<="9") {// look for (decimal) number
+    if ((ch>="0" && ch<="9") || ch=='.') {// look for (decimal) number
       j--;
       while (j>=0 && (ch=st.charAt(j))>="0" && ch<="9") j--;
       if (ch==".") {
@@ -222,7 +227,7 @@ function mathjs(st,varlist) {
     if (i==0) return "Error: missing argument";
     j = i-1;
     ch = st.charAt(j);
-    if (ch>="0" && ch<="9") {// look for (decimal) number
+    if ((ch>="0" && ch<="9") || ch=='.') {// look for (decimal) number
       j--;
       while (j>=0 && (ch=st.charAt(j))>="0" && ch<="9") j--;
       if (ch==".") {

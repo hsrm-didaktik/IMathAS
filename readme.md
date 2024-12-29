@@ -12,11 +12,12 @@ IMathAS powers MyOpenMath.com, WAMAP.org, Lumen OHM, XYZhomework, and others.
 
 ### Requirements
 IMathAS is designed for simple installation with minimal requirements.  The system
-requires PHP 7.2+, and MySQL 5.6+.  PHP has the following recommended or required extensions:
+requires PHP 7.4+, and MySQL 5.6+.  PHP has the following recommended or required extensions:
 - mbstring (required)
 - pdo_mysql (required)
 - gettext (required)
 - gd with freetype (recommended) for image creation
+- zip (recommended) necessary for course export packages
 - curl (recommended) necessary for LTI grade passback
 - openssl (recommended) necessary for LTI 1.3 services
 
@@ -65,6 +66,11 @@ These are all added to the `config.php` by the install script.
 -   `$enablebasiclti`: Set to true to enable use of IMathAS as an LTI producer (tool).
 -   `$AWSkey, $AWSsecret, $AWSbucket`: To allow students and teachers to upload files through the text editor, and to enable file upload questions, this specifies an Amazon S3 key, secret, and bucket to use for file storage. If not specified, local storage will be used instead.
 - `$CFG['GEN']['newpasswords']`:  all new installations should set this to `'only'` to use good-quality password security.  It can be set to `'transition'` for very old systems to transition to the new storage.  If omitted the system will use md5 for passwords, which is highly discouraged.
+- `$CFG['MySQL_ver']`: Set to your MySQL version, as a simple decimal with major version only, like 5.6, 8.0, or 8.1. Only necessary if you're using 8+. If upgrading from 5.x to 8,
+make sure you also edit your config.php and make sure the PDO connection includes a charset.  If it doesn't already, you'll want to add <code>;charset=latin1</code> to 
+the connection string (after the host= and dbname= portions) to ensure the encoding remains
+the same as the 5.x default after upgrade.  If on a new install, it's better to use <code>;charset=utf8mb4</code>.
+- `$CFG['YouTubeAPIKey']`: If the caption detection on videos attached to questions stops working, set this to your YouTube Data API v3 key, obtained from Google Cloud Platform, to use a more reliable method.
 
 ### System Defaults
 
@@ -82,7 +88,8 @@ Many system defaults can be adjusted using config changes.
 - `$CFG['coursebrowser']`:  If you wish to use the course browser feature, copy `/javascript/coursebrowserprops.js.dist` to `/javascript/coursebrowserprops.js`, edit it, then set:
     - `$CFG['coursebrowser'] = 'coursebrowserprops.js'`.
     - `$CFG['coursebrowsermsg']`: Optionally set this to override the default "Copy a template or promoted course" message.
-- `$CFG['GEN']['enrollonnewinstructor']`:  Set to an array of course IDs that new instructors should automatically be enrolled in (like a support course or training course).
+- `$CFG['GEN']['enrollonnewinstructor']`:  Set to an array of course IDs that new instructors should automatically be enrolled in upon requesting an account (like a support course or training course).
+- `$CFG['GEN']['enrolloninstructorapproval']`:  Set to an array of course IDs that instructors should automatically be enrolled in when their account is approved.
 - `$CFG['GEN']['guesttempaccts']`: Set to true to allow logging on as `guest` with no password.  Also enables the "guest access" option in course settings, which defines which courses a guest will get auto-enrolled in.
 -  `$CFG['use_csrfp']`: Set this to true to enable cross-site request forgery protection.
 - File Storage:  By default, all user-uploaded files are stored on the webserver.  The system supports using Amazon S3 for file storage instead.  To use S3:
@@ -105,6 +112,9 @@ where days is the number of days since last login to consider old, and userid is
 - `$CFG['assess_upgrade_optout']`: Set to true to allow users to opt out of an upgrade
 to the new assessment interface.
 - `$CFG['reqadminmfa']`: Require admins to enable two-factor authentication.
+- `$CFG['logquestionerrors']`: Enable logging of question errors.
+- `$CFG['GEN']['sessionmaxlife']`: Overrides session.gc_maxlifetime.
+- `$CFG['GEN']['gc_divisor']`: Overrides session.gc_divisor.
 
 ### Additional Validation
 These provide additional validation options beyond `$loginformat`.
@@ -150,6 +160,7 @@ course list from the course browser options, so you must also have `$CFG['course
 
 ### LTI
 
+- If you're going to be using LTI 1.3, make sure you go to Admin Page, LTI 1.3 Platforms, Manage Private Keys and add a new key.  This should only need to be done once, unless you choose to rotate your keys.
 - `$CFG['LTI']['noCourseLevel']`: set to true to hide course level LTI key and secret from users. Use this if you want to require use of global LTI key/secrets.
 - `$CFG['LTI']['noGlobalMsg']`: When the `noCourseLevel` option above is set, use this option to define a message that will be displayed on the export page when no global LTI is set for the group.
 - `$CFG['LTI']['showURLinSettings']`: Set to true to show the LTI launch URL on the course settings page.  Normally omitted to avoid confusion (since it's not needed in most LMSs).
@@ -162,8 +173,9 @@ course list from the course browser options, so you must also have `$CFG['course
 - `$CFG['LTI']['usesendzeros']`: Set to true to enable the "send zeros after due date" course setting.  _This option requires additional setup._
     - To operate, the `/lti/admin/sendzeros.php` script needs to be called on a schedule, typically once or a few times a day.  If running on a single server, you can set this up as a cron job.  Alternatively, you could define `$CFG['LTI']['authcode']` and make a scheduled web call to `/lti/admin/sendzeros.php?authcode=####` using the code you define.
 - `$CFG['LTI']['useradd13']`: Set to true to allow teacher users to add LTI1.3 platforms.
-- `$CFG['LTI']['autoreg']`: Set to true to allow known LTI1.3 platforms to be autoregistered on first 
-   launch, to avoid needing to record the client id. Currently only works for Canvas.
+- `$CFG['LTI']['autoreg']`: Set to true to allow known LTI1.3 platforms to be autoregister, when possible. For Canvas, this allows autoregistration on first 
+   launch, with no other action required. For LMSs that support the LTI 
+   Dynamic Registration spec, this registration endpoint at `/lti/dynreg.php`.
 
 ### Email
 By default, emails are sent using the built-in PHP `mail()` function.  This can sometimes have reliability issue, so there are options to override the mail sender or reduce the use of email in the system.
@@ -178,6 +190,7 @@ By default, emails are sent using the built-in PHP `mail()` function.  This can 
       - Optionally, but recommended: set `$CFG['email']['authcode']`, and set up SES to call
          `/admin/handleSESbounce.php?authcode=####` on bounces or complaints.
     - `$CFG['email']['handlerpriority']` can be set to define a breakpoint between using the default `mail()` delivery and the custom handler.   See `/includes/email.php` for values.
+- `$CFG['email']['secsalt']`: A secret value used for salting hashes.
 
 
 
@@ -189,6 +202,17 @@ If you wish to enable users to request browser push notifications (does not work
 - `$CFG['FCM']['webApiKey']`: Your web API key, from the Firebase project console.
 - `$CFG['FCM']['serverApiKey']`: Your server key, from the Firebase project console.
 - `$CFG['FCM']['icon']`: an absolute web path to an icon to show on notifications.
+
+As of June 2024, the original method for interfacing with FCM will be eliminated, so to 
+continue using push notifications, you will need to:
+
+- In your config.php, add `$CFG['FCM']['project_id']`: your Project ID, from the Firebase project console.
+- Go to the Firebase console, click on your project, go to Project Settings, click on Service Accounts,
+  and click Generate new private key. This will download a .json file to your computer.
+- In the Project Settings, click on Cloud Messaging, and ensure Firebase Cloud Messaging API (V1) is
+  enabled (you may need to go to the Google Cloud Console to enable it)
+- In your IMathAS install, while logged in as an admin, go to Admin Page, click Utilities, then click
+  Set up FCM for push notifications.  Here, paste the contents of the .json file you downloaded, and Save.
 
 ### Internationalization
 
@@ -228,6 +252,10 @@ Options:
 - `$CFG['cleanup']['msgfrom']`:  the userid to send notification message from (def: 0)
 - `$CFG['cleanup']['keepsent']`:   set =0 to keep a copy of sent notifications in sent list
 - `$CFG['cleanup']['allowoptout']`:   (default: true) set to false to prevent teachers opting out
+- `$CFG['cleanup']['deloldaudit']`:  a number of days after which to delete 
+    teacher audit log data.  (def: 0 (don't use))
+- `$CFG['cleanup']['deloldltiqueue']`:  a number of days after which to delete 
+    LTI failure timesouts.  (def: 180)
 - `$CFG['cleanup']['groups']`: You can specify different old/delay values for different groups by defining
 `$CFG['cleanup']['groups'] = array(groupid => array('old'=>days, 'delay'=>days));`
 - `$CFG['cleanup']['oldstu']`: a number of days of inactivity in a student account after which the account is 

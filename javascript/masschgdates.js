@@ -64,7 +64,7 @@ Date.prototype.daysBetween = function(d) {
 
         var rtrn = null;
 
-        if (! d instanceof Date) {
+        if (!(d instanceof Date)) {
             try {
                 d = new Date(d);
             }
@@ -293,7 +293,7 @@ Date.prototype.getWeekDays = function(d) {
 				  if (usecb && !document.getElementById("cb"+i).checked) {
 					  continue;
 				  }
-				  if (basearr[i]!="NA" && document.getElementById(type+"datetype"+i).value==1) {
+				  if (basearr[i]!="NA" && basearr[i]!="-1" && document.getElementById(type+"datetype"+i).value==1) {
 					 curdate = document.getElementById(type+"date"+i).value;
 					 if (curdate!=0 && curdate!=2000000000) {
 						 d.setTime(basearr[i]*1000);
@@ -330,13 +330,13 @@ Date.prototype.getWeekDays = function(d) {
 	 /* if (baserdates[st]!="NA") {
 		  senddownsub('r',baserdates,st,usebusdays,usecb);
 	  }*/
-	  if (baselpdates[st]!="NA") {
+	  if (includeassess && baselpdates[st]!="NA" && baselpdates[st]!="-1") {
 		  senddownsub('lp',baselpdates,st,usebusdays,usecb);
 	  }
-	  if (basefpdates[st]!="NA") {
+	  if (includeforums && basefpdates[st]!="NA" && basefpdates[st]!="-1") {
 		  senddownsub('fp',basefpdates,st,usebusdays,usecb);
 	  }
-	  if (basefrdates[st]!="NA") {
+	  if (includeforums && basefrdates[st]!="NA" && basefrdates[st]!="-1") {
 		  senddownsub('fr',basefrdates,st,usebusdays,usecb);
 	  }
   }
@@ -554,11 +554,16 @@ Date.prototype.getWeekDays = function(d) {
   		out.push(document.getElementById("type"+i).value);
   		out.push(document.getElementById("id"+i).value);
   		out.push(document.getElementById("avail"+i).value);
-  		var newel = document.createElement("input");
-  		newel.name = "data"+i;
-  		newel.type = "hidden";
-  		newel.value = out.join(",");
-  		frm.appendChild(newel);
+		if (document.getElementById("data"+i)) {
+			document.getElementById("data"+i).value = out.join(",");
+		} else {
+			var newel = document.createElement("input");
+			newel.id = "data"+i;
+			newel.name = "data"+i;
+			newel.type = "hidden";
+			newel.value = out.join(",");
+			frm.appendChild(newel);
+		}
   	}
   }
 
@@ -608,6 +613,26 @@ Date.prototype.getWeekDays = function(d) {
   	  }
   	  includeassess = !includeassess;
   }
+
+  function quicksave() {
+	prepforsubmit(document.getElementById("realform"));
+	var url = $("#realform").attr("action")+"&quick=true";
+	$("#quicksavenotice").html(_("Saving...") + ' <img src="'+staticroot+'/img/updating.gif"/>');
+	$.ajax({
+		url: url,
+		type: "POST",
+		data: $("#realform").serialize()
+	}).done(function(msg) {
+		if (msg=="saved") {
+			$("#quicksavenotice").html(_("Saved"));
+			setTimeout(function() {$("#quicksavenotice").html("&nbsp;");}, 2000);
+		} else {
+			$("#quicksavenotice").html(msg);
+		}
+	}).fail(function(jqXHR, textStatus) {
+		$("#quicksavenotice").html(textStatus);
+	});
+}
 
   	//TODO: separately calculate day difference (using daysBetween and getWeekDays) and time difference separately
 	//can use getHours()*60+getMinutes() to get minutes into day, then multiply to get ms for timediff
