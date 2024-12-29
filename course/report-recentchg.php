@@ -1,6 +1,6 @@
 <?php
 
-require("../init.php");
+require_once "../init.php";
 
 if (!isset($teacherid)) {
   echo "Not for you";
@@ -26,7 +26,7 @@ if (isset($_POST['edatetype'])) {
         $old = time() - 7*24*60*60;
         $ttype = '1w';
     } else {
-        require_once("../includes/parsedatetime.php");
+        require_once "../includes/parsedatetime.php";
         $old = parsedatetime($_POST['edate'],$_POST['etime'],time() - 24*60*60);
         $ttype = 'edate';
     }
@@ -53,7 +53,7 @@ $curBreadcrumb .= "<a href=\"course.php?cid=$cid\">".Sanitize::encodeStringForDi
 $curBreadcrumb .= "&gt; <a href=\"coursereports.php?cid=$cid\">Course Reports</a> ";
 
 $placeinhead = "<script type=\"text/javascript\" src=\"$staticroot/javascript/DatePicker.js\"></script>";
-require("../header.php");
+require_once "../header.php";
 echo '<div class="breadcrumb">'. $curBreadcrumb . '&gt; '.$pagetitle.'</div>';
 echo '<div class="pagetitle"><h1>'.$pagetitle.'</h1></div>';
 
@@ -87,11 +87,11 @@ if ($stm->rowCount()==0) {
     while ($row = $stm->fetch(PDO::FETCH_ASSOC)) {
         $qs = 'cid='.intval($cid).'&aid='.intval($row['assessmentid']).'&uid='.intval($row['userid']);
         echo '<tr><td>'.Sanitize::encodeStringForDisplay($row['name']).'</td>';
-        echo '<td>'.Sanitize::encodeStringForDisplay($row['LastName'].', '.$row['FirstName']).'</td>';
+        echo '<td><span class="pii-full-name">'.Sanitize::encodeStringForDisplay($row['LastName'].', '.$row['FirstName']).'</span></td>';
         echo '<td><a href="../assess2/gbviewassess.php?'.$qs.'" target="_blank">';
         echo Sanitize::encodeStringForDisplay($row['score']).'</a></td>';
         echo '<td>'.tzdate('n/j/y g:ia', $row['lastchange']).'</td>';
         echo '</tr>';
     }
 }
-require('../footer.php');
+require_once '../footer.php';

@@ -89,10 +89,14 @@ function catscores($quests,$scores,$defptsposs,$defoutcome,$cid) {
 			} else {
 				if (isset($catscore[$oi])) {
 				  $out .= '<tr><td><span class="ind'.Sanitize::onlyInt($ind).'">'.Sanitize::encodeStringForDisplay($outcomenames[$oi]).'</span></td>';
-					$pc = round(100*$catscore[$oi]/$catposs[$oi],1);
-					$out .= "<td>" . Sanitize::onlyFloat($catscore[$oi]) . " / " . Sanitize::onlyFloat($catposs[$oi]) . " ($pc%)</td></tr>\n";
-					$totpts += $catscore[$oi];
-					$totposs += $catposs[$oi];
+                  if ($catposs[$oi] > 0) {
+                    $pc = round(100*$catscore[$oi]/$catposs[$oi],1);
+                  } else {
+                    $pc = 0;
+                  }
+                  $out .= "<td>" . Sanitize::onlyFloat($catscore[$oi]) . " / " . Sanitize::onlyFloat($catposs[$oi]) . " ($pc%)</td></tr>\n";
+                  $totpts += $catscore[$oi];
+                  $totposs += $catposs[$oi];
 				}
 			}
 		}
@@ -120,7 +124,11 @@ function catscores($quests,$scores,$defptsposs,$defoutcome,$cid) {
 			$catname = Sanitize::encodeStringForDisplay($category);
 		}
 		if ($alt==0) {echo "<tr class=even>"; $alt=1;} else {echo "<tr class=odd>"; $alt=0;}
-		$pc = round(100*$catscore[$category]/$catposs[$category],1);
+        if ($catposs[$category] > 0) {
+		    $pc = round(100*$catscore[$category]/$catposs[$category],1);
+        } else {
+            $pc = 0;
+        }
 		echo "<td>$catname</td><td>" . Sanitize::encodeStringForDisplay($catscore[$category]) . " / " . Sanitize::encodeStringForDisplay($catposs[$category]) . " (" . Sanitize::encodeStringForDisplay($pc) . " %)</td></tr>\n";
 	}
 	echo "</tbody></table>\n";

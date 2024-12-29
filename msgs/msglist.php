@@ -10,20 +10,19 @@ tagged: 0 no, 1 yes
 If deleted on both ends, delete from DB
 
 	*/
-	require("../init.php");
-	require('../includes/getcourseopts.php');
+	require_once "../init.php";
+	require_once '../includes/getcourseopts.php';
 
 	if (isset($cid) && $cid!=0 && !isset($teacherid) && !isset($tutorid) && !isset($studentid)) {
-	   require("../header.php");
+	   require_once "../header.php";
 	   echo "You are not enrolled in this course.  Please return to the <a href=\"../index.php\">Home Page</a> and enroll\n";
-	   require("../footer.php");
+	   require_once "../footer.php";
 	   exit;
 	}
-	if (isset($teacherid)) {
-		$isteacher = true;
-	} else {
-		$isteacher = false;
-	}
+
+	$isteacher = isset($teacherid);
+    $isstudent = isset($studentid);
+    $istutor = isset($tutorid);
 
 	$cansendmsgs = false;
 	$threadsperpage = intval($listperpage);
@@ -100,12 +99,12 @@ If deleted on both ends, delete from DB
 			$query = "SELECT imas_users.id,imas_users.FirstName,imas_users.LastName FROM ";
 			$query .= "imas_users,imas_tutors WHERE imas_users.id=imas_tutors.userid AND ";
 			$query .= "imas_tutors.courseid=:courseid ";
-			if (!$isteacher && $studentinfo['section']!=null) {
+			if (!$isteacher && !$istutor && $studentinfo['section']!=null) {
 			     $query .= "AND (imas_tutors.section=:section OR imas_tutors.section='') ";
 			}
 			$query .= "ORDER BY imas_users.LastName";
 			$stm = $DBH->prepare($query);
-			if (!$isteacher && $studentinfo['section']!=null) {
+			if (!$isteacher && !$istutor && $studentinfo['section']!=null) {
 			   $stm->execute(array(':courseid'=>$cid, ':section'=>$studentinfo['section']));
 			} else {
 				$stm->execute(array(':courseid'=>$cid));
@@ -122,14 +121,39 @@ If deleted on both ends, delete from DB
 			$stm = $DBH->prepare($query);
 			$stm->execute(array(':courseid'=>$cid));
 			while ($row = $stm->fetch(PDO::FETCH_NUM)) {
-				$opts[] = sprintf('<option value="%d">%s, %s</option>', $row[0],
-					Sanitize::encodeStringForDisplay($row[2]), Sanitize::encodeStringForDisplay($row[1]));
+				$opts[] = sprintf('<option value="%d"><span class="pii-first-name">%s, %s</span></option>',
+                    $row[0], Sanitize::encodeStringForDisplay($row[2]), Sanitize::encodeStringForDisplay($row[1]));
 			}
 		}
 		echo json_encode($opts, JSON_INVALID_UTF8_IGNORE);
 		exit;
 	}
+    if (isset($_POST['searchstu'])) {
+        $words = preg_split('/\s+/', str_replace(',',' ',trim($_POST['searchstu'])));
+        $query = "SELECT iu.id,iu.FirstName,iu.LastName FROM imas_users AS iu JOIN ";
+        $query .= "imas_students as istu on iu.id=istu.userid AND istu.courseid=? ";
+        // todo: add section limit?
+        if (count($words)==1) {
+            $query .= "AND (iu.LastName LIKE ? OR iu.FirstName Like ?)";
+            $stm = $DBH->prepare($query);
+            $stm->execute([$cid, $words[0].'%', $words[0].'%']);
+        } else {
+            $query .= " AND ((iu.LastName LIKE ? AND iu.FirstName Like ?) OR (iu.LastName LIKE ? AND iu.FirstName Like ?))";
+            $stm = $DBH->prepare($query);
+            $stm->execute([$cid, $words[0].'%', $words[1].'%', $words[1].'%', $words[0].'%']);
+        }
+        $opts = [];
+        while ($row = $stm->fetch(PDO::FETCH_NUM)) {
+            $opts[] = sprintf('<option value="%d"><span class="pii-first-name">%s, %s</span></option>',
+                $row[0], Sanitize::encodeStringForDisplay($row[2]), Sanitize::encodeStringForDisplay($row[1]));
+        }
+        echo json_encode($opts, JSON_INVALID_UTF8_IGNORE);
+		exit;
+    }
 	if (isset($_GET['add'])) {
+        if (isset($_POST['to']) && $_POST['to'] == 'search') {
+            $_POST['to'] = $_POST['to2']; // use result from search selector
+        }
 		if (isset($_POST['subject']) && isset($_POST['to']) && $_POST['to']!='0') {
             $msgToPost = Sanitize::onlyInt($_POST['to']);
             $cidP = Sanitize::courseId($_POST['courseid']);
@@ -173,9 +197,9 @@ If deleted on both ends, delete from DB
 				}
 			}
 			if (!$isvalid) {
-				require("../header.php");
+				require_once "../header.php";
 				echo 'You are not permitted to send a message to that user in this course.';
-				require("../footer.php");
+				require_once "../footer.php";
 				exit;
 			}
 
@@ -217,11 +241,14 @@ If deleted on both ends, delete from DB
 			$stm->execute(array(':id'=>$_POST['to']));
 			list($msgnotify, $email, $FCMtokenTo) = $stm->fetch(PDO::FETCH_NUM);
 			if ($msgnotify==1) {
-      	  		require_once("../includes/email.php");
+      	  		require_once "../includes/email.php";
+                if (!empty($studentinfo['section'])) {
+                    $cname .= ' (' . $studentinfo['section'] . ')';
+                }
       	  		send_msg_notification(Sanitize::emailAddress($email), $userfullname, $subjectPost, $cidP, $cname, $msgid);
 			}
 			if ($FCMtokenTo != '') {
-				require_once("../includes/FCM.php");
+				require_once "../includes/FCM.php";
 				$url = $GLOBALS['basesiteurl'] . "/msgs/viewmsg.php?cid=".Sanitize::courseId($cidP)."&msgid=$msgid";
 				sendFCM($FCMtokenTo,_("Msg from:").' '.Sanitize::encodeStringForDisplay($userfullname),
 					Sanitize::encodeStringForDisplay($subjectPost), $url);
@@ -241,6 +268,10 @@ If deleted on both ends, delete from DB
 					if (document.getElementById("to").value=="0") {
 						alert("No recipient selected");
 						return false;
+					} else if (document.getElementById("to").value=="search" && 
+                        (document.getElementById("to2").value=="0" || document.getElementById("to2").value=="")) {
+						alert("No recipient selected");
+						return false;
 					} else {
 						return true;
 					}
@@ -254,7 +285,7 @@ If deleted on both ends, delete from DB
 							url: "msglist.php?cid=0&getstulist="+newcid,
 							dataType: "json",
 						}).done(function(optarr) {
-							$("#to").empty().append("<option value=\'0\'>Select a recipient...</option>");
+							$("#to").empty().append("<option value=\'0\'>'._('Select a recipient...').'</option>");
 							for (var i=0;i<optarr.length;i++) {
 								$("#to").append($(optarr[i]));
 							}
@@ -265,8 +296,40 @@ If deleted on both ends, delete from DB
 						$("#to").val(0);
 					}
 				}
-				</script>';
-			require("../header.php");
+                function checkTo(el) {
+                    if ($(el).val() == "search") {
+                        $("#stusearchwrap").show();
+                    } else {
+                        $("#stusearchwrap,#stusearchresultwrap").hide();
+                        $("#to2").empty();
+                    }
+                }
+                function searchForStu() {
+                    var stu = $("#stusearch").val();
+                    if (stu !== "") {
+                        $("#stusearchresultwrap").hide();
+                        $("#stusearchwrap").after($("<img>", {src: staticroot+"/img/updating.gif", alt: "Loading recipients..."}));
+                        $.ajax({
+							url: "msglist.php?cid='.$cid.'",
+                            type: "POST",
+                            data: {searchstu: $("#stusearch").val()},
+                            dataType: "json",
+                        }).done(function(optarr) {
+                            $("#to2").empty();
+                            if (optarr.length > 1) {
+                                $("#to2").append("<option value=\'0\'>'._('Select a recipient...').'</option>");
+                            }
+                            for (var i=0;i<optarr.length;i++) {
+                                $("#to2").append($(optarr[i]));
+                            }
+                            $("#stusearchresultwrap").show();
+                            $("#stusearchwrap").siblings("img").remove();
+                        });
+                    }
+                }
+                </script>';
+
+			require_once "../header.php";
 			echo "<div class=breadcrumb>$breadcrumbbase ";
 			if ($cid>0 && (!isset($_SESSION['ltiitemtype']) || $_SESSION['ltiitemtype']!=0)) {
 				echo "<a href=\"../course/course.php?cid=$cid\">".Sanitize::encodeStringForDisplay($coursename)."</a> &gt; ";
@@ -307,6 +370,7 @@ If deleted on both ends, delete from DB
 				$msgset = $msgset%5;
 			} else {
 				$courseopts = getCourseOpts(true);
+                $msgmonitor = 0;
 			}
 
 			$courseid=($cid==0)?$filtercid:$cid;
@@ -324,7 +388,7 @@ If deleted on both ends, delete from DB
                 $parts = explode('-',$_GET['quoteq']);
 				$GLOBALS['assessver'] = $parts[4];
                 if ($courseUIver > 1) {
-                    include('../assess2/AssessStandalone.php');
+                    require_once '../assess2/AssessStandalone.php';
                     $a2 = new AssessStandalone($DBH);
                     $state = array(
                         'seeds' => array($parts[0] => $parts[2]),
@@ -336,12 +400,12 @@ If deleted on both ends, delete from DB
                     $message = $res['html'];
                     $message = preg_replace('/<div class="question"[^>]*>/','<div>', $message);
                 } else {
-                    require("../assessment/displayq2.php");
+                    require_once "../assessment/displayq2.php";
                     $message = displayq($parts[0],$parts[1],$parts[2],false,false,0,true);
                 }
 				$message = printfilter(forcefiltergraph($message));
 				if (isset($CFG['GEN']['AWSforcoursefiles']) && $CFG['GEN']['AWSforcoursefiles'] == true) {
-					require_once("../includes/filehandler.php");
+					require_once "../includes/filehandler.php";
 					$message = preg_replace_callback('|'.$imasroot.'/filter/graph/imgs/([^\.]*?\.png)|', function ($matches) {
 						$curdir = rtrim(dirname(__FILE__), '/\\');
 						return relocatefileifneeded($curdir.'/../filter/graph/imgs/'.$matches[1], 'gimgs/'.$matches[1]);
@@ -398,7 +462,8 @@ If deleted on both ends, delete from DB
 				$stm = $DBH->prepare($query);
 				$stm->execute(array(':courseid'=>$courseid, ':id'=>$_GET['to']));
 				$row = $stm->fetch(PDO::FETCH_NUM);
-				printf('%s, %s', Sanitize::encodeStringForDisplay($row[0]), Sanitize::encodeStringForDisplay($row[1]));
+				printf('<span class="pii-full-name">%s, %s</span>',
+                    Sanitize::encodeStringForDisplay($row[0]), Sanitize::encodeStringForDisplay($row[1]));
 				$ismsgsrcteacher = false;
 				if ($courseid==$cid && $isteacher) {
 					$ismsgsrcteacher = true;
@@ -410,8 +475,8 @@ If deleted on both ends, delete from DB
 					}
 				}
 				if ($ismsgsrcteacher) {
-					echo " <a href=\"mailto:".Sanitize::emailAddress($row[2])."\">email</a> | ";
-					echo " <a href=\"$imasroot/course/gradebook.php?cid=".Sanitize::courseId($courseid)."&stu=". Sanitize::onlyInt($to)."\" target=\"_popoutgradebook\">gradebook</a>";
+					echo " <a class=\"pii-email\" href=\"mailto:".Sanitize::emailAddress($row[2])."\"><span class='pii-safe'>email</span></a> | ";
+					echo " <a href=\"$imasroot/course/gradebook.php?cid=".Sanitize::courseId($courseid)."&stu=". Sanitize::onlyInt($to)."\" target=\"_blank\">gradebook</a>";
 					if ($row[3]!=null) {
 						echo " | Last login ".tzdate("F j, Y, g:i a",$row[3]);
 					}
@@ -420,16 +485,16 @@ If deleted on both ends, delete from DB
 				$curdir = rtrim(dirname(__FILE__), '/\\');
 				if (isset($_GET['to']) && $row[4]==1) {
 					if(isset($GLOBALS['CFG']['GEN']['AWSforcoursefiles']) && $GLOBALS['CFG']['GEN']['AWSforcoursefiles'] == true) {
-						echo " <img style=\"vertical-align: middle;\" src=\"{$urlmode}{$GLOBALS['AWSbucket']}.s3.amazonaws.com/cfiles/userimg_sm$to.jpg\"  onclick=\"togglepic(this)\" alt=\"User picture\"/><br/>";
+						echo " <img class='pii-image' style=\"vertical-align: middle;\" src=\"{$urlmode}{$GLOBALS['AWSbucket']}.s3.amazonaws.com/cfiles/userimg_sm$to.jpg\"  onclick=\"togglepic(this)\" alt=\"User picture\"/><br/>";
 					} else {
-						echo " <img style=\"vertical-align: middle;\" src=\"$imasroot/course/files/userimg_sm$to.jpg\"  onclick=\"togglepic(this)\" alt=\"User picture\"/><br/>";
+						echo " <img class='pii-image' style=\"vertical-align: middle;\" src=\"$imasroot/course/files/userimg_sm$to.jpg\"  onclick=\"togglepic(this)\" alt=\"User picture\"/><br/>";
 					}
 				}
 				echo "<input type=hidden name=courseid value=\"".Sanitize::courseId($courseid)."\"/>\n";
 			} else {
 				if ($filtercid>0) {
-					echo '<select name="to" id="to" aria-label="'._('Select an individual').'">';
-					echo '<option value="0">Select a recipient...</option>';
+					echo '<select class="pii-full-name" name="to" id="to" aria-label="'._('Select an individual').'" onchange="checkTo(this)">';
+					echo '<option value="0">' . _('Select a recipient...') . '</option>';
 					if ($isteacher || $msgset<2) {
 						$query = "SELECT imas_users.id,imas_users.FirstName,imas_users.LastName FROM ";
 						$query .= "imas_users,imas_teachers WHERE imas_users.id=imas_teachers.userid AND ";
@@ -448,12 +513,12 @@ If deleted on both ends, delete from DB
       			$query = "SELECT imas_users.id,imas_users.FirstName,imas_users.LastName FROM ";
       			$query .= "imas_users,imas_tutors WHERE imas_users.id=imas_tutors.userid AND ";
       			$query .= "imas_tutors.courseid=:courseid ";
-            if (!$isteacher && $studentinfo['section']!=null) {
+            if (!$isteacher && !$istutor && !empty($studentinfo['section'])) {
       			     $query .= "AND (imas_tutors.section=:section OR imas_tutors.section='') ";
             }
       			$query .= "ORDER BY imas_users.LastName";
       			$stm = $DBH->prepare($query);
-            if (!$isteacher && $studentinfo['section']!=null) {
+            if (!$isteacher && !$istutor && !empty($studentinfo['section'])) {
       			   $stm->execute(array(':courseid'=>$cid, ':section'=>$studentinfo['section']));
             } else {
                $stm->execute(array(':courseid'=>$cid));
@@ -466,17 +531,32 @@ If deleted on both ends, delete from DB
 
 					}
 					if ($isteacher || $msgset==0 || $msgset==2) {
-						$query = "SELECT imas_users.id,imas_users.FirstName,imas_users.LastName FROM ";
-						$query .= "imas_users,imas_students WHERE imas_users.id=imas_students.userid AND ";
-						$query .= "imas_students.courseid=:courseid ORDER BY imas_users.LastName";
-						$stm = $DBH->prepare($query);
-						$stm->execute(array(':courseid'=>$courseid));
-						while ($row = $stm->fetch(PDO::FETCH_NUM)) {
-							printf('<option value="%d">%s, %s</option>', $row[0],
-                                Sanitize::encodeStringForDisplay($row[2]), Sanitize::encodeStringForDisplay($row[1]));
-						}
+                        $query = "SELECT count(id) FROM imas_students WHERE courseid=?";
+                        $stm = $DBH->prepare($query);
+						$stm->execute([$courseid]);
+                        $numstu = $stm->fetchColumn(0);
+                        if ($numstu > 200) {
+                            echo '<option value="search">' . _('Search for a student...') . '</option>';
+                        } else {
+                            $query = "SELECT imas_users.id,imas_users.FirstName,imas_users.LastName FROM ";
+                            $query .= "imas_users,imas_students WHERE imas_users.id=imas_students.userid AND ";
+                            $query .= "imas_students.courseid=:courseid ORDER BY imas_users.LastName";
+                            $stm = $DBH->prepare($query);
+                            $stm->execute(array(':courseid'=>$courseid));
+                            while ($row = $stm->fetch(PDO::FETCH_NUM)) {
+                                printf('<option value="%d">%s, %s</option>', $row[0],
+                                    Sanitize::encodeStringForDisplay($row[2]), Sanitize::encodeStringForDisplay($row[1]));
+                            }
+                        }
 					}
 					echo "</select>";
+                    echo '<span style="display:none" id="stusearchwrap"><br/>';
+                    echo '<label for="stusearch">' .  _('Search for:') . '</label>';
+                    echo ' <input size=30 id="stusearch"> ';
+                    echo '<button type="button" onclick="searchForStu()">' . _('Search') . '</button>';
+                    echo '</span>';
+                    echo '<span style="display:none" id="stusearchresultwrap"><br/>';
+                    echo '<select name="to2" id="to2"></select></span>';
 					echo "<input type=hidden name=courseid value=\"".Sanitize::courseId($courseid)."\"/>\n";
 				} else {
 					echo '<select name="courseid" onchange="updateTo(this)" aria-label="'._('Select a course').'">';
@@ -484,7 +564,7 @@ If deleted on both ends, delete from DB
 					echo $courseopts;
 					echo '</select><br/>';
 					echo '<select name="to" id="to" style="display:none;" aria-label="'._('Select an individual').'">';
-					echo '<option value="0">Select an individual...</option></select>';
+					echo '<option value="0">'._('Select a recipient...').'</option></select>';
 				}
 
 			}
@@ -510,7 +590,7 @@ If deleted on both ends, delete from DB
 				echo "<p><span class=red>Note</span>: Student-to-student messages may be monitored by your instructor</p>";
 			}
 			echo '</form>';
-			require("../footer.php");
+			require_once "../footer.php";
 			exit;
 		}
 	}
@@ -557,9 +637,9 @@ If deleted on both ends, delete from DB
 	if (isset($_SESSION['ltiitemtype'])) {
 		$nologo = true;
 	}
-	require("../header.php");
+	require_once "../header.php";
 	$curdir = rtrim(dirname(__FILE__), '/\\');
-
+   
 	echo "<div class=breadcrumb>$breadcrumbbase ";
 	if ($cid>0 && (!isset($_SESSION['ltiitemtype']) || $_SESSION['ltiitemtype']!=0)) {
 		echo " <a href=\"../course/course.php?cid=$cid\">".Sanitize::encodeStringForDisplay($coursename)."</a> &gt; ";
@@ -586,6 +666,7 @@ If deleted on both ends, delete from DB
 		}
 	} else if ($myrights > 5 && $filtercid==0) {
 		$cansendmsgs = true;
+        $msgmonitor = 0;
 	}
 
 	$actbar = array();
@@ -605,10 +686,11 @@ If deleted on both ends, delete from DB
 	}
 	$actbar[] = "<a href=\"sentlist.php?cid=$cid\">Sent Messages</a>";
 
-	if ($isteacher && $cid>0 && $msgmonitor==1) {
+	if ($isteacher && $filtercid>0 && $msgmonitor==1) {
 		$actbar[] = "<a href=\"allstumsglist.php?cid=$cid\">Student Messages</a>";
 	}
 	$actbar[] = '<input type="button" value="Pictures" onclick="rotatepics()" title="View/hide student pictures, if available" />';
+    $actbar[] = '<a href="cleanupmsgs.php?cid='.$cid.'">' . _('Delete old messages') . '</a>';
 	echo '<div class="cpmid">'.implode(' | ',$actbar).'</div>';
 
 	$query = "SELECT COUNT(id) FROM imas_msgs WHERE msgto=:msgto AND deleted<2";
@@ -716,7 +798,7 @@ function chgfilter() {
 	echo getCourseOpts(false, $filtercid);
 	echo "</select> ";
 
-	echo '<label for="filteruid">By sender</label>: <select id="filteruid" onchange="chgfilter()"><option value="0" ';
+	echo '<label for="filteruid">By sender</label>: <select id="filteruid" class="pii-full-name" onchange="chgfilter()"><option value="0" ';
 	if ($filteruid==0) {
 		echo 'selected="selected" ';
 	}
@@ -812,14 +894,15 @@ function chgfilter() {
 		} else {
 			echo 'class="'.$stripe.'"';
 		}
-		echo "><td><input type=checkbox name=\"checked[]\" value=\"".Sanitize::onlyInt($line['id'])."\"/></td><td>";
-		echo "<a href=\"viewmsg.php?page=$page&cid=$cid&filtercid=$filtercid&filteruid=$filteruid&type=msg&msgid=".Sanitize::onlyInt($line['id'])."\">";
+		echo "><td><input type=checkbox name=\"checked[]\" value=\"".Sanitize::onlyInt($line['id'])."\" id=\"cb".Sanitize::onlyInt($line['id'])."\"/></td><td>";
+		echo '<label for="cb' . Sanitize::onlyInt($line['id']). '">';
+        echo "<a href=\"viewmsg.php?page=$page&cid=$cid&filtercid=$filtercid&filteruid=$filteruid&type=msg&msgid=".Sanitize::onlyInt($line['id'])."\">";
 		if ($line['viewed']==0) {
 			echo "<b>" . $line['title']. "</b>";
 		} else {
 			echo $line['title'];
 		}
-		echo "</a></td><td>";
+		echo "</a></label></td><td>";
 		if ($line['replied']==1) {
 			echo "Yes";
 		}
@@ -836,9 +919,9 @@ function chgfilter() {
 
 		if ($line['hasuserimg']==1) {
 			if(isset($GLOBALS['CFG']['GEN']['AWSforcoursefiles']) && $GLOBALS['CFG']['GEN']['AWSforcoursefiles'] == true) {
-				echo " <img src=\"{$urlmode}{$GLOBALS['AWSbucket']}.s3.amazonaws.com/cfiles/userimg_sm{$line['msgfrom']}.jpg\" style=\"display:none;\"  class=\"userpic\"  alt=\"User picture\"/>";
+				echo " <img class=\"pii-image\" src=\"{$urlmode}{$GLOBALS['AWSbucket']}.s3.amazonaws.com/cfiles/userimg_sm{$line['msgfrom']}.jpg\" style=\"display:none;\"  class=\"userpic\"  alt=\"User picture\"/>";
 			} else {
-				echo " <img src=\"$imasroot/course/files/userimg_sm{$line['msgfrom']}.jpg\" style=\"display:none;\" class=\"userpic\"  alt=\"User picture\"/>";
+				echo " <img class=\"pii-image\" src=\"$imasroot/course/files/userimg_sm{$line['msgfrom']}.jpg\" style=\"display:none;\" class=\"userpic\"  alt=\"User picture\"/>";
 			}
 		}
 
@@ -851,7 +934,7 @@ function chgfilter() {
 		}
 		echo '</a>';
 		echo '</td>';
-		printf('<td>%s</td>', Sanitize::encodeStringForDisplay($line['fullname']));
+		printf('<td><span class="pii-full-name">%s</span></td>', Sanitize::encodeStringForDisplay($line['fullname']));
 
 
 		if ($line['name']==null) {
@@ -876,5 +959,5 @@ function chgfilter() {
 	}
 
 	echo '<p>&nbsp;</p>';
-	require("../footer.php");
+	require_once "../footer.php";
 ?>

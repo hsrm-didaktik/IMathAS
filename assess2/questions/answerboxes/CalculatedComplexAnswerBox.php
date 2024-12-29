@@ -2,7 +2,7 @@
 
 namespace IMathAS\assess2\questions\answerboxes;
 
-require_once(__DIR__ . '/AnswerBox.php');
+require_once __DIR__ . '/AnswerBox.php';
 
 use Sanitize;
 
@@ -32,6 +32,7 @@ class CalculatedComplexAnswerBox implements AnswerBox
         $la = $this->answerBoxParams->getStudentLastAnswers();
         $options = $this->answerBoxParams->getQuestionWriterVars();
         $colorbox = $this->answerBoxParams->getColorboxKeyword();
+        $isConditional = $this->answerBoxParams->getIsConditional();
 
         $out = '';
         $tip = '';
@@ -46,23 +47,42 @@ class CalculatedComplexAnswerBox implements AnswerBox
         }
 
         $ansformats = array_map('trim',explode(',',$answerformat));
+        $isListAnswer =  (in_array('list', $ansformats) || in_array('exactlist', $ansformats));
+
+        if (in_array('allowplusminus', $ansformats)) {
+            if (!$isListAnswer) {
+                $ansformats[] = 'list';
+                $answerformat = ($answerformat == '') ? 'list' : $answerformat . ',list';
+                $isListAnswer = true;
+            }
+        } else if (isset($GLOBALS['myrights']) && $GLOBALS['myrights'] > 10 && is_string($answer) && strpos($answer,'+-')!==false) {
+            echo _('Warning: For +- in an $answer to score correctly, use $answerformat="allowplusminus"');
+        }
 
         if (empty($answerboxsize)) { $answerboxsize = 20;}
         if ($multi) { $qn = ($qn+1)*1000+$partnum; }
 
-        $ansformats = array_map('trim',explode(',',$answerformat));
-
         $la = explode('$#$',$la);
         $la = $la[0];
 
-        if (in_array('list',$ansformats) || in_array('exactlist',$ansformats)) {
-            $tip = _('Enter your answer as a list of complex numbers in a+bi form separated with commas.  Example: 2+5i,-3-4i') . "<br/>";
-            $shorttip = _('Enter a list of complex numbers');
+        if (in_array('generalcomplex', $ansformats)) {
+            if ($isListAnswer) {
+                $tip = _('Enter your answer as a list of complex expressions.  Example: 2+5i,e^(2i)') . "<br/>";
+                $shorttip = _('Enter a list of complex expressions');
+            } else {
+                $tip = _('Enter your answer as a complex expression.  Example: 5e^(2i)') . "<br/>";
+                $shorttip = _('Enter a complex expression');
+            }
         } else {
-            $tip = _('Enter your answer as a complex number in a+bi form.  Example: 2+5i') . "<br/>";
-            $shorttip = _('Enter a complex number');
+            if ($isListAnswer) {
+                $tip = _('Enter your answer as a list of complex numbers in a+bi form separated with commas.  Example: 2+5i,-3-4i') . "<br/>";
+                $shorttip = _('Enter a list of complex numbers');
+            } else {
+                $tip = _('Enter your answer as a complex number in a+bi form.  Example: 2+5i') . "<br/>";
+                $shorttip = _('Enter a complex number');
+            }
+            $tip .= formathint(_('each value'),$ansformats,($reqdecimals!=='')?$reqdecimals:null,'calccomplex');
         }
-        $tip .= formathint('each value',$ansformats,($reqdecimals!=='')?$reqdecimals:null,'calccomplex');
 
         $classes = ['text'];
         if ($colorbox != '') {
@@ -84,7 +104,7 @@ class CalculatedComplexAnswerBox implements AnswerBox
             $params['helper'] = 1;
         }
         if (empty($hidepreview)) {
-            $params['preview'] = $_SESSION['userprefs']['livepreview'] ? 1 : 2;
+            $params['preview'] = !empty($_SESSION['userprefs']['livepreview']) ? 1 : 2;
         }
         $params['calcformat'] = $answerformat;
 
@@ -100,12 +120,20 @@ class CalculatedComplexAnswerBox implements AnswerBox
         }
         $preview .= "<span id=p$qn></span> ";
 
+        $nosolntype = 0;
         if (in_array('nosoln',$ansformats) || in_array('nosolninf',$ansformats)) {
-            list($out,$answer) = setupnosolninf($qn, $out, $answer, $ansformats, $la, $ansprompt, $colorbox);
+            list($out,$answer, $nosolntype) = setupnosolninf($qn, $out, $answer, $ansformats, $la, $ansprompt, $colorbox);
         }
 
-        if ($answer !== '' && !is_array($answer)) {
-            $sa = makeprettydisp( $answer);
+        if ($answer !== '' && !is_array($answer) && !$isConditional) {
+            if ($nosolntype > 0) {
+                $sa = $answer;
+            } else {
+                if (in_array('allowplusminus', $ansformats)) {
+                    $answer = str_replace('+-','pm',$answer);
+                }
+                $sa = makeprettydisp($answer);
+            }
         }
 
         // Done!

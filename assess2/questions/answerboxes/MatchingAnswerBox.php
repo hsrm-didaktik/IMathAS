@@ -28,6 +28,7 @@ class MatchingAnswerBox implements AnswerBox
         $anstype = $this->answerBoxParams->getAnswerType();
         $qn = $this->answerBoxParams->getQuestionNumber();
         $multi = $this->answerBoxParams->getIsMultiPartQuestion();
+        $isConditional = $this->answerBoxParams->getIsConditional();
         $partnum = $this->answerBoxParams->getQuestionPartNumber();
         $la = $this->answerBoxParams->getStudentLastAnswers();
         $options = $this->answerBoxParams->getQuestionWriterVars();
@@ -45,7 +46,7 @@ class MatchingAnswerBox implements AnswerBox
         $preview = '';
 
         $optionkeys = ['questiontitle', 'answertitle', 'matchlist', 'noshuffle',
-            'displayformat', 'readerlabel'];
+            'displayformat', 'readerlabel', 'ansprompt'];
         foreach ($optionkeys as $optionkey) {
             ${$optionkey} = getOptionVal($options, $optionkey, $multi, $partnum);
         }
@@ -62,17 +63,22 @@ class MatchingAnswerBox implements AnswerBox
             echo _('Eeek!  $answers is not defined or needs to be an array');
             $answers = array();
         }
-        if (!empty($matchlist)) {$matchlist = array_map('trim', explode(',', $matchlist));}
+        if (!empty($matchlist)) {
+            $matchlist = array_map('trim', explode(',', $matchlist));
+            if (count($matchlist) != count($questions)) {
+                echo _('$questions and $matchlist should have the same number of entries');
+            }
+        }
         if ($noshuffle == "questions" || $noshuffle == 'all') {
             $randqkeys = array_keys($questions);
         } else {
-            $randqkeys = $RND->array_rand($questions, count($questions));
+            $randqkeys = (array) $RND->array_rand($questions, count($questions));
             $RND->shuffle($randqkeys);
         }
         if ($noshuffle == "answers" || $noshuffle == 'all') {
             $randakeys = array_keys($answers);
         } else {
-            $randakeys = $RND->array_rand($answers, count($answers));
+            $randakeys = (array) $RND->array_rand($answers, count($answers));
             $RND->shuffle($randakeys);
         }
         $_SESSION['choicemap'][$assessmentId][$qn] = array($randqkeys, $randakeys);
@@ -117,7 +123,7 @@ class MatchingAnswerBox implements AnswerBox
             $out .= "<p class=\"centered\">$questiontitle</p>\n";
         }
         $out .= "<ul class=\"nomark\">\n";
-        if ($la == '') {
+        if ($la == '' || is_array($la)) { // no reason for $la to be array, but catch case
             $las = array();
         } else {
             $las = explode("|", $la);
@@ -146,7 +152,7 @@ class MatchingAnswerBox implements AnswerBox
             if ($laval == '-' || strcmp($laval, '') == 0) {
                 $out .= 'selected="1"';
             }
-            $out .= '>-</option>';
+            $out .= '>' . ($ansprompt !== '' ? $ansprompt : '-') . '</option>';
             if ($displayformat == "select") {
                 for ($j = 0; $j < count($randakeys); $j++) {
                     $out .= "<option value=\"" . $j . "\" ";
@@ -197,18 +203,35 @@ class MatchingAnswerBox implements AnswerBox
         } else {
             $tip = _('In each pull-down on the left, select the letter (a, b, c, etc.) of the matching answer in the right-hand column');
         }
-        for ($i = 0; $i < count($randqkeys); $i++) {
-            if (!empty($matchlist)) {
-                $akey = array_search($matchlist[$randqkeys[$i]], $randakeys);
-            } else {
-                $akey = array_search($randqkeys[$i], $randakeys);
+        if (!$isConditional) {
+            for ($i = 0; $i < count($randqkeys); $i++) {
+                if (!empty($matchlist)) {
+                    $anss = array_map('trim', explode(' or ', $matchlist[$randqkeys[$i]]));
+                    $ansopts = [];
+                    foreach ($anss as $v) {
+                        $akey = array_search($v, $randakeys);
+                        if ($displayformat == "select") {
+                            $ansopts[] = $answers[$randakeys[$akey]];
+                        } else {
+                            $ansopts[] = chr($akey + 97);
+                        }
+                    }
+                    if ($displayformat == "select") {
+                        $sa .= '<br/>' . implode(' or ', $ansopts);
+                    } else if (count($ansopts) > 1) {
+                        $sa .= '(' . implode(' or ', $ansopts) . ') ';
+                    } else {
+                        $sa .= $ansopts[0] . ' ';
+                    }
+                } else {
+                    $akey = array_search($randqkeys[$i], $randakeys);
+                    if ($displayformat == "select") {
+                        $sa .= '<br/>' . $answers[$randakeys[$akey]];
+                    } else {
+                        $sa .= chr($akey + 97) . " ";
+                    }
+                }
             }
-            if ($displayformat == "select") {
-                $sa .= '<br/>' . $answers[$randakeys[$akey]];
-            } else {
-                $sa .= chr($akey + 97) . " ";
-            }
-
         }
 
         // Done!

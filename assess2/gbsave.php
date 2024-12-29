@@ -18,12 +18,12 @@
 
 
 $no_session_handler = 'json_error';
-require_once("../init.php");
-require_once("./common_start.php");
-require_once("./AssessInfo.php");
-require_once("./AssessRecord.php");
-require_once('./AssessUtils.php');
-require_once('../includes/TeacherAuditLog.php');
+require_once "../init.php";
+require_once "./common_start.php";
+require_once "./AssessInfo.php";
+require_once "./AssessRecord.php";
+require_once './AssessUtils.php';
+require_once '../includes/TeacherAuditLog.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -97,7 +97,7 @@ if (!empty($changes)) {
 }
 
 // update LTI grade
-$assess_record->updateLTIscore();
+$assess_record->updateLTIscore(true, false);
 
 //prep date display
 prepDateDisp($assessInfoOut);

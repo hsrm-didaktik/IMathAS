@@ -1,7 +1,7 @@
 <?php
 
 if (isset($GLOBALS['CFG']['hooks']['lti'])) {
-    require_once($CFG['hooks']['lti']);
+    require_once $CFG['hooks']['lti'];
     /**
      * see ltihooks.php.dist for details
      */
@@ -28,7 +28,10 @@ function standardize_role(array $roles): string {
       $currentRole = 'Instructor';
       $currentPriority = 1;
     } else if (preg_match('~http://purl.imsglobal.org/vocab/lis/v2/(membership|institution|system)(/person)?(#|/)(\w+)~', $role, $m)) {
-      if ($contextPriorities[$m[1]] > $currentPriority) {
+      if ($contextPriorities[$m[1]] == $currentPriority && in_array($m[4], $instructorRoles)) {
+        // if the LMS sent two roles at same level, use the Instructor one
+        $currentRole = 'Instructor';
+      } else if ($contextPriorities[$m[1]] > $currentPriority) {
         $currentPriority = $contextPriorities[$m[1]] ;
         if (in_array($m[4], $instructorRoles)) {
           $currentRole = 'Instructor';
@@ -66,12 +69,18 @@ function parse_name_from_launch(array $data) {
  * @return array  ('type'=>, 'refcid'=> ) and possibly others
  */
 function parse_target_link(string $targetlink, \IMSGlobal\LTI\Database $db): array {
-  parse_str(parse_url($targetlink, PHP_URL_QUERY), $param);
+  $linkquery = parse_url($targetlink, PHP_URL_QUERY);
+  if ($linkquery === null) {
+    return [];
+  }
+  parse_str($linkquery, $param);
 
   if (!empty($param['refaid'])) {
     $out = ['type'=>'aid', 'refaid'=>$param['refaid'], 'refcid'=>$param['refcid']];
   } else if (!empty($param['refblock'])) {
     $out = ['type'=>'block', 'refblock'=>$param['refblock'], 'refcid'=>$param['refcid']];
+  } else if (!empty($param['refcid'])) {
+    $out = ['type'=>'course', 'refcid'=>$param['refcid']];
   } else if (!empty($param['custom_place_aid'])) {
     $refcid = $db->get_course_from_aid($param['custom_place_aid']);
     $out = ['type'=>'aid', 'refaid'=>$param['custom_place_aid'], 'refcid'=>$refcid];

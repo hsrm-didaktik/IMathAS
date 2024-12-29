@@ -1,22 +1,14 @@
 <?php
 
 function mfa_showLoginEntryForm($redir, $error = '', $showtrust = true) {
-    global $imasroot;
-    require(__DIR__.'/../header.php');
+    global $imasroot, $staticroot, $installname;
+    require_once __DIR__.'/../header.php';
     if ($error !== '') {
-        if (isset($_SESSION['mfafails'])) {
-            $_SESSION['mfafails']++;
-        } else {
-            $_SESSION['mfafails'] = 1;
-        }
-        if ($_SESSION['mfafails'] > 6) {
-            echo '<p>'._('Too many failures.  Try again later').'</p>';
-            unset($_SESSION['mfaloginverified']);
-            exit;
-        }
         echo '<p class=noticetext>'._('Invalid code - try again').'</p>';
     }
-    echo '<p>'._('Enter the 2-factor authentication code from your device').'</p>';
+    echo '<p>'._('Enter the 2-factor authentication code from your device').'. ';
+    echo _('This code can be found in the Google Authenticator compatible app, like Authy, that you set up when you enabled 2-factor authentication.');
+    echo '</p>';
     echo '<form method="POST" action="'.$redir.'">';
     echo '<input type=hidden name=action value="entermfa" />';
     echo '<p>'._('Code: ').'<input size=8 name=mfatoken /></p>';
@@ -29,20 +21,30 @@ function mfa_showLoginEntryForm($redir, $error = '', $showtrust = true) {
     }
     echo '<p><button type=submit>'._('Verify Code').'</button></p>';
     echo '</form>';
-    require(__DIR__.'/../footer.php');
+    require_once __DIR__.'/../footer.php';
 }
 
 function mfa_verify($mfadata, $formaction, $uid = 0, $showtrust = true) {
-    global $DBH;
+    global $DBH, $imasroot;
     $error = '';
-    require(__DIR__.'/GoogleAuthenticator.php');
+    require_once __DIR__.'/GoogleAuthenticator.php';
     $MFA = new GoogleAuthenticator();
+    if (isset($mfadata['lastfail']) && time() - $mfadata['lastfail'] > 30) {
+        unset($mfadata['failcnt']);
+        unset($mfadata['lastfail']);
+    }
+    if (isset($mfadata['failcnt']) && $mfadata['failcnt'] > 3) {
+        echo _("Too many failed attempts.  Wait a minute and try again");
+        exit;
+    }
     //check that code is valid and not a replay
     if ($MFA->verifyCode($mfadata['secret'], $_POST['mfatoken']) &&
         ($_POST['mfatoken'] != $mfadata['last'] || time() - $mfadata['laston'] > 600)) {
         if ($uid > 0) {
             $mfadata['last'] = $_POST['mfatoken'];
             $mfadata['laston'] = time();
+            unset($mfadata['failcnt']);
+            unset($mfadata['lastfail']);
             if (isset($_POST['mfatrust'])) {
                 $trusttoken = $MFA->createSecret();
                 setcookie('gatl', $trusttoken, time()+60*60*24*365*10, $imasroot.'/', '', true, true);
@@ -56,6 +58,20 @@ function mfa_verify($mfadata, $formaction, $uid = 0, $showtrust = true) {
         }
         return true;
     } else {
+        if ($uid > 0) {
+            $mfadata['lastfail'] = time();
+            if (isset($mfadata['failcnt'])) {
+                $mfadata['failcnt']++;
+            } else {
+                $mfadata['failcnt'] = 1;
+            }
+            $stm = $DBH->prepare("UPDATE imas_users SET mfa = :mfa WHERE id = :uid");
+            $stm->execute(array(':uid'=>$uid, ':mfa'=>json_encode($mfadata)));
+            if ($mfadata['failcnt'] > 3) {
+                echo _("Too many failed attempts.  Wait a minute and try again");
+                exit;
+            }
+        }
         mfa_showLoginEntryForm($formaction, 'error', $showtrust);
         exit;
     }

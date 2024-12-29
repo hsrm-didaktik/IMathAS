@@ -2,19 +2,19 @@
 	//Displays Message list of students
 	//(c) 2008 David Lippman
 
-	require("../init.php");
+	require_once "../init.php";
 	if ($cid!=0 && !isset($teacherid) && !isset($tutorid) && !isset($studentid)) {
-	   require("../header.php");
+	   require_once "../header.php";
 	   echo "You are not enrolled in this course.  Please return to the <a href=\"../index.php\">Home Page</a> and enroll\n";
-	   require("../footer.php");
+	   require_once "../footer.php";
 	   exit;
 	}
 	if (isset($teacherid)) {
 		$isteacher = true;
 	} else {
-	   require("../header.php");
+	   require_once "../header.php";
 	   echo "You must be a teacher, and access this page from the course page Messages link.\n";
-	   require("../footer.php");
+	   require_once "../footer.php";
 	   exit;
 	}
 
@@ -35,7 +35,7 @@
 	if (isset($_POST['remove'])) {
 		$goodmsgs = array();
 		foreach ($_POST['checked'] as $msgid) {
-			if (in_numeric($msgid) && $msgid!=0) {
+			if (is_numeric($msgid) && $msgid!=0) {
 				$goodmsgs[] = intval($msgid);
 			}
 		}
@@ -50,7 +50,7 @@
 	}
 
 	$pagetitle = "Student Messages";
-	require("../header.php");
+	require_once "../header.php";
 
 	echo "<div class=breadcrumb><a href=\"../index.php\">Home</a> ";
 	if ($cid>0) {
@@ -120,10 +120,10 @@ function chgfilter() {
 }
 </script>
 	<form id="qform" method=post action="allstumsglist.php?page=<?php echo $page;?>&cid=<?php echo $cid;?>">
-	<p>Filter by student: <select id="filterstu" onchange="chgfilter()">
+	<p>Filter by student: <select id="filterstu" class='pii-full-name' onchange="chgfilter()">
 <?php
 	echo "<option value=\"0\" ";
-	if ($filtercid==0) {
+	if ($filterstu==0) {
 		echo "selected=1 ";
 	}
 	echo ">All students</option>";
@@ -195,11 +195,15 @@ function chgfilter() {
 		echo $line['title']; // sanitized above
         echo "</a></td><td>";
         if (isset($stulist[$line['msgfrom']])) {
+            echo '<span class="pii-full-name">';
             echo Sanitize::encodeStringForDisplay($stulist[$line['msgfrom']]);
+            echo '</span>';
         }
         echo "</td><td>";
         if (isset($stulist[$line['msgto']])) {
-            Sanitize::encodeStringForDisplay($stulist[$line['msgto']]);
+            echo '<span class="pii-full-name">';
+            echo Sanitize::encodeStringForDisplay($stulist[$line['msgto']]);
+            echo '</span>';
         }
         echo "</td>";
 		$senddate = tzdate("F j, Y, g:i a",$line['senddate']);
@@ -215,5 +219,5 @@ function chgfilter() {
 	}
 	echo "<p><a href=\"msglist.php?cid=$cid\">Back to My Messages</a></p>";
 
-	require("../footer.php");
+	require_once "../footer.php";
 ?>

@@ -139,25 +139,25 @@ class Imathas_LTI_Database implements LTI\Database
                     $row = [
                        'issuer' => $iss,
                        'client_id' => trim($client_id),
-                       'auth_login_url' => 'https://canvas.instructure.com/api/lti/authorize_redirect',
-                       'auth_token_url' => 'https://canvas.instructure.com/login/oauth2/token',
-                       'key_set_url' => 'https://canvas.instructure.com/api/lti/security/jwks'
+                       'auth_login_url' => 'https://sso.canvaslms.com/api/lti/authorize_redirect',
+                       'auth_token_url' => 'https://sso.canvaslms.com/login/oauth2/token',
+                       'key_set_url' => 'https://sso.canvaslms.com/api/lti/security/jwks'
                     ];
                 } else if ($iss === 'https://canvas.beta.instructure.com') {
                     $row = [
                        'issuer' => $iss,
                        'client_id' => trim($client_id),
-                       'auth_login_url' => 'https://canvas.beta.instructure.com/api/lti/authorize_redirect',
-                       'auth_token_url' => 'https://canvas.beta.instructure.com/login/oauth2/token',
-                       'key_set_url' => 'https://canvas.beta.instructure.com/api/lti/security/jwks'
+                       'auth_login_url' => 'https://sso.beta.canvaslms.com/api/lti/authorize_redirect',
+                       'auth_token_url' => 'https://sso.beta.canvaslms.com/login/oauth2/token',
+                       'key_set_url' => 'https://sso.beta.canvaslms.com/api/lti/security/jwks'
                     ];
                 } else if ($iss === 'https://canvas.test.instructure.com') {
                     $row = [
                        'issuer' => $iss,
                        'client_id' => trim($client_id),
-                       'auth_login_url' => 'https://canvas.test.instructure.com/api/lti/authorize_redirect',
-                       'auth_token_url' => 'https://canvas.test.instructure.com/login/oauth2/token',
-                       'key_set_url' => 'https://canvas.test.instructure.com/api/lti/security/jwks'
+                       'auth_login_url' => 'https://sso.test.canvaslms.com/api/lti/authorize_redirect',
+                       'auth_token_url' => 'https://sso.test.canvaslms.com/login/oauth2/token',
+                       'key_set_url' => 'https://sso.test.canvaslms.com/api/lti/security/jwks'
                     ];
                 }
                 if (is_array($row)) { // set something above - create platform reg
@@ -173,6 +173,7 @@ class Imathas_LTI_Database implements LTI\Database
         return LTI\LTI_Registration::new ()
             ->set_auth_login_url($row['auth_login_url'])
             ->set_auth_token_url($row['auth_token_url'])
+            ->set_auth_server($row['auth_server'] ?? '')
             ->set_client_id($row['client_id'])
             ->set_key_set_url($row['key_set_url'])
             ->set_issuer($iss)
@@ -260,6 +261,14 @@ class Imathas_LTI_Database implements LTI\Database
         foreach ($keys as $kid => $keyinfo) {
             $stm->execute(array($keyseturl, $kid, $keyinfo['alg'], $keyinfo['pub']));
         }
+        // expire any existing keys from that keyset url
+        $kids = array_keys($keys);
+        if (count($kids)>0) {
+            $ph = Sanitize::generateQueryPlaceholders($kids);
+            $stm = $this->dbh->prepare("DELETE FROM imas_lti_keys WHERE key_set_url=? AND kid NOT IN ($ph)");
+            array_unshift($kids, $keyseturl);
+            $stm->execute($kids);
+        }
     }
 
     /**
@@ -309,20 +318,30 @@ class Imathas_LTI_Database implements LTI\Database
     /**
      * Get local user id
      * @param  LTI_Message_Launch $launch
+     * @param  string $role
      * @return false|int local userid
      */
-    public function get_local_userid(LTI\LTI_Message_Launch $launch)
+    public function get_local_userid(LTI\LTI_Message_Launch $launch, string $role)
     {
         $ltiuserid = $launch->get_platform_user_id();
         $platform_id = $launch->get_platform_id();
 
-        $stm = $this->dbh->prepare('SELECT userid FROM imas_ltiusers WHERE ltiuserid=? AND org=?');
+        $query = 'SELECT lti.userid FROM imas_ltiusers AS lti 
+            JOIN imas_users AS iu ON lti.userid=iu.id 
+            WHERE lti.ltiuserid=? AND lti.org=?';
+        if ($role == 'Instructor') {
+            $query .= ' AND iu.rights > 19';
+        }
+        $query .= ' ORDER BY iu.rights, lti.id';
+
+        $stm = $this->dbh->prepare($query);
         $stm->execute(array($ltiuserid, 'LTI13-' . $platform_id));
         $userid = $stm->fetchColumn(0);
         if ($userid === false) {
             $contextid = $launch->get_platform_context_id();
             $migration_claim = $launch->get_migration_claim();
         }
+
         if ($userid === false && 
             !empty($migration_claim) && 
             $this->verify_migration_claim($migration_claim)
@@ -333,7 +352,14 @@ class Imathas_LTI_Database implements LTI\Database
                 $oldltiuserid = $ltiuserid;
             }
             $oldkey = $migration_claim['oauth_consumer_key'];
-            $stm = $this->dbh->prepare('SELECT userid FROM imas_ltiusers WHERE ltiuserid=? AND org LIKE ?');
+            $query = 'SELECT lti.userid FROM imas_ltiusers AS lti 
+                JOIN imas_users AS iu ON lti.userid=iu.id
+                WHERE lti.ltiuserid=? AND lti.org LIKE ?';
+            if ($role == 'Instructor') {
+                $query .= ' AND iu.rights > 19';
+            }
+            $query .= ' ORDER BY iu.rights, lti.id';
+            $stm = $this->dbh->prepare($query);
             $stm->execute(array($oldltiuserid, $oldkey.':%'));
             $userid = $stm->fetchColumn(0);
             if ($userid !== false) {
@@ -344,6 +370,7 @@ class Imathas_LTI_Database implements LTI\Database
             // look to see if we already have a user record with the same context id
             // from an LTI 1.1 connection
             $groups = $this->get_groups($platform_id, $launch->get_deployment_id());
+
             if (count($groups)==0) {
                 return false;
             }
@@ -354,15 +381,37 @@ class Imathas_LTI_Database implements LTI\Database
                 JOIN imas_users AS iu ON ic.ownerid=iu.id WHERE ilc.contextid=?';
             $stm = $this->dbh->prepare($query);
             $stm->execute(array($contextid));
+
             $qarr = array($ltiuserid);
+
+            $old_userid = $launch->get_lti1p1_userid();
+            if ($old_userid !== false && $old_userid != $ltiuserid) {
+                $qarr[] = $old_userid;
+            }
+            $orgcnt = 0;
             while ($row = $stm->fetch(PDO::FETCH_ASSOC)) {
+                if (substr($row['org'],0,5) == 'LTI13') { continue; }
                 if (in_array($row['groupid'], $groups)) { // check course is in right group
                     $key = explode(':', $row['org'])[0];
                     $qarr[] = $key.':%';
+                    $orgcnt++;
                 }
             }
-            if (count($qarr)==2) { // only use if one matching association
-                $stm = $this->dbh->prepare('SELECT userid FROM imas_ltiusers WHERE ltiuserid=? AND org LIKE ?');
+
+            if ($orgcnt == 1) { // only use if one matching association
+                $query = 'SELECT lti.userid FROM imas_ltiusers AS lti 
+                    JOIN imas_users AS iu ON lti.userid=iu.id ';
+                if ($old_userid !== false && $old_userid != $ltiuserid) {
+                    $query .= 'WHERE (lti.ltiuserid=? OR lti.ltiuserid=?) AND lti.org LIKE ?';
+                } else {
+                    $query .= 'WHERE lti.ltiuserid=? AND lti.org LIKE ?';
+                    //$stm = $this->dbh->prepare('SELECT userid FROM imas_ltiusers WHERE ltiuserid=? AND org LIKE ?');
+                }
+                if ($role == 'Instructor') {
+                    $query .= ' AND iu.rights > 19';
+                }
+                $query .= ' ORDER BY iu.rights, lti.id';
+                $stm = $this->dbh->prepare($query);
                 $stm->execute($qarr);
                 $userid = $stm->fetchColumn(0);
                 if ($userid !== false) {
@@ -411,19 +460,24 @@ class Imathas_LTI_Database implements LTI\Database
                 $stm->execute(array($userid, $localcourse->get_courseid()));
             }
         } else {
-            $stm = $this->dbh->prepare('SELECT id,lticourseid FROM imas_students WHERE userid=? AND courseid=?');
-            $stm->execute(array($userid, $localcourse->get_courseid()));
-            $row = $stm->fetch(PDO::FETCH_ASSOC);
-            if ($row === false || $row === null) {
-                $stm = $this->dbh->prepare("SELECT deflatepass FROM imas_courses WHERE id=:id");
-                $stm->execute(array(':id'=>$localcourse->get_courseid()));
-                $deflatepass = $stm->fetchColumn(0);
+            // check to see if they're already a teacher or tutor
+            $stm = $this->dbh->prepare('SELECT id FROM imas_teachers WHERE userid=? AND courseid=? UNION SELECT id FROM imas_tutors WHERE userid=? AND courseid=?');
+            $stm->execute(array($userid, $localcourse->get_courseid(), $userid, $localcourse->get_courseid()));
+            if ($stm->fetchColumn(0) === false) {
+                $stm = $this->dbh->prepare('SELECT id,lticourseid FROM imas_students WHERE userid=? AND courseid=?');
+                $stm->execute(array($userid, $localcourse->get_courseid()));
+                $row = $stm->fetch(PDO::FETCH_ASSOC);
+                if ($row === false || $row === null) {
+                    $stm = $this->dbh->prepare("SELECT deflatepass FROM imas_courses WHERE id=:id");
+                    $stm->execute(array(':id'=>$localcourse->get_courseid()));
+                    $deflatepass = $stm->fetchColumn(0);
 
-                $stm = $this->dbh->prepare('INSERT INTO imas_students (userid,courseid,section,latepass,lticourseid) VALUES (?,?,?,?,?)');
-                $stm->execute(array($userid, $localcourse->get_courseid(), $section, $deflatepass, $localcourse->get_id()));
-            } else if ($row['lticourseid'] !== $localcourse->get_id()) {
-                $stm = $this->dbh->prepare('UPDATE imas_students SET lticourseid=? WHERE id=?');
-                $stm->execute(array($localcourse->get_id(), $row['id']));
+                    $stm = $this->dbh->prepare('INSERT INTO imas_students (userid,courseid,section,latepass,lticourseid) VALUES (?,?,?,?,?)');
+                    $stm->execute(array($userid, $localcourse->get_courseid(), $section, $deflatepass, $localcourse->get_id()));
+                } else if ($row['lticourseid'] !== $localcourse->get_id()) {
+                    $stm = $this->dbh->prepare('UPDATE imas_students SET lticourseid=? WHERE id=?');
+                    $stm->execute(array($localcourse->get_id(), $row['id']));
+                }
             }
         }
     }
@@ -451,6 +505,15 @@ class Imathas_LTI_Database implements LTI\Database
     {
         $stm = $this->dbh->prepare('UPDATE imas_users SET SID=? WHERE id=?');
         $stm->execute(array($SID, $userid));
+    }
+
+    /**
+     * Update imas_users.lastaccess for a user
+     * @param int  $localuserid
+     */
+    public function set_user_lastaccess(int $localuserid): void {
+        $stm = $this->dbh->prepare('UPDATE imas_users SET lastaccess=? WHERE id=?');
+        $stm->execute(array(time(), $localuserid));
     }
 
     /**
@@ -677,8 +740,20 @@ class Imathas_LTI_Database implements LTI\Database
             $stm = $this->dbh->prepare($query);
             $stm->execute(array(
                 ':userid' => $userid,
-                ':cregex' => '[[:<:]]' . $target['refcid'] . '[[:>:]]',
-                ':aregex' => '[[:<:]]' . $target['refaid'] . '[[:>:]]'));
+                ':cregex' => MYSQL_LEFT_WRDBND . $target['refcid'] . MYSQL_RIGHT_WRDBND,
+                ':aregex' => MYSQL_LEFT_WRDBND . $target['refaid'] . MYSQL_RIGHT_WRDBND));
+            while ($row = $stm->fetch(PDO::FETCH_NUM)) {
+                $othercourses[$row[0]] = $row[1];
+            }
+        } else if ($target['type'] == 'course') {
+            // look for other courses we could associate with
+            $query = "SELECT DISTINCT ic.id,ic.name FROM imas_courses AS ic JOIN imas_teachers AS imt ON ic.id=imt.courseid ";
+            $query .= "AND imt.userid=:userid ";
+            $query .= "WHERE ic.available<4 AND ic.ancestors REGEXP :cregex ORDER BY ic.name";
+            $stm = $this->dbh->prepare($query);
+            $stm->execute(array(
+                ':userid' => $userid,
+                ':cregex' => MYSQL_LEFT_WRDBND . $target['refcid'] . MYSQL_RIGHT_WRDBND));
             while ($row = $stm->fetch(PDO::FETCH_NUM)) {
                 $othercourses[$row[0]] = $row[1];
             }
@@ -702,10 +777,10 @@ class Imathas_LTI_Database implements LTI\Database
         }
 
         // get origin course
-        // TODO: if the $lastcopied isn't owned by us, should we still offer it as
-        // an option to be copied?
-        $stm = $this->dbh->prepare('SELECT DISTINCT id,name,ownerid FROM imas_courses WHERE id=?');
-        $stm->execute(array($target['refcid']));
+        $query = 'SELECT DISTINCT ic.id,ic.name,it.userid FROM imas_courses AS ic ';
+        $query .= 'LEFT JOIN imas_teachers AS it ON it.courseid=ic.id AND it.userid=? WHERE ic.id=?';
+        $stm = $this->dbh->prepare($query);
+        $stm->execute(array($userid, $target['refcid']));
         while ($row = $stm->fetch(PDO::FETCH_NUM)) {
             $copycourses[$row[0]] = $row[1];
             // if it's user's course, also include in assoc list
@@ -884,7 +959,7 @@ class Imathas_LTI_Database implements LTI\Database
      */
     public function find_aid_by_immediate_ancestor(int $aidtolookfor, int $destcid)
     {
-        $anregex = '^([0-9]+:)?' . $aidtolookfor . '[[:>:]]';
+        $anregex = '^([0-9]+:)?' . $aidtolookfor . MYSQL_RIGHT_WRDBND;
         $stm = $this->dbh->prepare("SELECT id FROM imas_assessments WHERE ancestors REGEXP :ancestors AND courseid=:destcid");
         $stm->execute(array(':ancestors' => $anregex, ':destcid' => $destcid));
         return $stm->fetchColumn(0);
@@ -899,7 +974,7 @@ class Imathas_LTI_Database implements LTI\Database
      */
     public function find_aid_by_loose_ancestor(int $aidtolookfor, int $destcid)
     {
-        $anregex = '[[:<:]]' . $aidtolookfor . '[[:>:]]';
+        $anregex = MYSQL_LEFT_WRDBND . $aidtolookfor . MYSQL_RIGHT_WRDBND;
         $stm = $this->dbh->prepare("SELECT id,name,ancestors FROM imas_assessments WHERE ancestors REGEXP :ancestors AND courseid=:destcid");
         $stm->execute(array(':ancestors' => $anregex, ':destcid' => $destcid));
         $res = $stm->fetchAll(PDO::FETCH_ASSOC);
@@ -940,7 +1015,7 @@ class Imathas_LTI_Database implements LTI\Database
             // then we'll walk back through the ancestors and make sure the course
             // history path matches.
             // This approach will work as long as there's a newer-format ancestry record
-            $anregex = '[[:<:]]' . $aidsourcecid . ':' . $sourceaid . '[[:>:]]';
+            $anregex = MYSQL_LEFT_WRDBND . $aidsourcecid . ':' . $sourceaid . MYSQL_RIGHT_WRDBND;
             $stm = $this->dbh->prepare("SELECT id,ancestors FROM imas_assessments WHERE ancestors REGEXP :ancestors AND courseid=:destcid");
             $stm->execute(array(':ancestors' => $anregex, ':destcid' => $destcid));
             while ($res = $stm->fetch(PDO::FETCH_ASSOC)) {
@@ -953,8 +1028,16 @@ class Imathas_LTI_Database implements LTI\Database
                     }
                     $ancparts = explode(':', $aidanc[$i]);
                     if ($ancparts[0] != $ancestors[$i]) {
+                        // course sequence doesn't match
                         $isok = false;
                         break; // not the same ancestry path
+                    }
+                    if ($i == $ciddepth) {
+                        // on last one - match sure assessment matches
+                        if ($sourceaid != $ancparts[1]) {
+                            $isok = false;
+                            break;
+                        }
                     }
                 }
                 if ($isok) { // found it!
@@ -969,7 +1052,7 @@ class Imathas_LTI_Database implements LTI\Database
             $aidtolookfor = $sourceaid;
             for ($i = $ciddepth; $i >= 0; $i--) { //starts one course back from aidsourcecid because of the unshift
                 $stm = $this->dbh->prepare("SELECT id FROM imas_assessments WHERE ancestors REGEXP :ancestors AND courseid=:cid");
-                $stm->execute(array(':ancestors' => '^([0-9]+:)?' . $aidtolookfor . '[[:>:]]', ':cid' => $ancestors[$i]));
+                $stm->execute(array(':ancestors' => '^([0-9]+:)?' . $aidtolookfor . MYSQL_RIGHT_WRDBND, ':cid' => $ancestors[$i]));
                 if ($stm->rowCount() > 0) {
                     $aidtolookfor = $stm->fetchColumn(0);
                 } else {
@@ -984,7 +1067,7 @@ class Imathas_LTI_Database implements LTI\Database
             // ok, still didn't work, so assessment wasn't copied through the whole
             // history.  So let's see if we have a copy in our course with the assessment
             // anywhere in the ancestry.
-            $anregex = '[[:<:]]' . $sourceaid . '[[:>:]]';
+            $anregex = MYSQL_LEFT_WRDBND . $sourceaid . MYSQL_RIGHT_WRDBND;
             $stm = $this->dbh->prepare("SELECT id,name,ancestors FROM imas_assessments WHERE ancestors REGEXP :ancestors AND courseid=:destcid");
             $stm->execute(array(':ancestors' => $anregex, ':destcid' => $destcid));
             $res = $stm->fetchAll(PDO::FETCH_ASSOC);
@@ -1250,8 +1333,13 @@ class Imathas_LTI_Database implements LTI\Database
                     }
                 }
                 // enroll in course
+                if (!empty($member['context_label'])) {
+                    $thissection = $member['context_label'];
+                } else {
+                    $thissection = $section;
+                }
                 $stm = $this->dbh->prepare('INSERT INTO imas_students (userid,courseid,section,latepass,lticourseid) VALUES (?,?,?,?,?)');
-                $stm->execute(array($localuserid, $localcourse->get_courseid(), $section, $deflatepass, $localcourse->get_id()));
+                $stm->execute(array($localuserid, $localcourse->get_courseid(), $thissection, $deflatepass, $localcourse->get_id()));
 
                 $enrollcnt++;
             } else {
@@ -1276,6 +1364,12 @@ class Imathas_LTI_Database implements LTI\Database
             $stm = $this->dbh->prepare($query);
             $stm->execute(array_merge(array(time()), $stuids, array($courseid)));
         }
+    }
+
+    public function record_log($logdata): void
+    {
+        $logstm = $this->dbh->prepare("INSERT INTO imas_log (time,log) VALUES (?,?)");
+        $logstm->execute([time(), $logdata]);
     }
 
     private function verify_migration_claim($claim) {

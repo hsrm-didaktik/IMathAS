@@ -2,9 +2,9 @@
 //IMathAS: Common Catridge v1.1 Export
 //(c) 2011 David Lippman
 
-require "../init.php";
-require "../includes/copyiteminc.php";
-require "../includes/loaditemshowdata.php";
+require_once "../init.php";
+require_once "../includes/copyiteminc.php";
+require_once "../includes/loaditemshowdata.php";
 
 if (!is_numeric($_GET['cid'])) {
     echo 'Invalid course ID.';
@@ -21,9 +21,9 @@ $path = realpath("../course/files");
 
 if (isset($_GET['create']) && isset($_POST['whichitems'])) {
     if ($_POST['lms'] == 'bb' && $_POST['carttype'] == 'bb') {
-        require "bbexport-generate.php";
+        require_once "bbexport-generate.php";
     } else {
-        require "ccexport-generate.php";
+        require_once "ccexport-generate.php";
     }
     exit;
 } else {
@@ -100,7 +100,7 @@ if (isset($_GET['create']) && isset($_POST['whichitems'])) {
     $placeinhead .= '<style type="text/css">
 	 .nomark.canvasoptlist li { text-indent: -25px; margin-left: 25px;}
 	 </style>';
-    require "../header.php";
+    require_once "../header.php";
     echo "<div class=breadcrumb>$breadcrumbbase ";
     if (empty($_COOKIE['fromltimenu'])) {
         echo " <a href=\"../course/course.php?cid=$cid\">" . Sanitize::encodeStringForDisplay($coursename) . "</a> &gt; ";
@@ -139,6 +139,7 @@ if (isset($_GET['create']) && isset($_POST['whichitems'])) {
 	Check: <a href="#" onclick="return chkAllNone('qform','checked[]',true)">All</a> <a href="#" onclick="return chkAllNone('qform','checked[]',false)">None</a>
 
 	<table cellpadding=5 class=gb>
+    <caption class="sr-only">Items</caption>
 	<thead>
 		<tr><th></th><th>Title</th></tr>
 	</thead>
@@ -205,8 +206,9 @@ $alt = 0;
 		<li><input type=checkbox name=includegbcats value=1 checked /> Include <?php echo $installname; ?> gradebook setup and categories</li>
 		<li><input type=checkbox name=includeduedates value=1 checked /> Include <?php echo $installname; ?> due dates for assessments</li>
 		<li><input type=checkbox name=includestartdates value=1 /> Include <?php echo $installname; ?> start dates for assessments and blocks<br/>
-			<span class="small">Blocks will only include the start date if they are set to hide contents from students when not available.</span></li>
-		<li><input type=checkbox name=datesbylti value=1 <?php if ($datesbylti > 0) {
+			<span class="small">Blocks will only include the start date if they are set to hide contents from students when not available</span></li>
+		<li><input type=checkbox name=newtab value=1 /> Open <?php echo $installname; ?> assignments in new window/tab</li>
+        <li><input type=checkbox name=datesbylti value=1 <?php if ($datesbylti > 0) {
         echo 'checked';
     }
     ?> /> Allow Canvas to set <?php echo $installname; ?> due dates<br/>
@@ -216,6 +218,13 @@ $alt = 0;
 		<p><button type="submit">Download Export Cartridge</button></p>
 		<p><a href="../help.php?section=lticanvas" target="_blank">Canvas Setup Instructions</a></p>
 		<?php echo $groupLTInote; ?>
+        <p>&nbsp;</p>
+        <p>If you don't want to embed in Canvas, but want students to know about 
+           <?php echo $installname; ?> assignments in the Canvas calendar, you can 
+           <a href="canvascalexport.php?cid=<?php echo $cid;?>">export Canvas calendar items</a>.
+           Note it's best to do this after <em>all</em> assignments for the course 
+           are ready and have dates set. Otherwise, be careful on import to carefully 
+           select what you import, or else you'll end up with duplicate events.</p>
 	</div>
 	<div id="lmsbb" style="display:none" class="lmsblock">
 		<fieldset>
@@ -227,16 +236,12 @@ $alt = 0;
 		<p><button type="submit" name="carttype" value="bb">Download BlackBoard Cartridge</button></p>
 		<p><a href="../help.php?section=ltibb" target="_blank">BlackBoard Setup Instructions</a></p>
 		<?php echo $groupLTInote; ?>
-		<ul>
-		<?php echo $keyInfo; ?>
-		</ul>
 	</div>
 	<div id="lmsmoodle" style="display:none" class="lmsblock">
 		<p><button type="submit">Download Export Cartridge</button></p>
 		<p><a href="../help.php?section=ltimoodle" target="_blank">Moodle Setup Instructions</a></p>
 		<?php echo $groupLTInote; ?>
 		<ul>
-		<?php echo $keyInfo; ?>
 		<li>Tool Base URL: <?php echo $GLOBALS['basesiteurl'] . '/bltilaunch.php'; ?> </li>
 		</ul>
 	</div>
@@ -245,7 +250,6 @@ $alt = 0;
 		<p><a href="../help.php?section=ltid2l" target="_blank">Brightspace Setup Instructions</a></p>
 		<?php echo $groupLTInote; ?>
 		<ul>
-		<?php echo $keyInfo; ?>
 		<li>Launch Point: <?php echo $GLOBALS['basesiteurl'] . '/bltilaunch.php'; ?> </li>
 		</ul>
 	</div>
@@ -254,7 +258,6 @@ $alt = 0;
 		<p><a href="../help.php?section=ltiother" target="_blank">LMS Setup Instructions</a></p>
 		<?php echo $groupLTInote; ?>
 		<ul>
-		<?php echo $keyInfo; ?>
 		<li>Launch URL: <?php echo $GLOBALS['basesiteurl'] . '/bltilaunch.php'; ?> </li>
 		</ul>
 
@@ -265,6 +268,6 @@ $alt = 0;
     echo '</form>';
 
 }
-require "../footer.php";
+require_once "../footer.php";
 
 ?>

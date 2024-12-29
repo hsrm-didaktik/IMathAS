@@ -10,8 +10,8 @@ if (!isset($myrights)) {
 error_reporting(0);
 $loadmathfilter = 1;
 $loadgraphfilter = 1;
-require_once("../filter/filter.php");
-require_once("../includes/filehandler.php");
+require_once "../filter/filter.php";
+require_once "../includes/filehandler.php";
 if (substr($mathimgurl,0,4) !== 'http') {
     // need to make an absolute url
     if (strlen($imasroot) > 0) { 
@@ -372,7 +372,7 @@ function getorg($it,$parent,&$res,$ind,$mod_depth) {
 				$fp = fopen($newdir.'/forum'.$iteminfo[$item][1].'.xml','w');
 				fwrite($fp,'<topic xmlns="http://www.imsglobal.org/xsd/imsccv1p1/imsdt_v1p1">');
 				fwrite($fp,' <title >'.htmlentities($row[0],ENT_XML1,'UTF-8',false).'</title>');
-				fwrite($fp,' <text texttype="text/html">'.htmlentities(filtercapture($row[1],$res)).'</text>');
+				fwrite($fp,' <text texttype="text/html">'.htmlentities(filtercapture($row[1],$res),ENT_XML1,'UTF-8',false).'</text>');
 				fwrite($fp,'</topic>');
 				fclose($fp);
 
@@ -406,7 +406,7 @@ function getorg($it,$parent,&$res,$ind,$mod_depth) {
 				$stm->execute(array(':id'=>$iteminfo[$item][1]));
 				$row = $stm->fetch(PDO::FETCH_NUM);
 				if ($row[8]==-1) {
-					require_once("../includes/updateptsposs.php");
+					require_once "../includes/updateptsposs.php";
 					$row[8] = updatePointsPossible($iteminfo[$item][1], $row[3], $row[2]);
 				}
 				//echo "encoding {$row[0]} as ".htmlentities($row[0],ENT_XML1,'UTF-8',false).'<br/>';
@@ -458,6 +458,9 @@ function getorg($it,$parent,&$res,$ind,$mod_depth) {
 					$usedcats[$row[5]]++;
 					fwrite($fp,'<submission_types>external_tool</submission_types>'."\n");
 					fwrite($fp,'<external_tool_url>'. $GLOBALS['basesiteurl'] . '/bltilaunch.php?custom_place_aid='.$iteminfo[$item][1].'</external_tool_url>'."\n");
+					if (isset($_POST['newtab'])) {
+						fwrite($fp, '<external_tool_new_tab>true</external_tool_new_tab>');
+					}
 					fwrite($fp,'</assignment>');
 					fclose($fp);
 					$fp = fopen($newdir.'/assn'.$iteminfo[$item][1].'/assignmenthtml'.$iteminfo[$item][1].'.html','w');
