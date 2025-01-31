@@ -9,6 +9,7 @@
   "next": "Nächste",
   "previous": "Vorherige",
   "question_n": "Frage {n}",
+  "extracredit": "Zusatzpunkte",
   "jumptocontent": "Navigation überspringen",
   "launch": {
     "continue_assess": "Test fortsetzen",
@@ -63,6 +64,7 @@
     "latepass_used": "Sie haben ein verspätetes Einreichen genutzt. | Sie haben {n} mal verspätetes Einreichen genutzt.",
     "extension": "Ihnen wurde eine Verlängerung gewährt.",
     "penalty": "Ein Punktabzug von {p}% wird angewendet.",
+    "penalty_after": "Ein Punktabzug von {p}% erfolgt nach {date}.",
     "take": "Sie können diesen Test einmal machen. | Sie können diesen Test {n} mal machen.",
     "take_more": "Sie können diesen Test noch einmal machen. | Sie können diesen Test noch {n} mal machen.",
     "attempt_inprogress": "Der Test ist in Bearbeitung.",
@@ -78,9 +80,11 @@
     "time_grace_expires": "Die Zeit für den Test ist am {date} abgelaufen und die Kulanzzeit endet am {grace}.",
     "timelimit": "Zeitbegrenzung: {time}.",
     "timelimit_wgrace": "Zeitbegrenzung: {time}, mit einer Kulanzzeit von {grace} bei einem Punktabzug von {penalty}%.",
+    "timelimit_wgrace_penalty": "Zeitgrenze: {time}, mit einer Kulanz-Zeit von {grace} bei {penalty}% Punktabzug.",
     "timelimit_extend": "Erweitert gegenüber der ursprünglichen Zeit von {time}.",
     "timelimit_restricted": "Abgabe bald fällig. Die Zeit läuft ab bei Fälligkeit, {due}.",
     "timelimit_wgrace_restricted": "Zeitbegrenzung: {time}, mit einer Kulanzzeit bis {due}. Bei Nutzung der Kulanzzeit gibt es einen Punktabzug von {penalty}%.",
+    "timelimit_wgrace_restricted_penalty": "Zeitgrenze: {time} mit einer Kulanz-Zeit mit einem Punktabzug von {penalty}% bis zur Fälligkeit am {date}.",
     "timelimit_ext": "Sie erhielten eine Verlängerung um {n} Minuten",
     "timelimit_ext_used": "Sie haben eine Verlängerung um {n} Minuten genutzt",
     "excused": "Sie können diesen Test überspringen. Dies ändert nichts an Ihrer Note.",
@@ -170,6 +174,8 @@
     "not_practice": "Dieser Test ist nicht mehr im Übungsmodus. Gehen Sie zurück und öffnen Sie den Test noch einmal.",
     "timelimit_expired": "Zeitbegrenzung abgelaufen",
     "timesup_submitting": "Die Zeitbegrenzung ist abgelaufen. Es wird jetzt eingereicht.",
+    "workafter_expired": "Die Zeit für das Einreichen von Lösungswegen ist abgelaufen",
+    "workafter_submitting": "Die Zeit für das Einreichen von Lösungswegen ist abgelaufen. Es wird jetzt gespeichert.",
     "out_of_regens": "Keine weiteren Versuche für eine ähnliche Frage möglich",
     "need_group": "Sie können diesen test nicht starten, bevor Sie zu einer Gruppe hinzugefügt wurden",
     "out_of_attempts": "Sie haben alle möglichen Versuche für diesen Test aufgebraucht",
@@ -183,7 +189,10 @@
     "parseerror": "Der Server hat eine ungültige Antwort gesendet",
     "livepoll_wrongquestion": "Die eingereichte Frage ist nicht die aktuelle Frage.",
     "livepoll_notopen": "Keine Einreichung zu dieser Frage möglich.",
-    "need_relaunch": "Benötigte Informationen fehlen. Bitte gehen Sie zurück in Ihr Lernmanagementsystem und öffnen Sie den Test erneut."
+    "need_relaunch": "Benötigte Informationen fehlen. Bitte gehen Sie zurück in Ihr Lernmanagementsystem und öffnen Sie den Test erneut.",
+    "ytnotready": "YouTube ist nicht bereit. Bitte warten Sie einige Sekunden.",
+    "file_upload_error": "Fehler beim Hochladen einer Datei",
+    "file_toolarge": "Fehler beim Hochladen einer Datei - Datei ist zu groß. Maximale Dateigröße 8MB"
   },
   "confirm": {
     "ok": "OK",
@@ -210,6 +219,8 @@
     "viewwork_immediately": "Sie können Ihre Arbeit und Ihre Punkte in der Notenübersicht ansehen.",
     "viewwork_after_due": "Sie können Ihre Arbeit und Ihre Punkte nach der Fälligkeit des Tests in der Notenübersicht ansehen.",
     "viewwork_work_scores_after": "Sie können Ihre Arbeit und Ihre Punkte nach Fälligkeit des Tests in der Notenübersicht ansehen.",
+    "viewwork_work_after_lp": "Sie können Ihre Lösungswege nach der Kulanz-Zeit in der Notenübersicht ansehen.",
+    "viewwork_after_lp": "Sie können Ihre Punkte und Lösungswege nach der Kulanz-Zeit in der Notenübersicht sehen.",
     "score": "Punkte",
     "recordedscore": "Gespeicherter Punktestand",
     "use_override": "Note durch Dozent korrigiert",
@@ -258,7 +269,8 @@
     "gbscore": "Gespeicherte Punkte",
     "bestpractice": "Höchste erreichte Punktzahl",
     "lastscore": "Punkte im letzten Versuch",
-    "license": "Lizenz"
+    "license": "Lizenz",
+    "extracredit": "Diese Frage bringt Zusatzpunkte"
   },
   "timer": {
     "hrs": "hr | hrs",
@@ -396,6 +408,7 @@
     "msg_owner": "Den Eigentümer über Probleme informieren",
     "had_help": "Hilfe verfügbar",
     "save": "Änderungen speichern",
+    "savenext": "Speichern und zum nächsten Studierenden",
     "return": "Zurück zur Notenübersicht",
     "gb_score": "Punkte in der Notenübersicht",
     "override": "Punkte korrigieren",
@@ -442,6 +455,7 @@
     "avail_never": "Die Noten sind zurzeit vom Dozenten nicht freigegeben.",
     "avail_after_take": "Wird angezeigt, wenn Sie einen Test-Versuch einreichen.",
     "avail_after_due": "Wird nach Fälligkeit angezeigt.",
+    "avail_after_lp": "Wird nach der Kulanz-Zeit angezeigt.",
     "latepass_blocked_practice": "Verspätetes Einreichen ist blockiert, weil der Studierende den Test im Übungs-Modus angesehen hat.",
     "latepass_blocked_gb": "Die Verwendung von Kulanzguthaben ist zurzeit gesperrt, da der/die Studierende die Antworten des Tests in der Notenübersicht gesehen hat.",
     "latepass_blocked_lpcutoff": "Die Verwendung von Kulanzguthaben ist zurzeit gesperrt, da die Kulanzguthaben abgelaufen sind.",
@@ -461,13 +475,18 @@
     "used_timeext": "Hat eine Verlängerung um {n} Minuten genutzt",
     "attemptext": "Ausnahme für {n} zusätzliche Versionen genehmigt",
     "preview_files": "Vorschau aller Dateien",
-    "introtexts": "Einführung und Text zwischen den Fragen"
+    "introtexts": "Einführung und Text zwischen den Fragen",
+    "floating_scoreboxes": "Bewegliche Punktanzeige",
+    "sidebyside": "Nebeneinander",
+    "no_edit": "Sie sind in der Notenübersicht. Hier können Sie keine Fragen beantworten.",
+    "activitylog": "Aktivität"
   },
   "work": {
     "add": "Lösung hinzufügen",
     "hide": "Lösungseingabe ausblenden",
     "noquestions": "Alle Fragen bearbeitet",
     "save": "Lösung speichern",
+    "duein": "<lösungswege müssen bis zum {date} hochgeladen werden",
     "save_continue": "Lösung speichern und weiter",
     "add_prev": "Sie können noch Ihre Lösung für den aktuellsten Versuch einreichen",
     "remove": "Sind Sie sicher, dass Sie diese Datei entfernen wollen?"
@@ -479,5 +498,9 @@
     "qnav": "Fragen-Navigation",
     "qvidnav": "Video- und Fragen-Navigation",
     "aheader": "Test-Info"
+  },
+  "links": {
+    "settings": "Einstellungen",
+    "questions": "Fragen"
   }
 }
