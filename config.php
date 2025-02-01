@@ -32,8 +32,13 @@ $httpmode = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS']=='on')
 
 //absolute path or full url to Mimetex CGI, for math image fallback
 //if you do not have a local install, feel free to use:
-// $mathimgurl = "http://www.imathas.com/cgi-bin/mimetex.cgi";
-$mathimgurl = "/cgi-bin/mimetex.cgi";
+//$mathimgurl = "https://www.imathas.com/cgi-bin/mimetex.cgi";
+$mathimgurl = "http://localhost/cgi-bin/mimetex.cgi";
+//$mathimgurl = "/cgi-bin/mimetex.cgi";
+
+//lokale installation auf netmath
+//$mathimgurl = "https://netmath.vcrp.de/cgi-bin/mimetex.cgi";
+
 
 //This is used to change the session file path different than the default.
   //This is usually not necessary unless your site is on a server farm, or
@@ -157,12 +162,17 @@ $CFG['acct']['emailFormaterror'] = "Ungültige eMail-Adresse";
 $emailconfirmation = false;
 
 // Automatisches Einschreiben in Dozenten-Cafe und Spielwiese !!! ID !!! - Einkommentieren für Produktivversion
-//$CFG['GEN']['enrollonnewinstructor'] = array(15,87);
+// $CFG['GEN']['enrollonnewinstructor'] = array(15,87);
+
+// Activate logging of errors in question
+$CFG['logquestionerrors']=true;
+$CFG['hooks']['util/questionerrors'] = "../vcrp/correctquestionerrors.php";
 
 // GROUP: TESTS
 
 //color shift icons as deadline approaches?
 $colorshift = true;
+
 
 // -----------------------
 

@@ -1,0 +1,47 @@
+<html>
+
+<body>
+    <h1>Macro Library chatter</h1>
+    A macro library providing tools for communicating with chatbots
+    <BR>
+    <BR>June 2024
+    <BR>
+    <ul>
+        <li><a href="#asciimath2tex">asciimath2tex</a></li>
+        <li><a href="#essayText">essayText</a></li>
+        <li><a href="#copyButton">copyButton</a></li>
+    </ul>
+
+    <h2><a style="color:blue"">Background</a></h2>
+    <p>
+        Chatbots work best with text prompts in <a href="https://www.bing.com/ck/a?!&&p=9755a22fe055866eJmltdHM9MTcxOTE4NzIwMCZpZ3VpZD0wYzc1ZGY2MC00NGViLTZiNzQtM2EzZC1jYmU2NDU0MTZhZTYmaW5zaWQ9NTIxMQ&ptn=3&ver=2&hsh=3&fclid=0c75df60-44eb-6b74-3a3d-cbe645416ae6&psq=markdown&u=a1aHR0cHM6Ly93d3cubWFya2Rvd25ndWlkZS5vcmcv&ntb=1" target="_blank">Markdown format</a> with formulas in LaTeX. The tools in this library simplify the process of encoding information from randomized question in an appropriate format and transferring it to a chatbot.
+    </p>
+    <p>For transmission as URL parameters, strings should be URL-encoded. To URL-encode a string use the function <code>rawurlencode</code>.</p>
+
+
+    <h2><a style="color:blue" name="asciimath2tex">asciimath2tex($arg)</a></h2>
+    <p>
+        This function converts a formula in ASCIIMath to LaTeX. `$arg` should be an ASCIIMath formula without enclosing backticks. The result will be enclosed between $-signs.
+    </p>
+
+    <h2><a style="color:blue" name="essayText">essayText($arg)</a></h2>
+    <p>
+        The function takes an HTML string as argument as it is returned as a student answer from an essay question. It removes all HTML tags and replaces ASCIIMath formulas with LaTeX formulas.
+    </p>
+
+    <h2><a style="color:blue" name="copyButton">copyButton($arg <i>[, $label, $successMessage, $failMessage, $formatPrompt]</i>)</a></h2>
+    <p>
+        This function returns a button with <em>label</em> that copies <em>arg</em> to the clipboard and reports in an
+        alert <em>successMessage</em> respectively <em>failMessage</em> in case of failure. <em>formatPrompt</em> is prepended to the string to be copied.
+    </p>
+    <p>
+        <b>Notes:</b> 
+    </p>
+    <p>Strings copied from <em>answerbox</em> fields - except for essay fields - should be enclosed in backticks `...`.
+    </p>
+    <p>
+        Special characters outside of formulas may be replaced by the respective HTML entities when copied from an essay field, For example &lt; will be replaced by &amp;lt;.
+    </p>
+</body>
+
+</html>

@@ -1,5 +1,5 @@
 <?php
-//Interval functions extension. Version 1.0 November 4, 2014
+//Interval functions extension. Version 1.1 October 3, 2023
 
 namespace IntervalLib {
 
@@ -769,7 +769,23 @@ function calculateMostCommonIntersection($border_left, $border_right, $isOpenLef
       	  break;
 	case DONOTINTERSECT_CONTINIUE:
 	case DONOTINTERSECT_STOP:
-	  return $interval_ext_emptySet;
+	  return $$values = array();
+	  $index = array();
+  
+	  foreach($input as $item) {
+		  $el = IntervalLib\parseString($item);
+  
+		  if ($el["has-error"]) {
+			  return "input error";
+		  } else {
+			  $values[] = $el;
+			  foreach($el["index"] as $k => $v) {
+				  $index[$k] = $v;
+			  }
+		  }
+	  }
+  
+	  $result = IntervalLib\calculateIntersectionSet($values);;
 
 	  break;
 	default:
@@ -783,6 +799,17 @@ function calculateMostCommonIntersection($border_left, $border_right, $isOpenLef
 	   "is-open-right" => $isOpenZ2 );
 }
 
+/*
+calculateIntersectionSet calculates the intersection of interval combinations in an array $values.
+Each interval combination is represented in the format
+has-error: Boolean
+left-border: Array of numbers
+right-border: Array of numbers
+is-open-left: Array of Boolean
+is-open-right: Array of Boolean
+index: Array of numbers
+
+*/
 function calculateIntersectionSet($values) {
     global $interval_ext_emptySet;
 
@@ -801,17 +828,14 @@ function calculateIntersectionSet($values) {
 
     for ($i = 1; $i < count($values); $i++) {
         $value = $values[$i];
-
+		// Now $value is the ith argument and we calculate the intersection of the ith arrgumen with the item calcullated so far:
         $z1 = array();
         $z2 = array();
         $isOpenZ1 = array();
         $isOpenZ2 = array();
-
+		// We intersect each interval of $value with each interval of $item...
         for ($j=0; $j<count($value["left-border"]); $j++) {
             for ($k=0; $k<count($item["left-border"]); $k++) {
-
-//            foreach($item as $y) {
-
                 $result = calculateIntersection($value["left-border"][$j], $value["right-border"][$j],
                                                 $value["is-open-left"][$j], $value["is-open-right"][$j],
                                                 $item["left-border"][$k], $item["right-border"][$k],
@@ -830,7 +854,7 @@ function calculateIntersectionSet($values) {
             	case DONOTINTERSECT_CONTINIUE:
             	case DONOTINTERSECT_STOP:
             	default:
-            	  // do noting
+            	  // do nothing
                 }
             }
         } // foreach value
@@ -838,8 +862,10 @@ function calculateIntersectionSet($values) {
         if (!empty($z1)) {
             $item = traverseUnion($z1, $z2, $isOpenZ1, $isOpenZ2 );
         }
+		// ... and join all the resulting intervals
+		$item = traverseUnion($z1, $z2, $isOpenZ1, $isOpenZ2 );
 
-    } // for values
+    }
 
     if ($hasIntersection) {
         return $item;
@@ -1072,6 +1098,8 @@ function canonicInterval($input) {
   }
 }
 
+// ######################################################################
+
 //intersection(arrayOfIntervals)
 //Forms the intersection of unions of intervals in an array
 //arrayOfIntervals: array of strings in interval notation, ex: [2,5)
@@ -1100,7 +1128,8 @@ function intersection($input) {
     		    $result["is-open-left"],
     		    $result["is-open-right"],
     		    $index);
-}
+	}
+
 
 }
 
