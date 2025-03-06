@@ -100,6 +100,9 @@ $allowmacroinstall = true;
 $CFG['locale'] = "de_DE.UTF-8";
 //$CFG['locale'] = "de";
 
+//`$CFG['nocommathousandsseparator']`: set to `true` to disallow the use of comma as a thousands separator in large numbers.
+$CFG['nocommathousandsseparator'] = true;
+
 //The name for this installation.  For personalization
 $installname = "IMathAS";
 
