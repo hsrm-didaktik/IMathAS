@@ -92,10 +92,12 @@
   //libs
     // acct
     imathasBuiltin += " makejournal scorejournal makeaccttable makeaccttable2 makeaccttable3 makeTchart scoreTchart makestatement scorestatement makeinventory scoreinventory makeTchartsfromjournal scoreTchartsfromjournal makeledgerfromjournal maketrialbalance maketrialbalancefromjournal scoretrialbalance scoretrialbalancefromjournal totalsfromjournal prettyacct";
+    // biology
+    imathasBuiltin += " bio_getcodonname bio_randcodon bio_anticodon bio_translation bio_splitcodons";
     // calculus
     imathasBuiltin += " calculusdiffquotient calculusnumint";
     // chemistry
-    imathasBuiltin += " chem_disp chem_mathdisp chem_isotopedisp chem_getsymbol chem_getnumber chem_getname chem_getweight chem_getmeltingpoint chem_getboilingpoint chem_getfamily chem_randelementbyfamily chem_diffrandelementsbyfamily chem_getrandcompound chem_getdiffrandcompounds chem_decomposecompound chem_getcompoundmolmass chem_randanion chem_randcation chem_makeioniccompound chem_getsolubility chem_eqndisp chem_balancereaction";
+    imathasBuiltin += " chem_disp chem_mathdisp chem_isotopedisp chem_getsymbol chem_getnumber chem_getname chem_getweight chem_getmeltingpoint chem_getboilingpoint chem_getfamily chem_randelementbyfamily chem_diffrandelementsbyfamily chem_getrandcompound chem_getdiffrandcompounds chem_decomposecompound chem_getcompoundmolmass chem_randanion chem_randcation chem_makeioniccompound chem_getsolubility chem_eqndisp chem_balancereaction chem_vsepr";
     // chgbase
     imathasBuiltin += " baseconvert asciitodec dectoascii";
     // complex
@@ -159,7 +161,7 @@
     // solvers
     imathasBuiltin += " discretenewtons bisectionsolve";
     // stats
-    imathasBuiltin += " nCr nPr mean stdev variance absmeandev percentile interppercentile Nplus1percentile quartile TIquartile Excelquartile Excelquartileexc Nplus1quartile allquartile median freqdist frequency histogram fdhistogram fdbargraph normrand expdistrand boxplot normalcdf tcdf invnormalcdf invtcdf invtcdf2 linreg expreg countif binomialpdf binomialcdf chicdf invchicdf chi2cdf invchi2cdf fcdf invfcdf piechart mosaicplot checklineagainstdata chi2teststat checkdrawnlineagainstdata csvdownloadlink modes forceonemode dotplot gamma_cdf gamma_inv beta_cdf beta_inv anova1way_f anova1way anova2way anova_table anova2way_f student_t cluster_bargraph";
+    imathasBuiltin += " nCr nPr mean stdev variance absmeandev percentile interppercentile Nplus1percentile quartile TIquartile Excelquartile Excelquartileexc Nplus1quartile allquartile median freqdist frequency histogram fdhistogram fdbargraph normrand expdistrand boxplot normalcdf tcdf invnormalcdf invtcdf invtcdf2 linreg expreg countif binomialpdf binomialcdf chicdf invchicdf chi2cdf invchi2cdf fcdf invfcdf piechart mosaicplot checklineagainstdata chi2teststat checkdrawnlineagainstdata csvdownloadlink modes forceonemode dotplot gamma_cdf gamma_inv beta_cdf beta_inv anova1way_f anova1way anova2way anova_table anova2way_f student_t cluster_bargraph stem_plot poissonpdf poissoncdf";
     // timedate
     imathasBuiltin += " timetominutes thisyear";
     // units

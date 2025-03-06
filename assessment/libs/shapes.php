@@ -383,6 +383,8 @@ function draw_circle() {
         $in[1] = str_replace(';',',',$in[1]);
         $centerLab = $in[1];
         $lab = "text([$xCentLab,$yCentLab],'".$centerLab."');";
+      } else if (isset($in[1])) {
+        $lab = "text([0,0],'".$in[1]."','below');";
       }
       $args = $args."dot([0,0]);".$lab;
     }
@@ -404,13 +406,13 @@ function draw_circle() {
     
     if ($in[0]=="diameter") {
       $hasDiameter = true;
-      if (!isset($in[1])) {
-        $in[1] = '';
-      } elseif (isset($in[1])) {
+      $lab = '';
+      if (isset($in[1])) {
         $hasDiameterLabel = true;
         $diameterLab = $in[1];
+        $lab = "text([0,0],'$diameterLab',below)";
       }
-      $args = $args."line([-1,0],[1,0]);text([0,0],'$diameterLab',below);";
+      $args = $args."line([-1,0],[1,0]);".$lab;
     }
     
     if ($in[0]=="angle") {

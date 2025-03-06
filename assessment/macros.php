@@ -248,6 +248,7 @@ function showplot($funcs) { //optional arguments:  $xmin,$xmax,$ymin,$ymax,label
 	$absymin = 1E10;
 	$absymax = -1E10;
     $globalalt = '';
+	$allcolors = [];
 	foreach ($funcs as $function) {
 		if ($function=='') { continue;}
         if (substr($function,0,4) == 'alt:') {
@@ -267,13 +268,20 @@ function showplot($funcs) { //optional arguments:  $xmin,$xmax,$ymin,$ymax,label
             if ($function[0]==='') { continue; }
 		}
 
+		// rewrite "y,color,x,x,closed" as dot
+		if (count($function)>4 && $function[0]!='dot' && $function[0]!='text' && is_numeric($function[0]) &&
+			$function[2]==$function[3] && ($function[4]=='closed' || $function[4]=='open')
+		) {
+			$function = ['dot',$function[2],$function[0],$function[4],$function[1]];
+		}
+
 		if ($function[0]=='dot') {  //dot,x,y,[closed,color,label,labelloc]
 			if (!isset($function[4]) || $function[4]=='') {
 				$function[4] = 'black';
 			}
 
 			$path = 'stroke="'.$function[4].'";';
-			$path .= 'dot(['.$function[1].','.$function[2].']';
+			$path .= 'dot(['.evalbasic($function[1],true).','.evalbasic($function[2],true).']';
 			$coord = '('.$function[1].','.$function[2].')';
 			if (isset($function[3]) && $function[3]=='open') {
 				$path .= ',"open"';
@@ -283,6 +291,7 @@ function showplot($funcs) { //optional arguments:  $xmin,$xmax,$ymin,$ymax,label
 				$alt .= sprintf(_('Dot at %s'), $coord);
 			}
 			$alt .= ', color '.$function[4];
+			$allcolors[] = $function[4];
 
 			if (isset($function[5]) && $function[5]!='') {
                 $function[5] = str_replace('&x44;', ',', $function[5]);
@@ -311,9 +320,10 @@ function showplot($funcs) { //optional arguments:  $xmin,$xmax,$ymin,$ymax,label
 				$function[6] = intval($function[6]);
 			}
 			$path = 'fontfill="'.$function[4].'";';
-			$path .= 'text(['.$function[1].','.$function[2].'],"'.$function[3].'","'.$function[5].'",'.$function[6].');';
+			$path .= 'text(['.evalbasic($function[1],true).','.evalbasic($function[2],true).'],"'.$function[3].'","'.$function[5].'",'.$function[6].');';
 			$coord = '('.$function[1].','.$function[2].')';
 			$alt .= sprintf(_('Text label, color %s, at %s reading: %s'), $function[4], $coord, $function[3]).'. ';
+			$allcolors[] = $function[4];
 			$commands .= $path;
 			continue; //skip the stuff below
 		} else if ($function[0][0]=='[') { //strpos($function[0],"[")===0) {
@@ -371,10 +381,12 @@ function showplot($funcs) { //optional arguments:  $xmin,$xmax,$ymin,$ymax,label
 		$path = '';
 		if (isset($function[1]) && $function[1]!='') {
 			$path .= "stroke=\"{$function[1]}\";";
-			$alt .= ", Color {$function[1]}";
+			$alt .= ", color {$function[1]}";
+			$allcolors[] = $function[1];
 		} else {
 			$path .= "stroke=\"black\";";
-			$alt .= ", Color black";
+			$alt .= ", color black";
+			$allcolors[] = 'black';
 		}
 		if (isset($function[6]) && $function[6]!='') {
 			$path .= "strokewidth=\"{$function[6]}\";";
@@ -738,6 +750,9 @@ function showplot($funcs) { //optional arguments:  $xmin,$xmax,$ymin,$ymax,label
     }
 
 	if ($_SESSION['graphdisp']==0) {
+		if (count(array_unique($allcolors))==1) {
+			$alt = str_replace(', color '.$allcolors[0], '', $alt);
+		}
 		return ($globalalt == '') ? $alt : $globalalt;
 	} else {
 		return "<embed type='image/svg+xml' align='middle' width='$plotwidth' height='$plotheight' script='$commands' />\n";
@@ -1674,7 +1689,7 @@ function diffrrands($min,$max,$p=0,$n=0,$ord='def',$nonzero=false) {
 		$r = range(0,$maxi);
         if ($nonzero) {
 			if ($min <= 0 && $max >= 0) {
-				array_splice($r,-1*$min/$p,1);
+				array_splice($r,-1*round($min/$p),1);
 			}
 		}
 		while ($n>count($r)) {
@@ -3038,7 +3053,11 @@ function evalfunc($farr) {
 	if ($isnum) {
         $func = makeMathFunction($func, implode(',', $vars), [], '', true);
         if ($func === false) {
-            return '';
+			if ($skipextracleanup) {
+				return false;
+			} else {
+            	return '';
+			}
         }
 		foreach ($vars as $i=>$var) {
 			if (is_array($args[$i]) || !is_numeric($args[$i])) {
@@ -3313,7 +3332,7 @@ function evalbasic($str, $doextra = false, $zerofornan = false) {
 	$str = clean($str);
 	if (is_numeric($str)) {
 		return $str;
-	} else if (preg_match('/[^\d+\-\/\*\.\(\)]/',$str)) {
+	} else if ($doextra || preg_match('/[^\d+\-\/\*\.\(\)]/',$str)) {
         if ($doextra) {
             $ret = evalnumstr($str);
             if ($zerofornan && !is_nicenumber($ret)) {
@@ -3430,7 +3449,9 @@ function ineqtointerval($str, $var) {
 	}
 	$str = strtolower($str);
     $var = strtolower($var);
-    $str = preg_replace('/(\d)\s*,\s*(?=\d{3}\b)/',"$1", $str);
+	if (empty($GLOBALS['CFG']['nocommathousandsseparator'])) {
+    	$str = preg_replace('/(\d)\s*,\s*(?=\d{3}\b)/',"$1", $str);
+	}
 	if (preg_match('/all\s*real/', $str)) {
 		return '(-oo,oo)';
     }
@@ -4328,7 +4349,9 @@ function numfuncGenerateTestpoints($variables,$domain='') {
    string of rewritten expression
 */
 function numfuncPrepForEval($expr, $variables) {
-    $expr = preg_replace('/(\d)\s*,\s*(?=\d{3}(\D|\b))/','$1',$expr);
+	if (empty($GLOBALS['CFG']['nocommathousandsseparator'])) {
+    	$expr = preg_replace('/(\d)\s*,\s*(?=\d{3}(\D|\b))/','$1',$expr);
+	}
 
     for ($i = 0; $i < count($variables); $i++) {
         if ($variables[$i]=='lambda') { //correct lamda/lambda
@@ -5510,7 +5533,7 @@ function getsigfigs($val, $targetsigfigs=0) {
     } else {
         $gadploc = strpos($val,'.');
         if ($gadploc===false) { // no decimal place
-            $sigfigs = max($targetsigfigs, strlen(rtrim($val,'0')));
+            $sigfigs = max(min(strlen($val),$targetsigfigs), strlen(rtrim($val,'0')));
         } else if (abs($val)<1) {
             $sigfigs = strlen(ltrim(substr($val,$gadploc+1),'0'));
         } else {

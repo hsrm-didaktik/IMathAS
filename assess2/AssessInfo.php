@@ -180,9 +180,17 @@ class AssessInfo
     }
 
     if ($useexception) {
+      // exception format is [startdate, enddate, latepasses_used, is_lti]
       if (empty($this->exception[3]) || $this->exception[2] > 0) {
         //if not LTI-set, or if LP used, show orig due date
-        $this->assessData['original_enddate'] = $this->assessData['enddate'];
+        if (!empty($this->exception[3]) && $this->exception[2] > 0) {
+          // lti with latepasses: subtract latepasses to get original enddate
+          // since original was an lti-set exception
+          $hrstosubtract = intval($this->exception[2]) * $latepasshrs;
+          $this->assessData['original_enddate'] = strtotime("-".$hrstosubtract." hours", $this->exception[1]);
+        } else {
+          $this->assessData['original_enddate'] = $this->assessData['enddate'];
+        }
         if ($this->exception[2] == 0) {
           $this->assessData['extended_with'] = array('type'=>'manual');
         } else {
@@ -1310,6 +1318,12 @@ class AssessInfo
         $settings['reqscoretype'] |= 1;
         $settings['reqscore'] = abs($settings['reqscore']);
     }
+
+    // parse out earlybonus parts
+    if (!isset($settings['earlybonus'])) {
+      $settings['earlybonus'] = 0;
+    }
+    $settings['earlybonus'] = [$settings['earlybonus']%100, floor($settings['earlybonus'] / 100)]; 
 
     // get latest date latepass can extend to
     $allowlate = $settings['allowlate'];

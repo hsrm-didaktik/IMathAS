@@ -124,10 +124,10 @@ if (!(isset($teacherid)) && $myrights<100) {
     $uploadfile = getimportfilepath($filekey);
     $handle = fopen_utf8($uploadfile,'r');
 		if ($_POST['hdr']==1) {
-			$data = fgetcsv($handle,2096);
+			$data = fgetcsv($handle,2096, ',', '"', '');
 		}
         
-		while (($data = fgetcsv($handle,2096))!==false) {
+		while (($data = fgetcsv($handle,2096, ',', '"', ''))!==false) {
 			$arr = parsecsv($data);
 			for ($i=0;$i<count($arr);$i++) {
 				$arr[$i] = trim($arr[$i]);
@@ -214,7 +214,7 @@ if (!(isset($teacherid)) && $myrights<100) {
 
 		$handle = fopen_utf8($uploadfile,'r');
 		if ($_POST['hdr']==1) {
-			$data = fgetcsv($handle,2096);
+			$data = fgetcsv($handle,2096, ',', '"', '');
 		}
 
 		if ($_POST['codetype']==1) {
@@ -226,7 +226,7 @@ if (!(isset($teacherid)) && $myrights<100) {
 
 		$page_sampleImport = array();
 		for ($i=0; $i<5; $i++) {
-			$data = fgetcsv($handle,2096);
+			$data = fgetcsv($handle,2096, ',', '"', '');
 			if ($data!=FALSE) {
 				$arr = parsecsv($data);
 				$page_sampleImport[$i]['col1'] = $arr[0];

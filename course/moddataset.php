@@ -883,7 +883,7 @@
 	*/
 	$useeditor = "noinit";
 	$placeinhead .= '<script type="text/javascript" src="'.$staticroot.'/javascript/codemirror/codemirror-compressed.js?v=091522"></script>';
-	$placeinhead .= '<script type="text/javascript" src="'.$staticroot.'/javascript/codemirror/imathas.js?v=062424"></script>';
+	$placeinhead .= '<script type="text/javascript" src="'.$staticroot.'/javascript/codemirror/imathas.js?v=012925"></script>';
 	$placeinhead .= '<link rel="stylesheet" href="'.$staticroot.'/javascript/codemirror/codemirror_min.css?v=091522">';
 
 	//$placeinhead .= '<script src="//sagecell.sagemath.org/embedded_sagecell.js"></script>'.PHP_EOL;
@@ -1541,7 +1541,10 @@ if (FormData){ // Only allow quicksave if FormData object exists
 				// Empty notices
 				$(".quickSaveNotice").empty();
 				// Load preview page
-				var previewpop = window.open(quickSaveQuestion.testAddr, 'Testing', 'width='+(.4*screen.width)+',height='+(.8*screen.height)+',scrollbars=1,resizable=1,status=1,top=20,left='+(.6*screen.width-20));
+				let leftpos = screen.left ?? screen.availLeft ?? 0;
+    			let toppos = screen.top ?? screen.availTop ?? 0;
+
+				var previewpop = window.open(quickSaveQuestion.testAddr, 'Testing', 'width='+(.4*screen.width)+',height='+(.8*screen.height)+',scrollbars=1,resizable=1,status=1,top='+(20+toppos)+',left='+(.6*screen.width-20+leftpos));
 				previewpop.focus();
 			},
 			error: function(res){

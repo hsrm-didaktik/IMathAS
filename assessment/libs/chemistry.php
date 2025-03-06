@@ -11,7 +11,7 @@ array_push($allowedmacros,"chem_disp","chem_mathdisp","chem_isotopedisp",
 "chem_getrandcompound", "chem_getdiffrandcompounds","chem_decomposecompound",
 "chem_getcompoundmolmass","chem_randanion","chem_randcation",
 "chem_makeioniccompound","chem_getsolubility","chem_balancereaction", "chem_eqndisp",
-"chem_showmolecule");
+"chem_showmolecule", "chem_vsepr");
 
 //chem_disp(compound)
 //formats a compound for display in as HTML
@@ -218,36 +218,40 @@ function chem_getdiffrandcompounds($c, $type="twobasic,twosub,threeplus,parens")
 	return $out;
 }
 
+// Recursive function to process the formula
+function chem_internal_processFormula($formula, $multiplier, &$result) {
+	// Regex to match atomic groups, elements, and parentheses
+	preg_match_all('/\(([^()]+)\)(\d*)|([A-Z][a-z]*)(\d*)/', $formula, $matches, PREG_SET_ORDER);
+
+	foreach ($matches as $match) {
+		if (!empty($match[1])) {
+			// It's a group within parentheses
+			$group = $match[1];
+			$groupMultiplier = (int)($match[2] ?: 1) * $multiplier;
+			chem_internal_processFormula($group, $groupMultiplier, $result);
+		} elseif (!empty($match[3])) {
+			// It's an individual element
+			$element = $match[3];
+			$count = (int)($match[4] ?: 1) * $multiplier;
+			if (isset($result[$element])) {
+				$result[$element] += $count;
+			} else {
+				$result[$element] = $count;
+			}
+		}
+	}
+}
+
 //chem_decomposecompound(compound)
 //breaks a compound into an array of elements and an array of atom counts
 function chem_decomposecompound($c, $assoc = false) {
-	$cout = array();
-	if (preg_match_all('/\(([^\)]*)\)_(\d+)/',$c,$matcharr, PREG_SET_ORDER)) {
-        foreach ($matcharr as $matches) {
-            $p = explode(' ',$matches[1]);
-            foreach ($p as $cb) {
-                $cbp = explode('_',$cb);
-                if (!isset($cout[$cbp[0]])) { $cout[$cbp[0]] = 0;}
-                if (count($cbp)==1) {
-                    $cout[$cbp[0]] += $matches[2];
-                } else {
-                    $cout[$cbp[0]] += $matches[2]*$cbp[1];
-                }
-            }
-            $c = str_replace($matches[0],'',$c);
-        }
-	}
-	$p = explode(' ',trim($c));
-	foreach ($p as $cb) {
-		if ($cb=='') {continue;}
-		$cbp = explode('_',$cb);
-		if (!isset($cout[$cbp[0]])) { $cout[$cbp[0]] = 0;}
-		if (count($cbp)==1) {
-			$cout[$cbp[0]] += 1;
-		} else {
-			$cout[$cbp[0]] += $cbp[1];
-		}
-	}
+	$cout = [];
+
+    $c = str_replace('_','',$c);
+
+    // Start processing the formula
+    chem_internal_processFormula($c, 1, $cout);
+
 	if ($assoc) { 
 		return $cout;
 	} else {
@@ -455,7 +459,8 @@ function chem_randanion($group="all", $type="common", $uncommon = false) {
 	if ($group=="polyatomic") {
 		$pickfrom = range(10,36);
 	} else {
-		$pickfrom = range(0,8);
+		$pickfrom = range(0,7);
+		$pickfrom[] = 4; // avoid carbide without breaking other randomizations
 	}
 	if ($uncommon && $group != 'polyatomic') {
 		$pickfrom[] = 9;
@@ -983,7 +988,7 @@ $GLOBALS['chem_anions'] = array(
 	array('S',2,'sulfide','','s'), //common
 	array('N',3,'nitride','','s'), //common
 	array('P',3,'phosphide','','s'), //common
-	array('C',4,'carbide','','s'), //common 8
+	array('C',4,'carbide','','s'), //common 8 // NOT USED
 	array('Se',2,'selenide','','s'),
 	array('C_2 H_3 O_2',1,'acetate','','pa'), //common  10
 	array('Cl O',1,'hypochlorite','','pa'), //common
@@ -1034,11 +1039,11 @@ $GLOBALS['chem_compounds'] = array(
 		array('Hydrochloric acid','H Cl'),
 		array('Hydrogen fluoride','H F'),
 		array('Iodine monochloride','I Cl'),
-		array('Cyanogen iodide','I CN'),
+		array('Cyanogen iodide','I C N'),
 		array('Indium nitride','In N'),
 		array('Potassium bromide','K Br'),
 		array('Potassium chloride','K Cl'),
-		array('Potassium cyanide','K CN'),
+		array('Potassium cyanide','K C N'),
 		array('Potassium iodide','K I'),
 		array('Lithium bromide','Li Br'),
 		array('Lithium chloride','Li Cl'),
@@ -1280,7 +1285,7 @@ $GLOBALS['chem_compounds'] = array(
 	)
 );
 
-function chem_showmolecule($data, $width=300, $height=225, $alt='') {
+function chem_showmolecule($data, $width=300, $height=225, $alt='', $format='') {
     $data = explode('~~~', $data);
     if ($_SESSION['graphdisp']==0) {
         if ($alt != '') { 
@@ -1288,10 +1293,10 @@ function chem_showmolecule($data, $width=300, $height=225, $alt='') {
         }
         return _('Molecule in SMILES format:') . $data[0];
     }
-    $out = '<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/kekule@1.0.0/dist/kekule.min.js?module=chemWidget,IO"></script>';
+    $out = '<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/kekule@1.0.2/dist/kekule.min.js?module=chemWidget,IO"></script>';
     $out .= '<script type="text/javascript">
-        if (!$("link[href=\'https://cdn.jsdelivr.net/npm/kekule@1.0.0/dist/themes/default/kekule.css\']").length) {
-            $(\'<link href="https://cdn.jsdelivr.net/npm/kekule@1.0.0/dist/themes/default/kekule.css" rel="stylesheet">\').appendTo("head");
+        if (!$("link[href=\'https://cdn.jsdelivr.net/npm/kekule@1.0.2/dist/themes/default/kekule.min.css\']").length) {
+            $(\'<link href="https://cdn.jsdelivr.net/npm/kekule@1.0.2/dist/themes/default/kekule.min.css" rel="stylesheet">\').appendTo("head");
         }
     </script>';
     $uniqid = uniqid('mol');
@@ -1300,7 +1305,50 @@ function chem_showmolecule($data, $width=300, $height=225, $alt='') {
         var chemSAViewer'.$uniqid.' = new Kekule.ChemWidget.Viewer(document.getElementById("'.$uniqid.'"), null, Kekule.Render.RendererType.R2D);
         chemSAViewer'.$uniqid.'.setPredefinedSetting("static")
         .setPadding(20)
-        .setChemObj(Kekule.IO.loadFormatData("'.Sanitize::encodeStringForJavascript($data[1]).'", "cml"));
-        </script>';
+        .setChemObj(Kekule.IO.loadFormatData("'.Sanitize::encodeStringForJavascript($data[1]).'", "cml"))';
+	if ($format == 'condensed') {
+		$out .= '.setMoleculeDisplayType(Kekule.Render.Molecule2DDisplayType.CONDENSED)';
+	}
+	$out .= ';';
+	$out .= '</script>';
     return $out;
+}
+
+
+// Information from:
+	// https://chem.libretexts.org/Courses/Bellarmine_University/BU%3A_Chem_103_(Christianson)/Phase_3%3A_Atoms_and_Molecules_-_the_Underlying_Reality/10%3A_Molecular_Structure_and_Geometry/10.3%3A_VSEPR_Geometry
+$GLOBALS['chem_vsepr_geometries'] = array(
+	// Steric Number => array( array(Molecular Geometry, Electron Geometry, Bond Angle, Polarity (assuming equal electronegativity), Hybridization) )
+	// Steric 2
+	array( 	array('Linear','Linear','180', 'Nonpolar', 'sp')),
+	// Steric 3
+	array( 	array('Trigonal Planar', 'Trigonal Planar', '120', 'Nonpolar', 'sp^2'), 
+				array('Bent', 'Trigonal Planar','<120', 'Polar', 'sp^2')),
+	// Steric 4
+	array(	array('Tetrahedral','Tetrahedral', '109.5', 'Nonpolar', 'sp^3'),
+				array('Trigonal Pyramidal', 'Tetrahedral','<109.5', 'Polar', 'sp^3'), 
+				array('Bent','Tetrahedral','<109.5', 'Polar', 'sp^3')),
+	// Steric 5
+	array(	array('Trigonal Bipyramidal', 'Trigonal Bipyramidal', '120, 90', 'Nonpolar', 'sp^3d'),
+				array('Seesaw', 'Trigonal Bipyramidal', '<120, <90', 'Polar', 'sp^3d'),
+				array('T-Shaped', 'Trigonal Bipyramidal', '<90', 'Polar', 'sp^3d'),
+				array('Linear', 'Trigonal Bipyramidal', '180', 'Nonpolar', 'sp^3d')),
+	// Steric 6
+	array(	array('Octahedral', 'Octahedral', '90', 'Nonpolar', 'sp^3d^2'),
+				array('Square Pyramidal', 'Octahedral', '<90', 'Polar', 'sp^3d^2'),
+				array('Square Planar', 'Octahedral', '90', 'Nonpolar', 'sp^3d^2')),
+);
+
+function chem_vsepr($steric_number, $lone_pairs){
+	global $chem_vsepr_geometries;
+	$steric_index = $steric_number - 2;
+	if (!isset($chem_vsepr_geometries[$steric_index])) {
+        echo "chem_vsepr: unknown steric number $steric_number";
+        return '';
+    }
+	if ($lone_pairs > $steric_index) {
+        echo "chem_vsepr: invalid number of lone pairs";
+        return '';
+    }
+	return $chem_vsepr_geometries[$steric_index][$lone_pairs];
 }

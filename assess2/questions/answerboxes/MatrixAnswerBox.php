@@ -128,8 +128,8 @@ class MatrixAnswerBox implements AnswerBox
             } else {
                 $out .= '</td><td class="matrixright">&nbsp;</td></tr></table>';
             }
-            $out .= "<span id=p$qn></span>";
             $out .= "</div>\n";
+            $preview .= "<span id=p$qn></span>";
             $params['matrixsize'] = $answersize;
             $params['calcformat'] = $answerformat . ($answerformat == '' ? '' : ',') . 'decimal';
             $params['tip'] = $shorttip;
@@ -193,12 +193,17 @@ class MatrixAnswerBox implements AnswerBox
             $preview .= "<span id=p$qn></span> ";
         }
 
+        $nosolntype = 0;
         if (in_array('nosoln', $ansformats) || in_array('nosolninf', $ansformats)) {
             list($out, $answer, $nosolntype) = setupnosolninf($qn, $out, $answer, $ansformats, $la, $ansprompt, $colorbox);
         }
 
         if ($answer !== '' && !is_array($answer) && !$isConditional) {
-            $sa = '`' . $answer . '`';
+            if ($nosolntype > 0) {
+                $sa = $answer;
+            } else {
+                $sa = '`' . $answer . '`';
+            }
         }
 
         // Done!

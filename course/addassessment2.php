@@ -195,7 +195,7 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
 									'timelimit','overtime_grace','overtime_penalty','password',
 									'reqscore','reqscoretype','reqscoreaid','showhints',
 									'msgtoinstr','eqnhelper','posttoforum','extrefs','showtips',
-									'cntingb','minscore','deffeedbacktext','tutoredit','exceptionpenalty',
+									'cntingb','minscore','deffeedbacktext','tutoredit','exceptionpenalty','earlybonus',
 									'defoutcome','isgroup','groupsetid','groupmax','showwork','workcutoff');
 			$fieldlist = implode(',', $fields);
 			$stm = $DBH->prepare("SELECT $fieldlist FROM imas_assessments WHERE id=:id AND courseid=:cid");
@@ -398,6 +398,11 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
 			$toset['tutoredit'] = Sanitize::onlyInt($_POST['tutoredit']);
 			$toset['exceptionpenalty'] = Sanitize::onlyInt($_POST['exceptionpenalty']);
 			$toset['defoutcome'] = Sanitize::onlyInt($_POST['defoutcome']);
+
+			$toset['earlybonus'] = 0;
+			if ($_POST['earlybonus'] > 0) {
+				$toset['earlybonus'] = 100 * intval($_POST['earlybonushrs']) + intval($_POST['earlybonus']);
+			}
 
 			// group assessmentid
 	    $toset['isgroup'] = Sanitize::onlyInt($_POST['isgroup']);
@@ -652,6 +657,7 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
           }
       } else {  //INITIAL LOAD IN ADD MODE
           //set defaults
+		  $line = [];
           $line['name'] = "";
           $line['summary'] = "";
           $line['intro'] = "";
@@ -699,6 +705,7 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
           $deffb = _("This assessment contains items that are not automatically graded.  Your grade may be inaccurate until your instructor grades these items.");
 					$line['tutoredit'] = isset($CFG['AMS']['tutoredit'])?$CFG['AMS']['tutoredit']:0;
 					$line['exceptionpenalty'] = isset($CFG['AMS']['exceptionpenalty'])?$CFG['AMS']['exceptionpenalty']:0;
+					$line['earlybonus'] = isset($CFG['AMS']['earlybonux'])?$CFG['AMS']['earlybonus']:0;
 					$line['defoutcome'] = 0;
 					$line['isgroup'] = isset($CFG['AMS']['isgroup'])?$CFG['AMS']['isgroup']:0;
 					$line['groupmax'] = isset($CFG['AMS']['groupmax'])?$CFG['AMS']['groupmax']:6;
@@ -930,6 +937,14 @@ if (!empty($CFG['GEN']['uselocaljs'])) {
 } else {
     $placeinhead .= '<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.31/vue.global.prod.min.js" integrity="sha512-Dg9zup8nHc50WBBvFpkEyU0H8QRVZTkiJa/U1a5Pdwf9XdbJj+hZjshorMtLKIg642bh/kb0+EvznGUwq9lQqQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>';
 }
+$placeinhead .= '<script>
+function showinvalid() {
+	document.getElementById("addform").reportValidity();
+	$("form :invalid").each(function(index,el) {
+		$(el).closest(".blockitems:not(:visible)").show().prev().trigger("click");
+	});
+}
+</script>';
 
  require_once "../header.php";
 
@@ -953,13 +968,13 @@ if ($overwriteBody==1) {
 	?>
 	<?php echo $page_isTakenMsg ?>
 
-	<form method=post action="<?php echo $page_formActionTag ?>">
+	<form method=post id="addform" action="<?php echo $page_formActionTag ?>">
 
 	<?php
 		require_once "addassessment2form.php";
 	?>
 
-	<div class=submit><input type=submit value="<?php echo $savetitle;?>"></div>
+	<div class=submit><input type=submit onclick="showinvalid()" value="<?php echo $savetitle;?>"></div>
 	</form>
 	<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
 <?php
