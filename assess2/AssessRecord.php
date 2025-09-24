@@ -182,6 +182,10 @@ class AssessRecord
         exit;
       }
       $qarr[':scoreddata'] = gzcompress($encoded);
+      if (strlen($qarr[':scoreddata']) > 16777000) {
+        echo '{"error": "encoding_error"}';
+        exit;
+      }
     }
     if ($this->is_practice && !empty($this->data)) {
       $fields[] = 'practicedata';
@@ -191,6 +195,10 @@ class AssessRecord
         exit;
       }
       $qarr[':practicedata'] = gzcompress($encoded);
+      if (strlen($qarr[':practicedata']) > 16777000) {
+        echo '{"error": "encoding_error"}';
+        exit;
+      }
     }
 
     if ($this->hasRecord) {
@@ -781,11 +789,13 @@ class AssessRecord
   /**
    * Save relevant POST to autosaves
    * @param int  $time          Timestamp
+   * @param int  $timeactive
    * @param int  $qn            The question number
-   * @param array $pn           The part number to save
+   * @param int|string $pn           The part number to save
    * @return void
    */
   public  function setAutoSave($time, $timeactive, $qn, $pn) {
+    $qn = intval($qn);
     $this->parseData();
     $data = &$this->data['autosaves'];
     $seconds = $time - $this->assessRecord['starttime'];
@@ -810,7 +820,7 @@ class AssessRecord
     }
     $tosave = array();
 
-    $qref = ($qn+1)*1000 + $pn;
+    $qref = intval(($qn+1)*1000 + $pn);
     foreach ($_POST as $key=>$val) {
       if ($pn == 0) {
         if (preg_match('/^(qn|tc|qs)('.$qn.'\\b|'.$qref.'\\b)(-\d+|-val)?/', $key, $match)) {
@@ -1589,6 +1599,9 @@ class AssessRecord
       if ($record_answeights) {
         $this->setAnsweights($qn, $out['answeights'], $ver);
       }
+      if ($out['useda11yalt']) {
+        $this->setUsedA11yAlt($qn, $out['useda11yalt'], $ver);
+      }
       if ($out['tries_max'] == 1) {
         $out['parts_entered'] = $this->getPartsEntered($qn, $curq['tries'], $out['answeights']);
       }
@@ -1678,6 +1691,35 @@ class AssessRecord
     $answeights = array_map('floatval', $answeights);
     if (empty($curq['answeights']) || $answeights !== $curq['answeights']) {
       $curq['answeights'] = $answeights;
+      $this->need_to_record = true;
+    }
+  }
+
+  /**
+   * Sets the useda11yalt for a question if needed
+   * @param int  $qn          Question number
+   * @param array $useda11yalt   value (true/false)
+   * @param string  $ver         attempt number, or 'last'
+   */
+  private function setUsedA11yAlt($qn, $useda11yalt, $ver = 'last') {
+    $by_question = ($this->assess_info->getSetting('submitby') == 'by_question');
+    $this->parseData();
+    if ($this->is_practice) {
+      $assessver = &$this->data['assess_versions'][0];
+    } else if ($by_question || !is_numeric($ver)) {
+      $assessver = &$this->data['assess_versions'][count($this->data['assess_versions']) - 1];
+    } else {
+      $assessver = &$this->data['assess_versions'][$ver];
+    }
+
+    $question_versions = &$assessver['questions'][$qn]['question_versions'];
+    if (!$by_question || !is_numeric($ver)) {
+      $curq = &$question_versions[count($question_versions) - 1];
+    } else {
+      $curq = &$question_versions[$ver];
+    }
+    if ((empty($curq['useda11yalt']) && $useda11yalt) || $useda11yalt !== $curq['useda11yalt']) {
+      $curq['useda11yalt'] = $useda11yalt;
       $this->need_to_record = true;
     }
   }
@@ -1900,7 +1942,7 @@ class AssessRecord
     $work = isset($qver['work']) ? $qver['work'] : '';
     $worktime = '0';
     if (!empty($qver['worktime'])) {
-        $worktime = tzdate("n/j/y, g:i a", $qver['worktime'] + $this->assessRecord['starttime']);
+        $worktime = tzdate("n/j/y, g:i a", intval($qver['worktime']) + intval($this->assessRecord['starttime']));
     }
 
     // get the question settings
@@ -1911,6 +1953,7 @@ class AssessRecord
             'jsparams' => [],
             'answeights' => [1],
             'usedautosave' => false,
+            'useda11yalt' => false,
             'work' => '',
             'worktime' => '0',
             'errors' => _('Unable to load question data')
@@ -2065,6 +2108,18 @@ class AssessRecord
     if ($numParts == 0 && ($this->teacherInGb || (!empty($qsettings['jump_to_answer']) && !empty($qver['jumptoans'])))) {
         $seqPartDone = true;
     }
+    $useda11yalt = false;
+    if (($numParts == 0 || !empty($qver['useda11yalt'])) && $this->assess_info->getSetting('displaymethod') !== 'livepoll') {
+      $qsdata = $this->assess_info->getQuestionSetData($qsettings['questionsetid']);
+      if (!empty($qver['useda11yalt']) ||
+        (($qsdata['a11yalttype']&1)==1 && ($_SESSION['userprefs']['graphdisp'] ?? 1)==0) ||
+        (($qsdata['a11yalttype']&2)==2 && ($_SESSION['userprefs']['drawentry'] ?? 1)==0)
+      ) {
+        // sub out for accessible alt
+        $qsettings['questionsetid'] = $qsdata['a11yalt'];
+        $useda11yalt = true;
+      }
+    }
     
     $attemptn = (count($partattemptn) == 0) ? 0 : max($partattemptn);
     $questionParams = new QuestionParams();
@@ -2112,6 +2167,7 @@ class AssessRecord
         'html' => $qout,
         'jsparams' => $jsparams,
         'answeights' => $answeights,
+        'useda11yalt' => $useda11yalt,
         'usedautosave' => $usedAutosave,
         'work' => $work,
         'worktime' => $worktime,
@@ -2121,20 +2177,49 @@ class AssessRecord
   }
 
   private function parseScripts($html) {
-    $scripts = array();
-    preg_match_all("|<script([^>]*)>(.*?)</script>|s", $html, $matches, PREG_SET_ORDER);
-    foreach ($matches as $match) {
-      if (strlen(trim($match[2])) == 0 && preg_match('/src="(.*?)"/', $match[1], $sub)) {
+    $scripts = [];
+    $htmlout = '';
+    $pos = 0;
+    while (($scriptStart = strpos($html, '<script', $pos)) !== false) {
+      // Add content before script tag to clean HTML
+      $htmlout .= substr($html, $pos, $scriptStart - $pos);
+
+      // Find the end of the opening script tag
+      $tagEnd = strpos($html, '>', $scriptStart);
+      if ($tagEnd === false) {
+        $pos += 7;
+        break;
+      }
+
+      // Extract the opening tag (including attributes)
+      $openingTag = substr($html, $scriptStart, $tagEnd - $scriptStart + 1);
+      
+      // Find the closing script tag
+      $scriptEnd = strpos($html, '</script>', $tagEnd);
+      if ($scriptEnd === false) {
+        $pos = $tagEnd + 1;
+        break;
+      }
+      
+      // Extract script content between tags
+      $scriptContent = trim(substr($html, $tagEnd + 1, $scriptEnd - $tagEnd - 1));
+
+      if (strlen($scriptContent) == 0 && preg_match('/src="(.*?)"/', $openingTag, $sub)) {
         $scripts[] = array('src', $sub[1]);
       } else {
-        if (preg_match('/document\.write.*?script.*?src="(.*?)"/', $match[2], $sub)) {
+        if (preg_match('/document\.write.*?script.*?src="(.*?)"/', $scriptContent, $sub)) {
           $scripts[] = array('src', $sub[1]);
         }
-        $scripts[] = array('code', $match[2]);
+        $scripts[] = array('code', $scriptContent);
       }
+
+      // Move position past the closing script tag
+      $pos = $scriptEnd + 9; // length of '</script>'
     }
-    $html = preg_replace("|<script([^>]*)>(.*?)</script>|s", '', $html);
-    return array($html, $scripts);
+    // Add remaining HTML after last script tag
+    $htmlout .= substr($html, $pos);
+
+    return array($htmlout, $scripts);
   }
 
   /**
@@ -2182,13 +2267,18 @@ class AssessRecord
 
     // record work, if present
     if (isset($_POST['sw' . $qn])) {
-      $data['work'] = Sanitize::incomingHtml($_POST['sw' . $qn]);
+      $data['work'] = Sanitize::incomingHtml($_POST['sw' . $qn], true, 30000);
       $this->clearAutoSave($qn, 'work');
     }
 
     list($stuanswers, $stuanswersval) = $this->getStuanswers();
 
     $scoreEngine = new ScoreEngine($this->DBH, $GLOBALS['RND']);
+
+    if (!empty($qver['useda11yalt'])) {
+      $qsdata = $this->assess_info->getQuestionSetData($qsettings['questionsetid']);
+      $qsettings['questionsetid'] = $qsdata['a11yalt'];
+    }
 
     $scoreQuestionParams = new ScoreQuestionParams();
     $scoreQuestionParams
@@ -3291,11 +3381,16 @@ class AssessRecord
     $GLOBALS['capturedrawinit'] = true;
 
     $out = $this->getQuestionObject($qn, $showScores, true, $generate_html, $by_question ? $qver : $aver, $showScores ? 'scored' : 'last', true);
+
     $out['showscores'] = $scoresInGb;
     $this->dispqn = null;
     if ($generate_html) { // only include this if we're displaying the question
       $out['qid'] = $qdata['qid'];
       $out['qsetid'] = $this->assess_info->getQuestionSetting($qdata['qid'], 'questionsetid');
+      if (!empty($out['useda11yalt'])) {
+        // overwrite qsetid with a11yalt
+        $out['qsetid'] = $this->assess_info->getQuestionSetData($out['qsetid'])['a11yalt'];
+      }
       $out['qowner'] = $this->assess_info->getQuestionSetData($out['qsetid'])['ownerid'];
       $out['seed'] = $qdata['seed'];
       if (isset($qdata['scoreoverride'])) {
@@ -3323,6 +3418,7 @@ class AssessRecord
         }
       }
     }
+
     return $out;
   }
 
@@ -4140,7 +4236,7 @@ class AssessRecord
       if ($during || 
         (($this->assess_info->getQuestionSetting($curq['qid'], 'showwork') & 2) == 2 && $acceptWorkAfter)
       ) {
-        $newwork = Sanitize::incomingHtml($val);
+        $newwork = Sanitize::incomingHtml($val, true, 30000);
         if (!isset($curq['work']) || $curq['work'] != $newwork) {
             $curq['work'] = $newwork;
             $curq['worktime'] = time() - $this->assessRecord['starttime'];

@@ -5,6 +5,10 @@ require_once "../init.php";
 $cid = Sanitize::courseId($_GET['cid']);
 $from = $_GET['from'] ?? '';
 
+if (!isset($teacherid) && !isset($tutorid) && !isset($studentid)) {
+	exit;
+}
+
 /*
 $query = "SELECT imas_forums.name,imas_forums.id,imas_forum_posts.threadid,max(imas_forum_posts.postdate) as lastpost,mfv.lastview,count(imas_forum_posts.id) as pcount FROM imas_forum_posts ";
 $query .= "JOIN imas_forums ON imas_forum_posts.forumid=imas_forums.id LEFT JOIN (SELECT * FROM imas_forum_views WHERE userid='$userid') AS mfv ";
@@ -47,6 +51,8 @@ $lastforum = '';
 
 if (isset($_GET['markread']) && isset($_POST['checked']) && !empty($_POST['checked'])) {
 	$checked = array_map('Sanitize::onlyInt', $_POST['checked']);
+  // ensure checked are new threads
+  $checked = array_intersect($checked, array_keys($lastpost));
 	$toupdate = array();
 	$threadids_query_placeholders = Sanitize::generateQueryPlaceholders($checked);
 	$stm = $DBH->prepare("SELECT threadid FROM imas_forum_views WHERE userid=? AND threadid IN ($threadids_query_placeholders)");
@@ -58,25 +64,25 @@ if (isset($_GET['markread']) && isset($_POST['checked']) && !empty($_POST['check
 	if (count($toupdate)>0) {
 		$toupdatelistSanitize = array_map('Sanitize::onlyInt', $toupdate);
 		$toupdatelist_query_placeholders = Sanitize::generateQueryPlaceholders($toupdatelistSanitize);
-  		$stm = $DBH->prepare("UPDATE imas_forum_views SET lastview=? WHERE userid=? AND threadid IN ($toupdatelist_query_placeholders)");
+  	$stm = $DBH->prepare("UPDATE imas_forum_views SET lastview=? WHERE userid=? AND threadid IN ($toupdatelist_query_placeholders)");
 		$stm->execute(array_merge(array($now, $userid), $toupdatelistSanitize));
-  	}
-  	$toinsert = array_diff($checked,$toupdate);
-  	if (count($toinsert)>0) {
+  }
+  $toinsert = array_diff($checked,$toupdate);
+  if (count($toinsert)>0) {
   		$ph =
   		$query = "INSERT INTO imas_forum_views (userid,threadid,lastview) VALUES ";
   		$qarray = array();
   		$first = true;
   		foreach($toinsert as $i=>$tid) {
-  			if (!$first) {
-  				$query .= ',';
-			}
-			$query .= "(?,?,?)";
-			array_push($qarray, $userid, $tid, $now);
-			$first = false;
-		}
-		 $stm = $DBH->prepare($query);
-		 $stm->execute($qarray);
+        if (!$first) {
+            $query .= ',';
+        }
+        $query .= "(?,?,?)";
+        array_push($qarray, $userid, $tid, $now);
+        $first = false;
+      }
+		  $stm = $DBH->prepare($query);
+		  $stm->execute($qarray);
 	}
 	if (count($forumids)==count($checked) && count($checked)<300) { //marking all read
 		if ($from=='home') {
@@ -115,7 +121,9 @@ if (count($lastpost)>0) {
   $stm = $DBH->prepare($query);
 	$stm->execute(array_merge($threadids, array($now)));
   $alt = 0;
+  $ln = 0;
   while ($line = $stm->fetch(PDO::FETCH_ASSOC)) {
+    $ln++;
     if ($line['isanon']==1) {
       $name = "Anonymous";
     } else {
@@ -132,21 +140,24 @@ if (count($lastpost)>0) {
             echo ' class="'.implode(' ',$classes).'"';
     }
     echo "><td>";
-    echo '<input type=checkbox name="checked[]" value="'.Sanitize::onlyInt($line['threadid']).'"/></td>';
-    echo "<td><span class=\"right\">\n";
-    if (!empty($tags[$line['threadid']])) {
-        echo "<img class=\"pointer\" id=\"tag". Sanitize::onlyInt($line['threadid'])."\" src=\"$staticroot/img/flagfilled.gif\" onClick=\"toggletagged(". Sanitize::onlyInt($line['threadid']) . ");return false;\" alt=\"Flagged\" />";
-    } else {
-        echo "<img class=\"pointer\" id=\"tag". Sanitize::onlyInt($line['threadid'])."\" src=\"$staticroot/img/flagempty.gif\" onClick=\"toggletagged(". Sanitize::onlyInt($line['threadid'])  . ");return false;\" alt=\"Not flagged\"/>";
-    }
-    echo '</span>';
-    echo "<a href=\"posts.php?cid=$cid&forum=".Sanitize::onlyInt($forumids[$line['threadid']])."&thread=".Sanitize::onlyInt($line['threadid'])."&page=-3\">".Sanitize::encodeStringForDisplay($line['subject'])."</a></td>";
+    echo '<input type=checkbox name="checked[]" value="'.Sanitize::onlyInt($line['threadid']).'" id="cb'.$ln.'"/></td>';
+    echo '<td><div class=flexgroup><label for="cb'.$ln.'" style="flex-grow:1">';
+    echo "<a href=\"posts.php?cid=$cid&forum=".Sanitize::onlyInt($forumids[$line['threadid']])."&thread=".Sanitize::onlyInt($line['threadid'])."&page=-3\">".Sanitize::encodeStringForDisplay($line['subject'])."</a></label>";
+
+    echo '<button type=button class="plain nopad" onclick="toggletagged('.Sanitize::onlyInt($line['threadid']).');" role="switch" aria-checked="'.(!empty($tags[$line['threadid']])?'true':'false').'" aria-label="'._('Tag post').'">';
+			if (!empty($tags[$line['threadid']])) {
+				echo "<img class=\"pointer\" id=\"tag".Sanitize::onlyInt($line['threadid'])."\" src=\"$staticroot/img/flagfilled.gif\" alt=\"\"/>";
+			} else {
+				echo "<img class=\"pointer\" id=\"tag".Sanitize::onlyInt($line['threadid'])."\" src=\"$staticroot/img/flagempty.gif\" alt=\"\"/>";
+			}
+		echo '</button>';
+    echo "</div></td>";
     printf("<td><span class='pii-full-name'>%s</span></td>", Sanitize::encodeStringForDisplay($name));
     echo "<td><a href=\"thread.php?cid=$cid&forum=".Sanitize::onlyInt($forumids[$line['threadid']])."\">".Sanitize::encodeStringForDisplay($forumname[$line['threadid']]).'</a></td>';
     echo "<td>".Sanitize::encodeStringForDisplay($lastpost[$line['threadid']])."</td></tr>";
   }
   echo '</tbody></table>';
-  echo '<script type="text/javascript">	initSortTable("newthreads",Array("S","S","S","D"),true);</script>';
+  echo '<script type="text/javascript">	initSortTable("newthreads",Array(false,"S","S","S","D"),true);</script>';
   echo '</form>';
   if (count($lastpost)==300) {
     echo '<p><i>'._('Results cut off at the 300 most recent posts').'</i></p>';

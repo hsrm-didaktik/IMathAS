@@ -486,10 +486,10 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
 		var assessver = '$aver';
 		</script>";
 	$placeinhead .= "<script type=\"text/javascript\" src=\"$staticroot/javascript/addquestions.js?v=042220\"></script>";
-	$placeinhead .= "<script type=\"text/javascript\" src=\"$staticroot/javascript/addqsort.js?v=090821\"></script>";
+	$placeinhead .= "<script type=\"text/javascript\" src=\"$staticroot/javascript/addqsort.js?v=080925\"></script>";
 	$placeinhead .= "<script type=\"text/javascript\" src=\"$staticroot/javascript/junkflag.js\"></script>";
 	$placeinhead .= "<script type=\"text/javascript\">var JunkFlagsaveurl = '". $GLOBALS['basesiteurl'] . "/course/savelibassignflag.php';</script>";
-	$placeinhead .= "<link rel=\"stylesheet\" href=\"$staticroot/course/addquestions.css?v=100517\" type=\"text/css\" />";
+	$placeinhead .= "<link rel=\"stylesheet\" href=\"$staticroot/course/addquestions.css?v=080925\" type=\"text/css\" />";
 	$loadiconfont = true;
 	$useeditor = "noinit";
 
@@ -811,7 +811,7 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
 		} else {
 			if (isset($CFG['AMS']['guesslib']) && count($existingq)>0) {
 				$maj = count($existingq)/2;
-				$existingqlist = implode(',', $existingq);  //pulled from database, so no quotes needed
+				$existingqlist = implode(',', array_map('intval',$existingq));  //pulled from database, so no quotes needed
 				$stm = $DBH->query("SELECT libid,COUNT(qsetid) FROM imas_library_items WHERE qsetid IN ($existingqlist) AND deleted=0 GROUP BY libid");
 				$foundmaj = false;
 				while ($row = $stm->fetch(PDO::FETCH_NUM)) {
@@ -885,7 +885,7 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
 				}
 
 				if ($search=='recommend' && count($existingq)>0) {
-					$existingqlist = implode(',',$existingq);  //pulled from database, so no quotes needed
+					$existingqlist = implode(',', array_map('intval',$existingq));  //pulled from database, so no quotes needed
 					$stm = $DBH->prepare("SELECT a.questionsetid, count( DISTINCT a.assessmentid ) as qcnt,
 						imas_questionset.id,imas_questionset.description,imas_questionset.userights,imas_questionset.qtype,imas_questionset.ownerid
 						FROM imas_questions AS a
@@ -1106,8 +1106,10 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
 				}
 				//pull question useage data
 				if (count($qsetid)>0) {
-					$allusedqids = implode(',', array_unique($qsetid));
-					$stm = $DBH->query("SELECT questionsetid,COUNT(id) FROM imas_questions WHERE questionsetid IN ($allusedqids) GROUP BY questionsetid");
+					$allusedqids = array_unique($qsetid);
+					$ph = Sanitize::generateQueryPlaceholders($allusedqids);
+					$stm = $DBH->prepare("SELECT questionsetid,COUNT(id) FROM imas_questions WHERE questionsetid IN ($ph ) GROUP BY questionsetid");
+					$stm->execute(array_values($allusedqids));
 					$qsetusecnts = array();
 					while ($row = $stm->fetch(PDO::FETCH_NUM)) {
 						$qsetusecnts[$row[0]] = $row[1];
@@ -1363,11 +1365,11 @@ if ($overwriteBody==1) {
 		<?php echo _('In Libraries'); ?>:
 		<span id="libnames"><?php echo Sanitize::encodeStringForDisplay($lnames); ?></span>
 		<input type=hidden name="libs" id="libs"  value="<?php echo Sanitize::encodeStringForDisplay($searchlibs); ?>">
-		<button type="button" onClick="GB_show('Library Select','libtree2.php?libtree=popup&libs='+curlibs,500,500)" ><?php echo _("Select Libraries"); ?></button>
+		<button type="button" onClick="GB_show('Library Select','libtree3.php?libtree=popup&libs='+curlibs,500,500)" ><?php echo _("Select Libraries"); ?></button>
 		<?php echo _("or"); ?> <button type="button" onClick="window.location='addquestions.php?cid=<?php echo $cid ?>&aid=<?php echo $aid ?>&selfrom=assm'"><?php echo _("Select From Assessments"); ?></button>
 		<br>
 		<?php echo _('Search') ?>:
-		<input type=text size=15 name=search value="<?php echo $search ?>">
+		<input type=text size=15 name=search value="<?php echo Sanitize::encodeStringForDisplay($search); ?>">
 		<span tabindex="0" data-tip="Search all libraries, not just selected ones" onmouseenter="tipshow(this)" onfocus="tipshow(this)" onmouseleave="tipout()" onblur="tipout()">
 		<input type=checkbox name="searchall" value="1" <?php writeHtmlChecked($searchall,1,0) ?> />
 		<?php echo _('Search all libs'); ?></span>

@@ -341,7 +341,7 @@
                     {{ qdata[curQver[qn]].gbscore }}/{{ qdata[curQver[qn]].points_possible }}
                   </strong>
                 </span>
-
+                <span v-if="qdata[curQver[qn]].useda11yalt"> ({{ $t('gradebook.a11yalt') }})</span>
               </div>
               <div class="sidebyside" :class="{sidebysideon:sidebysideon}">
                 <div class="scrollpane">
@@ -686,7 +686,7 @@ export default {
       for (let i = 0; i < this.curQuestions.length; i++) {
         const qdata = this.curQuestions[i][this.curQver[i]];
         let showit = true;
-        if (this.hide100 && Math.abs(qdata.score - qdata.points_possible) < 0.002) {
+        if (this.hide100 && qdata.score > qdata.points_possible - 0.002) {
           showit = false;
         } else if (this.hidePerfect && Math.abs(qdata.rawscore - 1) < 0.002) {
           showit = false;
@@ -916,7 +916,7 @@ export default {
           out.push(v);
         }
       }
-      window.document.cookie = 'gvaf' + store.aid + '=' + out.join(',');
+      window.setCookie('gvaf' + store.aid, out.join(','));
     },
     questionLoaded (base) {
       if (this.op_previewFiles) {

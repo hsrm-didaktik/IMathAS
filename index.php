@@ -547,10 +547,10 @@ function printCourses($data,$title,$type=null,$hashiddencourses=false) {
 
     echo '<div class="center">';
     if (count($data)>0) {
-        echo '<a class="small" href="admin/modcourseorder.php?type='.$type.'">',_('Change Course Order'),'</a><br/>';
+        echo '<a class="small" href="admin/modcourseorder.php?type='.$type.'">',_('Change Course Order'),'</a>';
     }
     //echo '</div><div class="center">';
-    echo '<a id="unhidelink'.$type.'" '.($hashiddencourses?'':'style="display:none"').' class="small" href="admin/unhidefromcourselist.php?type='.$type.'">',_('View hidden courses'),'</a> ';
+    echo '<span id="unhidelink'.$type.'" '.($hashiddencourses?'':'style="display:none"').'><br><a class="small" href="admin/unhidefromcourselist.php?type='.$type.'">',_('View hidden courses'),'</a></span> ';
     if ($type=='teach' && count($data)>0) {
         echo '<br/><a class="small" href="admin/forms.php?action=findstudent&from=home">',_('Find Student'),'</a> ';
     }
@@ -696,7 +696,7 @@ function printPostsGadget() {
 		echo '</div></div>';
 		return;
 	}
-	$threadlist = implode(',',$postthreads);
+	$threadlist = implode(',', array_map('intval', $postthreads));
 	$threaddata = array();
 	$query = "SELECT imas_forum_posts.*,imas_users.LastName,imas_users.FirstName FROM imas_forum_posts,imas_users ";
 	$query .= "WHERE imas_forum_posts.userid=imas_users.id AND imas_forum_posts.id IN ($threadlist)";  //int vals from DB - safe

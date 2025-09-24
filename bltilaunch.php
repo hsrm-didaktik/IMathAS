@@ -189,7 +189,7 @@ if (isset($_GET['launch'])) {
 	} else if ($_SESSION['ltiitemtype']==3) {
 		$cid = $_SESSION['ltiitemid'][2];
 		$folder = $_SESSION['ltiitemid'][1];
-		header('Location: ' . $GLOBALS['basesiteurl'] . "/course/course.php?cid=$cid&folder=".$folder);
+		header('Location: ' . $GLOBALS['basesiteurl'] . "/course/course.php?cid=$cid&folder=".urlencode($folder));
 	} else { //will only be instructors hitting this option
 		header('Location: ' . $GLOBALS['basesiteurl'] . "/ltihome.php");
 	}
@@ -265,9 +265,8 @@ if (isset($_GET['launch'])) {
 		$allow_acctcreation = false;
 	}
 	if ($_GET['userinfo']=='set') {
-		if (isset($CFG['GEN']['newpasswords'])) {
-			require_once "includes/password.php";
-		}
+		require_once "includes/password.php";
+
 		//check input
 		$infoerr = '';
 		unset($userid);
@@ -287,8 +286,7 @@ if (isset($_GET['launch'])) {
 					$infoerr = 'Username (key) is not valid';
 				} else {
 					list($realpw,$tmpuserid,$mfadata) = $stm->fetch(PDO::FETCH_NUM); //DB mysql_result($result,0,0);
-					if (((!isset($CFG['GEN']['newpasswords']) || $CFG['GEN']['newpasswords']!='only') && ($realpw == md5($_POST['curPW'])))
-					  || (isset($CFG['GEN']['newpasswords']) && password_verify($_POST['curPW'],$realpw)) ) {
+					if (password_verify($_POST['curPW'],$realpw)) {
                         if ($mfadata != '') {
                             $mfadata = json_decode($mfadata, true);
                             if (empty($mfadata['mfatype']) || $mfadata['mfatype'] == 'all') {
@@ -324,11 +322,8 @@ if (isset($_GET['launch'])) {
 					} else {
 						$msgnot = 0;
 					}
-					if (isset($CFG['GEN']['newpasswords'])) {
-						$md5pw = password_hash($_POST['pw1'], PASSWORD_DEFAULT);
-					} else {
-						$md5pw = md5($_POST['pw1']);
-					}
+					$pwhash = password_hash($_POST['pw1'], PASSWORD_DEFAULT);
+					
 				}
 			}
 		}
@@ -341,7 +336,7 @@ if (isset($_GET['launch'])) {
 				if ($name_only) {
 					//make up a username/password for them
 					$_POST['SID'] = 'lti-'.$localltiuser;
-					$md5pw = 'pass'; //totally unusable since not md5'ed
+					$pwhash = 'pass'; //totally unusable since not md5'ed
 				}
 				if ($ltirole=='instructor') {
 					if (isset($CFG['LTI']['instrrights'])) {
@@ -353,7 +348,7 @@ if (isset($_GET['launch'])) {
 					$query = "INSERT INTO imas_users (SID,password,rights,FirstName,LastName,email,msgnotify,groupid) VALUES ";
 					$query .= '(:SID,:password,:rights,:FirstName,:LastName,:email,:msgnotify,:groupid)';
 					$stm = $DBH->prepare($query);
-					$stm->execute(array(':SID'=>$_POST['SID'], ':password'=>$md5pw,':rights'=>$rights,
+					$stm->execute(array(':SID'=>$_POST['SID'], ':password'=>$pwhash,':rights'=>$rights,
 						':FirstName'=>Sanitize::stripHtmlTags($_POST['firstname']),
 						':LastName'=>Sanitize::stripHtmlTags($_POST['lastname']),
 						':email'=>Sanitize::emailAddress($_POST['email']),
@@ -363,7 +358,7 @@ if (isset($_GET['launch'])) {
 					$query = "INSERT INTO imas_users (SID,password,rights,FirstName,LastName,email,msgnotify) VALUES ";
 					$query .= '(:SID,:password,:rights,:FirstName,:LastName,:email,:msgnotify)';
 					$stm = $DBH->prepare($query);
-					$stm->execute(array(':SID'=>$_POST['SID'], ':password'=>$md5pw,':rights'=>$rights,
+					$stm->execute(array(':SID'=>$_POST['SID'], ':password'=>$pwhash,':rights'=>$rights,
 						':FirstName'=>Sanitize::stripHtmlTags($_POST['firstname']),
 						':LastName'=>Sanitize::stripHtmlTags($_POST['lastname']),
 						':email'=>Sanitize::emailAddress($_POST['email']),
@@ -538,7 +533,7 @@ if (isset($_GET['launch'])) {
 		if ($loc=='') {
 			reporterror(_("invalid folder identifier in folder view launch"));
 		}
-		header('Location: ' . $GLOBALS['basesiteurl'] . "/course/public.php?cid=".$linkparts[0]."&folder=".$loc);
+		header('Location: ' . $GLOBALS['basesiteurl'] . "/course/public.php?cid=".urlencode($linkparts[0])."&folder=".urlencode($loc));
 	}
 	exit;
 
@@ -612,15 +607,15 @@ if (isset($_GET['launch'])) {
 	$store->mark_nonce_used($request);
 
 	$keyparts = explode('_',$ltikey);
-	$_SESSION['ltiorigkey'] = $ltikey;
+	$_SESSION['lti_origkey'] = $ltikey;
 
 	// prepend ltiorg with courseid or sso+userid to prevent cross-instructor hacking
 	if ($keyparts[0]=='LTIkey') {  //cid:org
-		$_SESSION['ltilookup'] = 'c';
+		$_SESSION['lti_keylookup'] = 'c';
 		$ltiorg = $keyparts[1].':'.$ltiorg;
 		$keytype = 'gc';
 	} else {
-		$_SESSION['ltilookup'] = 'u';
+		$_SESSION['lti_keylookup'] = 'u';
 		$ltiorg = $ltikey.':'.$ltiorg;
 		$keytype = 'g';
 	}
@@ -664,22 +659,22 @@ if (isset($_GET['launch'])) {
 	$_SESSION['lti_keyrights'] = $requestinfo[0]->rights;
 	$_SESSION['lti_keygroupid'] = intval($requestinfo[0]->groupid);
 	if (isset($_REQUEST['selection_directive']) && $_REQUEST['selection_directive']=='select_link') {
-		$_SESSION['selection_return'] = $_REQUEST['launch_presentation_return_url'];
-        $_SESSION['selection_return_format'] = "Canvas";
+		$_SESSION['lti_selection_return'] = $_REQUEST['launch_presentation_return_url'];
+        $_SESSION['lti_selection_return_format'] = "Canvas";
         unset($_SESSION['place_aid']);
 	}
 	if (isset($_REQUEST['lti_message_type']) && $_REQUEST['lti_message_type']=='ContentItemSelectionRequest') {
-		$_SESSION['selection_return'] = $_REQUEST['content_item_return_url'];
-		$_SESSION['selection_targets'] = $_REQUEST['accept_presentation_document_targets'];
-		$_SESSION['selection_return_format'] = "IMSdeeplink";
+		$_SESSION['lti_selection_return'] = $_REQUEST['content_item_return_url'];
+		$_SESSION['lti_selection_targets'] = $_REQUEST['accept_presentation_document_targets'];
+		$_SESSION['lti_selection_return_format'] = "IMSdeeplink";
 		if (isset($_REQUEST['ltiseltype']) && $_REQUEST['ltiseltype']=='assn') {
-			$_SESSION['selection_type'] = 'assn';
+			$_SESSION['lti_selection_type'] = 'assn';
 		} else if (isset($_REQUEST['ltiseltype']) && $_REQUEST['ltiseltype']=='link') {
-			$_SESSION['selection_type'] = 'link';
+			$_SESSION['lti_selection_type'] = 'link';
 		} else {
-			$_SESSION['selection_type'] = 'all';
+			$_SESSION['lti_selection_type'] = 'all';
 		}
-        $_SESSION['selection_data'] = @$_REQUEST['data'];
+        $_SESSION['lti_selection_data'] = @$_REQUEST['data'];
         unset($_SESSION['place_aid']);
 	}
 	unset($_SESSION['lti_duedate']);
@@ -775,29 +770,15 @@ if (isset($_GET['launch'])) {
 			if (!isset($userid)) {
 				//make up a username/password for them
 				$_POST['SID'] = 'lti-'.$localltiuser;
-				$md5pw = 'pass'; //totally unusable since not md5'ed
+				$pwhash = 'pass'; //totally unusable since not md5'ed
 				if ($ltirole=='instructor') { //not currently used - no teachers without real usernames/passwords
-					if (isset($CFG['LTI']['instrrights'])) {
-						$rights = $CFG['LTI']['instrrights'];
-					} else {
-						$rights = 40;
-					}
-					$newgroupid = intval($_SESSION['lti_keygroupid']);
-					$query = "INSERT INTO imas_users (SID,password,rights,FirstName,LastName,email,msgnotify,groupid) VALUES ";
-					$query .= '(:SID,:password,:rights,:FirstName,:LastName,:email,0,:groupid)';
-					$stm = $DBH->prepare($query);
-					$stm->execute(array(':SID'=>$_POST['SID'], ':password'=>$md5pw,':rights'=>$rights,
-						':FirstName'=>Sanitize::stripHtmlTags($firstname),
-						':LastName'=>Sanitize::stripHtmlTags($lastname),
-						':email'=>Sanitize::emailAddress($email),
-						':groupid'=>$newgroupid));
-
+					reporterror('Teachers must log in');
 				} else {
 					$rights = 10;
 					$query = "INSERT INTO imas_users (SID,password,rights,FirstName,LastName,email,msgnotify) VALUES ";
 					$query .= '(:SID,:password,:rights,:FirstName,:LastName,:email,0)';
 					$stm = $DBH->prepare($query);
-					$stm->execute(array(':SID'=>$_POST['SID'], ':password'=>$md5pw,':rights'=>$rights,
+					$stm->execute(array(':SID'=>$_POST['SID'], ':password'=>$pwhash,':rights'=>$rights,
 						':FirstName'=>Sanitize::stripHtmlTags($firstname),
 						':LastName'=>Sanitize::stripHtmlTags($lastname),
 						':email'=>Sanitize::emailAddress($email)));
@@ -1484,15 +1465,15 @@ if ($linkparts[0]=='cid') {
 		}
 		$stm = $DBH->prepare("SELECT startdate,enddate,islatepass,is_lti FROM imas_exceptions WHERE userid=:userid AND assessmentid=:assessmentid AND itemtype='A'");
 		$stm->execute(array(':userid'=>$userid, ':assessmentid'=>$aid));
-		$exceptionrow = $stm->fetch(PDO::FETCH_NUM);
+		$exceptionrow = $stm->fetch(PDO::FETCH_ASSOC);
 		$useexception = false;
 		if ($exceptionrow!=null) {
 			//have exception.  Update using lti_duedate if needed
-			if (isset($_SESSION['lti_duedate']) && $line['date_by_lti']>0 && $_SESSION['lti_duedate']!=$exceptionrow[1]) {
+			if (isset($_SESSION['lti_duedate']) && $line['date_by_lti']>0 && $_SESSION['lti_duedate']!=$exceptionrow['enddate']) {
 				//if new due date is later, or no latepass used, then update
-				if ($exceptionrow[2]==0 || $_SESSION['lti_duedate']>$exceptionrow[1]) {
+				if ($exceptionrow['islatepass']==0 || $_SESSION['lti_duedate']>$exceptionrow['enddate']) {
 					$stm = $DBH->prepare("UPDATE imas_exceptions SET startdate=:startdate,enddate=:enddate,is_lti=1,islatepass=0 WHERE userid=:userid AND assessmentid=:assessmentid AND itemtype='A'");
-					$stm->execute(array(':startdate'=>min($now, $line['startdate'], $exceptionrow[0]),
+					$stm->execute(array(':startdate'=>min($now, $line['startdate'], $exceptionrow['startdate']),
 						':enddate'=>$_SESSION['lti_duedate'], ':userid'=>$userid, ':assessmentid'=>$aid));
 				}
 			}
@@ -1502,24 +1483,29 @@ if ($linkparts[0]=='cid') {
 		} else if ($line['date_by_lti']==3 && isset($_SESSION['lti_duedate']) && ($line['enddate']!=$_SESSION['lti_duedate'] || $now<$line['startdate'])) {
 			//default dates already set by LTI, and users's date doesn't match - create new exception
 			//also create if it's before the default assessment startdate - since they could access via LMS, it should be available.
-			$exceptionrow = array(min($now,$_SESSION['lti_duedate']), $_SESSION['lti_duedate'], 0, 1);
 			$stm = $DBH->prepare("INSERT INTO imas_exceptions (startdate,enddate,islatepass,is_lti,userid,assessmentid,itemtype) VALUES (?,?,?,?,?,?,'A')");
-			$stm->execute(array_merge($exceptionrow, array($userid, $aid)));
+			$stm->execute([min($now,$_SESSION['lti_duedate']), $_SESSION['lti_duedate'], 0, 1, $userid, $aid]);
+			$exceptionrow = [
+				'startdate' => min($now,$_SESSION['lti_duedate']), 
+				'enddate' => $_SESSION['lti_duedate'], 
+				'islatepass' => 0, 
+				'is_lti' => 1
+			];
 			$useexception = true;
 		}
 		if ($exceptionrow!=null && $useexception) {
-			if ($now<$exceptionrow[0] || $exceptionrow[1]<$now) { //outside exception dates
+			if ($now<$exceptionrow['startdate'] || $exceptionrow['enddate']<$now) { //outside exception dates
 				if ($now > $line['startdate'] && $now < $line['reviewdate']) {
 					$isreview = true;
 				} else {
 					//reporterror("This assessment is closed");
 				}
 			} else { //inside exception dates exception
-				if ($line['enddate']<$now && ($exceptionrow[3]==0 || $exceptionrow[2]>0)) { //exception is for past-due-date
+				if ($line['enddate']<$now && ($exceptionrow['is_lti']==0 || $exceptionrow['islatepass']>0)) { //exception is for past-due-date
 					$inexception = true; //only trigger if past due date for penalty
 				}
 			}
-			$exceptionduedate = $exceptionrow[1];
+			$exceptionduedate = $exceptionrow['enddate'];
 		} else { //has no exception
 			if ($now < $line['startdate'] || $line['enddate'] < $now) { //outside normal dates
 				if ($now > $line['startdate'] && $now < $line['reviewdate']) {
@@ -1712,17 +1698,17 @@ if (isset($SESS['lti_launch_get'])) {
 }
 $_SESSION['lti_key'] = $SESS['lti_key'];
 $_SESSION['lti_keytype'] = $SESS['lti_keytype'];
-$_SESSION['lti_keylookup'] = $SESS['ltilookup'];
-$_SESSION['lti_origkey'] = $SESS['ltiorigkey'];
+$_SESSION['lti_keylookup'] = $SESS['lti_keylookup'];
+$_SESSION['lti_origkey'] = $SESS['lti_origkey'];
 if (isset($SESS['lti_duedate'])) {
 	$_SESSION['lti_duedate'] = $SESS['lti_duedate'];
 }
-if (isset($SESS['selection_return'])) {
-	$_SESSION['lti_selection_return'] = $SESS['selection_return'];
-	$_SESSION['lti_selection_targets'] = $SESS['selection_targets'] ?? '';
-	$_SESSION['lti_selection_return_format'] = $SESS['selection_return_format'];
-	$_SESSION['lti_selection_type'] = $SESS['selection_type'] ?? '';
-	$_SESSION['lti_selection_data'] = $SESS['selection_data'] ?? '';
+if (isset($SESS['lti_selection_return'])) {
+	$_SESSION['lti_selection_return'] = $SESS['lti_selection_return'];
+	$_SESSION['lti_selection_targets'] = $SESS['lti_selection_targets'] ?? '';
+	$_SESSION['lti_selection_return_format'] = $SESS['lti_selection_return_format'];
+	$_SESSION['lti_selection_type'] = $SESS['lti_selection_type'] ?? '';
+	$_SESSION['lti_selection_data'] = $SESS['lti_selection_data'] ?? '';
 }
 
 if (isset($setstuviewon) && $setstuviewon==true) {
@@ -1758,7 +1744,7 @@ if (!$promptforsettings && !$createnewsession && !($linkparts[0]=='aid' && $tlwr
 	} else if ($linkparts[0]=='cid') { //is cid
 		header('Location: ' . $GLOBALS['basesiteurl'] . "/course/course.php?cid=$cid");
 	} else if ($linkparts[0]=='folder') {
-		header('Location: ' . $GLOBALS['basesiteurl'] . "/course/course.php?checksess=true&cid=$cid&folder=".$linkparts[3]);
+		header('Location: ' . $GLOBALS['basesiteurl'] . "/course/course.php?checksess=true&cid=$cid&folder=".urlencode($linkparts[3]));
 	} else { //will only be instructors hitting this option
 		header('Location: ' . $GLOBALS['basesiteurl'] . "/ltihome.php");
 	}
@@ -1809,7 +1795,7 @@ if (isset($_GET['launch'])) {
 	} else {
 		$tzname = '';
 	}
-	$_SESSION['tzoffset'] = $_POST['tzoffset'];
+	$_SESSION['tzoffset'] = floatval($_POST['tzoffset']);
     $_SESSION['tzname'] = $tzname;
     if (isset($CFG['static_server']) && !empty($_POST['static_check'])) {
         $_SESSION['static_ok'] = 1;
@@ -1842,7 +1828,7 @@ if (isset($_GET['launch'])) {
 	} else if ($_SESSION['ltiitemtype']==3) {
 		$cid = $_SESSION['ltiitemid'][2];
 		$folder = $_SESSION['ltiitemid'][1];
-		header('Location: ' . $GLOBALS['basesiteurl'] . "/course/course.php?cid=$cid&folder=".$folder);
+		header('Location: ' . $GLOBALS['basesiteurl'] . "/course/course.php?cid=$cid&folder=".urlencode($folder));
 	} else { //will only be instructors hitting this option
 		header('Location: ' . $GLOBALS['basesiteurl'] . "/ltihome.php");
 	}
@@ -1926,9 +1912,8 @@ if (isset($_GET['launch'])) {
 		$allow_acctcreation = false;
 	}
 	if ($_GET['userinfo']=='set') {
-		if (isset($CFG['GEN']['newpasswords'])) {
-			require_once "includes/password.php";
-		}
+		require_once "includes/password.php";
+
 		//check input
 		$infoerr = '';
 		unset($userid);
@@ -1947,8 +1932,7 @@ if (isset($_GET['launch'])) {
 					$infoerr = 'Username (key) is not valid';
 				} else {
 					list($realpw,$queryuserid,$mfadata) = $stm->fetch(PDO::FETCH_NUM);
-					if (((!isset($CFG['GEN']['newpasswords']) || $CFG['GEN']['newpasswords']!='only') && ($realpw == md5($_POST['curPW'])))
-					  || (isset($CFG['GEN']['newpasswords']) && password_verify($_POST['curPW'],$realpw)) ) {
+					if (password_verify($_POST['curPW'],$realpw)) {
                         $userid = $queryuserid;
                         if ($mfadata != '') {
                             $mfadata = json_decode($mfadata, true);
@@ -1986,11 +1970,7 @@ if (isset($_GET['launch'])) {
 						} else {
 							$msgnot = 0;
 						}
-						if (isset($CFG['GEN']['newpasswords'])) {
-							$md5pw = password_hash($_POST['pw1'], PASSWORD_DEFAULT);
-						} else {
-							$md5pw = md5($_POST['pw1']);
-						}
+						$pwhash = password_hash($_POST['pw1'], PASSWORD_DEFAULT);
 					}
 				}
 			}
@@ -2004,7 +1984,7 @@ if (isset($_GET['launch'])) {
 				if ($name_only) {
 					//make up a username/password for them
 					$_POST['SID'] = 'lti-'.$localltiuser;
-					$md5pw = 'pass'; //totally unusable since not md5'ed
+					$pwhash = 'pass'; //totally unusable since not md5'ed
 				}
 				if ($ltirole=='instructor') {
 					if (isset($CFG['LTI']['instrrights'])) {
@@ -2016,7 +1996,7 @@ if (isset($_GET['launch'])) {
 					$query = "INSERT INTO imas_users (SID,password,rights,FirstName,LastName,email,msgnotify,groupid) VALUES ";
 					$query .= "(:SID, :password, :rights, :FirstName, :LastName, :email, :msgnotify, :groupid)";
 					$stm = $DBH->prepare($query);
-					$stm->execute(array(':SID'=>$_POST['SID'], ':password'=>$md5pw, ':rights'=>$rights,
+					$stm->execute(array(':SID'=>$_POST['SID'], ':password'=>$pwhash, ':rights'=>$rights,
 						':FirstName'=>Sanitize::stripHtmlTags($_POST['firstname']),
 						':LastName'=>Sanitize::stripHtmlTags($_POST['lastname']),
 						':email'=>Sanitize::emailAddress($_POST['email']),
@@ -2026,7 +2006,7 @@ if (isset($_GET['launch'])) {
 					$query = "INSERT INTO imas_users (SID,password,rights,FirstName,LastName,email,msgnotify) VALUES ";
 					$query .= "(:SID, :password, :rights, :FirstName, :LastName, :email, :msgnotify)";
 					$stm = $DBH->prepare($query);
-					$stm->execute(array(':SID'=>$_POST['SID'], ':password'=>$md5pw, ':rights'=>$rights,
+					$stm->execute(array(':SID'=>$_POST['SID'], ':password'=>$pwhash, ':rights'=>$rights,
 						':FirstName'=>Sanitize::stripHtmlTags($_POST['firstname']),
 						':LastName'=>Sanitize::stripHtmlTags($_POST['lastname']),
 						':email'=>Sanitize::emailAddress($_POST['email']),
@@ -2231,12 +2211,12 @@ if (isset($_GET['launch'])) {
 	$store->mark_nonce_used($request);
 
 	$keyparts = explode('_',$ltikey);
-	$_SESSION['ltiorigkey'] = $ltikey;
+	$_SESSION['lti_origkey'] = $ltikey;
     unset($_SESSION['place_aid']); // make sure only set if for current launch
 
 	// prepend ltiorg with courseid or sso+userid to prevent cross-instructor hacking
 	if ($keyparts[0]=='cid' || $keyparts[0]=='placein' || $keyparts[0]=='LTIkey') {  //cid:org
-		$_SESSION['ltilookup'] = 'c';
+		$_SESSION['lti_keylookup'] = 'c';
 		$ltiorg = $keyparts[1].':'.$ltiorg;
 		if ($keyparts[0]=='placein' || $keyparts[0]=='LTIkey') {
 			$keytype = 'gc';
@@ -2268,18 +2248,18 @@ if (isset($_GET['launch'])) {
 			$_SESSION['view_folder'] = array($sourcecid,$parts[1]);
 		}
 	} else if ($keyparts[0]=='aid') {   //also cid:org
-		$_SESSION['ltilookup'] = 'a';
+		$_SESSION['lti_keylookup'] = 'a';
 		$aid = intval($keyparts[1]);
 		$stm = $DBH->prepare("SELECT courseid FROM imas_assessments WHERE id=:id");
 		$stm->execute(array(':id'=>$aid));
 		$ltiorg = $stm->fetchColumn(0) . ':' . $ltiorg;
 		$keytype = 'a';
 	} else if ($keyparts[0]=='sso') {  //ssouserid:org
-		$_SESSION['ltilookup'] = 'u';
+		$_SESSION['lti_keylookup'] = 'u';
 		$ltiorg = $keyparts[0].$keyparts[1]. ':' . $ltiorg;
 		$keytype = 's';
 	} else {
-		$_SESSION['ltilookup'] = 'u';
+		$_SESSION['lti_keylookup'] = 'u';
 		$ltiorg = $ltikey.':'.$ltiorg;
 		$keytype = 'g';
 		if (isset($_REQUEST['custom_place_aid'])) {
@@ -2335,22 +2315,22 @@ if (isset($_GET['launch'])) {
 	$_SESSION['lti_keyrights'] = $requestinfo[0]->rights;
 	$_SESSION['lti_keygroupid'] = intval($requestinfo[0]->groupid);
 	if (isset($_REQUEST['selection_directive']) && $_REQUEST['selection_directive']=='select_link') {
-		$_SESSION['selection_return'] = $_REQUEST['launch_presentation_return_url'];
-        $_SESSION['selection_return_format'] = "Canvas";
+		$_SESSION['lti_selection_return'] = $_REQUEST['launch_presentation_return_url'];
+        $_SESSION['lti_selection_return_format'] = "Canvas";
         unset($_SESSION['place_aid']);
 	}
 	if (isset($_REQUEST['lti_message_type']) && $_REQUEST['lti_message_type']=='ContentItemSelectionRequest') {
-		$_SESSION['selection_return'] = $_REQUEST['content_item_return_url'];
-		$_SESSION['selection_targets'] = $_REQUEST['accept_presentation_document_targets'];
-		$_SESSION['selection_return_format'] = "IMSdeeplink";
+		$_SESSION['lti_selection_return'] = $_REQUEST['content_item_return_url'];
+		$_SESSION['lti_selection_targets'] = $_REQUEST['accept_presentation_document_targets'];
+		$_SESSION['lti_selection_return_format'] = "IMSdeeplink";
 		if (isset($_REQUEST['ltiseltype']) && $_REQUEST['ltiseltype']=='assn') {
-			$_SESSION['selection_type'] = 'assn';
+			$_SESSION['lti_selection_type'] = 'assn';
 		} else if (isset($_REQUEST['ltiseltype']) && $_REQUEST['ltiseltype']=='link') {
-			$_SESSION['selection_type'] = 'link';
+			$_SESSION['lti_selection_type'] = 'link';
 		} else {
-			$_SESSION['selection_type'] = 'all';
+			$_SESSION['lti_selection_type'] = 'all';
 		}
-        $_SESSION['selection_data'] = @$_REQUEST['data'];
+        $_SESSION['lti_selection_data'] = @$_REQUEST['data'];
         unset($_SESSION['place_aid']);
     }
     unset($_SESSION['lti_duedate']);
@@ -2415,7 +2395,7 @@ if (isset($_GET['launch'])) {
 			if (!isset($userid)) {
 				//make up a username/password for them
 				$_POST['SID'] = 'lti-'.$localltiuser;
-				$md5pw = 'pass'; //totally unusable since not md5'ed
+				$pwhash = 'pass'; //totally unusable since not md5'ed
 				if ($ltirole=='instructor') {
 					if (isset($CFG['LTI']['instrrights'])) {
 						$rights = $CFG['LTI']['instrrights'];
@@ -2426,7 +2406,7 @@ if (isset($_GET['launch'])) {
 					$query = "INSERT INTO imas_users (SID,password,rights,FirstName,LastName,email,msgnotify,groupid) VALUES ";
 					$query .= "(:SID, :password, :rights, :FirstName, :LastName, :email, :msgnotify, :groupid)";
 					$stm = $DBH->prepare($query);
-					$stm->execute(array(':SID'=>$_POST['SID'], ':password'=>$md5pw, ':rights'=>$rights,
+					$stm->execute(array(':SID'=>$_POST['SID'], ':password'=>$pwhash, ':rights'=>$rights,
 						':FirstName'=>Sanitize::stripHtmlTags($firstname),
 						':LastName'=>Sanitize::stripHtmlTags($lastname),
 						':email'=>Sanitize::emailAddress($email),
@@ -2436,7 +2416,7 @@ if (isset($_GET['launch'])) {
 					$query = "INSERT INTO imas_users (SID,password,rights,FirstName,LastName,email,msgnotify) VALUES ";
 					$query .= "(:SID, :password, :rights, :FirstName, :LastName, :email, :msgnotify)";
 					$stm = $DBH->prepare($query);
-					$stm->execute(array(':SID'=>$_POST['SID'], ':password'=>$md5pw, ':rights'=>$rights,
+					$stm->execute(array(':SID'=>$_POST['SID'], ':password'=>$pwhash, ':rights'=>$rights,
 						':FirstName'=>Sanitize::stripHtmlTags($firstname),
 						':LastName'=>Sanitize::stripHtmlTags($lastname),
 						':email'=>Sanitize::emailAddress($email),
@@ -2724,14 +2704,14 @@ if ($keyparts[0]=='cid' || $keyparts[0]=='placein' || $keyparts[0]=='LTIkey') {
 		}
 		$stm2 = $DBH->prepare("SELECT startdate,enddate,islatepass,is_lti FROM imas_exceptions WHERE userid=:userid AND assessmentid=:assessmentid AND itemtype='A'");
 		$stm2->execute(array(':userid'=>$userid, ':assessmentid'=>$aid));
-		$exceptionrow = $stm2->fetch(PDO::FETCH_NUM);
+		$exceptionrow = $stm2->fetch(PDO::FETCH_ASSOC);
 		$useexception = false;
 		if ($exceptionrow!=null) {
-            if (isset($_SESSION['lti_duedate']) && $line['date_by_lti']>0 && $_SESSION['lti_duedate']!=$exceptionrow[1]) {
+            if (isset($_SESSION['lti_duedate']) && $line['date_by_lti']>0 && $_SESSION['lti_duedate']!=$exceptionrow['enddate']) {
 				//if new due date is later, or no latepass used, then update
-				if ($exceptionrow[2]==0 || $_SESSION['lti_duedate']>$exceptionrow[1]) {
+				if ($exceptionrow['islatepass']==0 || $_SESSION['lti_duedate']>$exceptionrow['enddate']) {
 					$stm = $DBH->prepare("UPDATE imas_exceptions SET startdate=:startdate,enddate=:enddate,is_lti=1,islatepass=0 WHERE userid=:userid AND assessmentid=:assessmentid AND itemtype='A'");
-					$stm->execute(array(':startdate'=>min($now, $line['startdate'], $exceptionrow[0]),
+					$stm->execute(array(':startdate'=>min($now, $line['startdate'], $exceptionrow['startdate']),
 						':enddate'=>$_SESSION['lti_duedate'], ':userid'=>$userid, ':assessmentid'=>$aid));
 				}
 			}
@@ -2741,13 +2721,18 @@ if ($keyparts[0]=='cid' || $keyparts[0]=='placein' || $keyparts[0]=='LTIkey') {
 		} else if ($line['date_by_lti']==3 && ($line['enddate']!=$_SESSION['lti_duedate'] || $now<$line['startdate'])) {
 			//default dates already set by LTI, and users's date doesn't match - create new exception
 			//also create if it's before the default assessment startdate - since they could access via LMS, it should be available.
-			$exceptionrow = array(min($now,$_SESSION['lti_duedate']), $_SESSION['lti_duedate'], 0, 1);
 			$stm = $DBH->prepare("INSERT INTO imas_exceptions (startdate,enddate,islatepass,is_lti,userid,assessmentid,itemtype) VALUES (?,?,?,?,?,?,'A')");
-			$stm->execute(array_merge($exceptionrow, array($userid, $aid)));
+			$stm->execute([min($now,$_SESSION['lti_duedate']), $_SESSION['lti_duedate'], 0, 1, $userid, $aid]);
+			$exceptionrow = [
+				'startdate' => min($now,$_SESSION['lti_duedate']), 
+				'enddate' => $_SESSION['lti_duedate'], 
+				'islatepass' => 0, 
+				'is_lti' => 1
+			];
 			$useexception = true;
 		}
 		if ($exceptionrow!=null && $useexception) {
-			if ($now<$exceptionrow[0] || $exceptionrow[1]<$now) { //outside exception dates
+			if ($now<$exceptionrow['startdate'] || $exceptionrow['enddate']<$now) { //outside exception dates
 				if ($now > $line['startdate'] && $now < $line['reviewdate']) {
 					$isreview = true;
 				} else {
@@ -2758,7 +2743,7 @@ if ($keyparts[0]=='cid' || $keyparts[0]=='placein' || $keyparts[0]=='LTIkey') {
 					$inexception = true; //only trigger if past due date for penalty
 				}
 			}
-			$exceptionduedate = $exceptionrow[1];
+			$exceptionduedate = $exceptionrow['enddate'];
 		} else { //has no exception
 			if ($now < $line['startdate'] || $line['enddate'] < $now) { //outside normal dates
 				if ($now > $line['startdate'] && $now < $line['reviewdate']) {
@@ -2778,7 +2763,7 @@ if ($keyparts[0]=='cid' || $keyparts[0]=='placein' || $keyparts[0]=='LTIkey') {
 	} else {
 		$cid = intval($keyparts[1]);
 		if ($_SESSION['lti_keytype']=='cc-vf') {
-			$usid = explode('_',$_SESSION['ltiorigkey']);
+			$usid = explode('_',$_SESSION['lti_origkey']);
 			$query = "SELECT imas_tutors.id FROM imas_tutors JOIN imas_users ON imas_tutors.userid=imas_users.id WHERE ";
 			$query .= "imas_tutors.courseid=:courseid AND imas_users.SID=:SID";
 			$stm3 = $DBH->prepare($query);
@@ -2963,17 +2948,17 @@ if (isset($SESS['lti_launch_get'])) {
 }
 $_SESSION['lti_key'] = $SESS['lti_key'];
 $_SESSION['lti_keytype'] = $SESS['lti_keytype'];
-$_SESSION['lti_keylookup'] = $SESS['ltilookup'];
-$_SESSION['lti_origkey'] = $SESS['ltiorigkey'];
+$_SESSION['lti_keylookup'] = $SESS['lti_keylookup'];
+$_SESSION['lti_origkey'] = $SESS['lti_origkey'];
 if (isset($SESS['lti_duedate'])) {
 	$_SESSION['lti_duedate'] = $SESS['lti_duedate'];
 }
-if (isset($SESS['selection_return'])) {
-	$_SESSION['lti_selection_return'] = $SESS['selection_return'];
-	$_SESSION['lti_selection_targets'] = $SESS['selection_targets'] ?? '';
-	$_SESSION['lti_selection_return_format'] = $SESS['selection_return_format'];
-	$_SESSION['lti_selection_type'] = $SESS['selection_type'] ?? '';
-	$_SESSION['lti_selection_data'] = $SESS['selection_data'] ?? '';
+if (isset($SESS['lti_selection_return'])) {
+	$_SESSION['lti_selection_return'] = $SESS['lti_selection_return'];
+	$_SESSION['lti_selection_targets'] = $SESS['lti_selection_targets'] ?? '';
+	$_SESSION['lti_selection_return_format'] = $SESS['lti_selection_return_format'];
+	$_SESSION['lti_selection_type'] = $SESS['lti_selection_type'] ?? '';
+	$_SESSION['lti_selection_data'] = $SESS['lti_selection_data'] ?? '';
 }
 
 if (isset($setstuviewon) && $setstuviewon==true) {
@@ -3017,7 +3002,7 @@ if ($_SESSION['lti_keytype']=='cc-vf' || (!$promptforsettings && !$createnewsess
 	} else if ($keyparts[0]=='sso') {
 		header('Location: ' . $GLOBALS['basesiteurl'] . "/index.php");
 	} else if ($keyparts[0]=='folder') {
-		header('Location: ' . $GLOBALS['basesiteurl'] . "/course/course.php?checksess=true&cid=$cid&folder=".$keyparts[3]);
+		header('Location: ' . $GLOBALS['basesiteurl'] . "/course/course.php?checksess=true&cid=$cid&folder=".urlencode($keyparts[3]));
 	} else { //will only be instructors hitting this option
 		header('Location: ' . $GLOBALS['basesiteurl'] . "/ltihome.php");
 	}

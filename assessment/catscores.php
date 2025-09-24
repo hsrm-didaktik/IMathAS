@@ -7,11 +7,10 @@ function catscores($quests,$scores,$defptsposs,$defoutcome,$cid) {
 	if (empty($quests)) {
 		return;
 	}
-	foreach ($quests as $i=>$q) {
-		$quests[$i] = intval($q);  //sanitize
-	}
-	$qlist = implode(',',$quests);
-	$stm = $DBH->query("SELECT id,category,points FROM imas_questions WHERE id IN ($qlist)"); //sanitized above - safe
+	$quests = array_values(array_map('intval', $quests));
+	$ph = Sanitize::generateQueryPlaceholders($quests);
+	$stm = $DBH->prepare("SELECT id,category,points FROM imas_questions WHERE id IN ($ph)");
+	$stm->execute($quests);
 	$cat = array();
 	$pospts = array();
 	$tolookup = array(intval($defoutcome));
@@ -55,15 +54,16 @@ function catscores($quests,$scores,$defptsposs,$defoutcome,$cid) {
 
 	$catscore = array();
 	$catposs = array();
-	for ($i=0; $i<count($quests); $i++) {
-		$pts = getpts($scores[$i]);
+
+	foreach ($quests as $i=>$qid) {
+		$pts = getpts($scores[$i] ?? 0);
         if ($pts<0) { $pts = 0;}
-        if (!isset($catscore[$cat[$quests[$i]]])) {
-            $catscore[$cat[$quests[$i]]] = 0;
-            $catposs[$cat[$quests[$i]]] = 0;
+        if (!isset($catscore[$cat[$qid]])) {
+            $catscore[$cat[$qid]] = 0;
+            $catposs[$cat[$qid]] = 0;
         }
-		$catscore[$cat[$quests[$i]]] += $pts;
-		$catposs[$cat[$quests[$i]]] += $pospts[$quests[$i]];
+		$catscore[$cat[$qid]] += $pts;
+		$catposs[$cat[$qid]] += $pospts[$qid];
 	}
 	echo "<h3>", _('Categorized Score Breakdown'), "</h3>\n";
 	echo "<table cellpadding=5 class=gb><thead><tr><th>", _('Category'), "</th><th>", _('Points Earned / Possible (Percent)'), "</th></tr></thead><tbody>\n";

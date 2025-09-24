@@ -29,16 +29,20 @@ if (isset($_POST['mergefrom'])) {
 	$fieldstocopy .= 'istutorial,viddata,reqscore,reqscoreaid,reqscoretype,ancestors,defoutcome,';
 	$fieldstocopy .= 'posttoforum,ptsposs,extrefs,submitby,showscores,showans,viewingb,scoresingb,';
 	$fieldstocopy .= 'ansingb,defregens,defregenpenalty,ver,keepscore,overtime_grace,overtime_penalty,showwork,autoexcuse';
-	$stm = $DBH->prepare("SELECT $fieldstocopy FROM imas_assessments WHERE id=:id");
-	$stm->execute(array(':id'=>$seta[0]));
+	$stm = $DBH->prepare("SELECT $fieldstocopy FROM imas_assessments WHERE id=:id AND courseid=:cid");
+	$stm->execute(array(':id'=>$seta[0], ':cid'=>$cid));
 	$row = $stm->fetch(PDO::FETCH_ASSOC);
+	if ($row === false) {
+		echo 'Invalid id';
+		exit;
+	}
 	$defpoints = $row['defpoints'];
 	$row['name'] .= ' - merge result';
 	$row['courseid'] = $cid;
     if ($row['date_by_lti']>1) {
         $row['date_by_lti'] = 1;
     }
-	$fieldlist = implode(',', array_keys($row));
+	$fieldlist = implode(',', array_map('Sanitize::simpleString',array_keys($row)));
 	$placeholders = Sanitize::generateQueryPlaceholders($row);
 	$stm = $DBH->prepare("INSERT INTO imas_assessments ($fieldlist) VALUES ($placeholders)");
 	$stm->execute(array_values($row));
@@ -50,10 +54,12 @@ if (isset($_POST['mergefrom'])) {
 	$qcnt = 0;
 
 	for ($i=0;$i<count($seta);$i++) {
-		$stm = $DBH->prepare("SELECT itemorder,intro,name,defpoints FROM imas_assessments WHERE id=:id");
-		$stm->execute(array(':id'=>$seta[$i]));
+		$stm = $DBH->prepare("SELECT itemorder,intro,name,defpoints FROM imas_assessments WHERE id=:id AND courseid=:cid");
+		$stm->execute(array(':id'=>$seta[$i], ':cid'=>$cid));
 		list($itemorder, $curintro, $thisname, $thisdefpoints) = $stm->fetch(PDO::FETCH_NUM);
-
+		if (empty($itemorder)) {
+			continue;
+		}
 		$thisintroraw = $curintro;
         $thistexts = [];
 
@@ -209,7 +215,7 @@ if (isset($_POST['mergefrom'])) {
 	foreach ($itemsimporder as $item) {
 		if (!isset($itemsassoc[$item])) { continue; }
 		$id = $itemsassoc[$item];
-		echo "<li><input type=\"text\" size=\"2\" name=\"mergefrom[" . Sanitize::onlyInt($id) . "]\" />" . Sanitize::encodeStringForDisplay($assess[$id]) . "</li>";
+		echo "<li><label><input type=\"text\" size=\"2\" name=\"mergefrom[" . Sanitize::onlyInt($id) . "]\" />" . Sanitize::encodeStringForDisplay($assess[$id]) . "</label></li>";
 	}
 	echo '</ul>';
 	echo '<input type="hidden" name="mergetype" value="0"/>';

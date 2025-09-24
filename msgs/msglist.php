@@ -12,6 +12,7 @@ If deleted on both ends, delete from DB
 	*/
 	require_once "../init.php";
 	require_once '../includes/getcourseopts.php';
+	require_once '../includes/checkdata.php';
 
 	if (isset($cid) && $cid!=0 && !isset($teacherid) && !isset($tutorid) && !isset($studentid)) {
 	   require_once "../header.php";
@@ -46,6 +47,10 @@ If deleted on both ends, delete from DB
 	}
 	if (isset($_GET['filtercid'])) {
 		$filtercid = intval($_GET['filtercid']);
+		if ($filtercid > 0 && !check_user_in_course($userid, $filtercid)) {
+			echo 'Invalid filter course';
+			exit;
+		}
 	} else if ($cid!='admin' && $cid>0) {
 		$filtercid = $cid;
 	} else {
@@ -71,15 +76,16 @@ If deleted on both ends, delete from DB
 		$isteacher = false;
 		$stm = $DBH->prepare("SELECT id FROM imas_teachers WHERE userid=? AND courseid=?");
 		$stm->execute(array($userid, $cid));
-		if ($stm->rowCount()>0) {
+		if ($stm->fetchColumn(0) !== false) {
 			$isteacher = true;
 			$isauth = true;
 		} else {
-			$stm = $DBH->prepare("SELECT id FROM imas_students WHERE userid=? AND courseid=? UNION SELECT id FROM imas_tutors WHERE userid=? AND courseid=?");
+			$stm = $DBH->prepare("SELECT section FROM imas_students WHERE userid=? AND courseid=? UNION ALL SELECT section FROM imas_tutors WHERE userid=? AND courseid=?");
 			$stm->execute(array($userid, $cid, $userid, $cid));
 			if ($stm->rowCount()>0) {
 				$isauth = true;
-			}
+				$studentinfo = ['section' => $stm->fetchColumn(0)];
+			} 
 		}
 		if (!$isauth) {
 			echo '[]';
@@ -99,12 +105,12 @@ If deleted on both ends, delete from DB
 			$query = "SELECT imas_users.id,imas_users.FirstName,imas_users.LastName FROM ";
 			$query .= "imas_users,imas_tutors WHERE imas_users.id=imas_tutors.userid AND ";
 			$query .= "imas_tutors.courseid=:courseid ";
-			if (!$isteacher && !$istutor && $studentinfo['section']!=null) {
+			if (!$isteacher && !empty($studentinfo['section'])) {
 			     $query .= "AND (imas_tutors.section=:section OR imas_tutors.section='') ";
 			}
 			$query .= "ORDER BY imas_users.LastName";
 			$stm = $DBH->prepare($query);
-			if (!$isteacher && !$istutor && $studentinfo['section']!=null) {
+			if (!$isteacher && !empty($studentinfo['section'])) {
 			   $stm->execute(array(':courseid'=>$cid, ':section'=>$studentinfo['section']));
 			} else {
 				$stm->execute(array(':courseid'=>$cid));
@@ -203,18 +209,18 @@ If deleted on both ends, delete from DB
 				exit;
 			}
 
-      $messagePost = Sanitize::incomingHtml($_POST['message']);
+      		$messagePost = Sanitize::incomingHtml($_POST['message']);
 			$subjectPost = Sanitize::stripHtmlTags($_POST['subject']);
 			if (trim($subjectPost)=='') {
 				$subjectPost = '('._('none').')';
 			}
 
-      $now = time();
+      		$now = time();
 			$query = "INSERT INTO imas_msgs (title,message,msgto,msgfrom,senddate,courseid) VALUES ";
 			$query .= "(:title, :message, :msgto, :msgfrom, :senddate, :courseid)";
 			$stm = $DBH->prepare($query);
 			$stm->execute(array(':title'=>$subjectPost, ':message'=>$messagePost, ':msgto'=>$msgToPost,
-        ':msgfrom'=>$userid, ':senddate'=>$now, ':courseid'=>$cidP));
+        		':msgfrom'=>$userid, ':senddate'=>$now, ':courseid'=>$cidP));
 			$msgid = $DBH->lastInsertId();
 
 			if ($_GET['replyto']>0) {
@@ -222,23 +228,25 @@ If deleted on both ends, delete from DB
 				if (isset($_POST['sendunread'])) {
 					$query .= ',viewed=0';
 				}
-        $query .= " WHERE id=:id";
+        		$query .= " WHERE id=:id AND msgto=:msgto AND courseid=:cid";
 				$stm = $DBH->prepare($query);
-				$stm->execute(array(':id'=>$_GET['replyto']));
-				$stm = $DBH->prepare("SELECT baseid FROM imas_msgs WHERE id=:id");
-				$stm->execute(array(':id'=>$_GET['replyto']));
+				$stm->execute(array(':id'=>$_GET['replyto'], ':msgto'=>$userid, ':cid'=>$cidP));
+				$stm = $DBH->prepare("SELECT baseid FROM imas_msgs WHERE id=:id AND msgto=:msgto AND courseid=:cid");
+				$stm->execute(array(':id'=>$_GET['replyto'], ':msgto'=>$userid, ':cid'=>$cidP));
 				$baseid = $stm->fetchColumn(0);
-				if ($baseid==0) {
-					$baseid = $_GET['replyto'];
+				if ($baseid !== false) {
+					if ($baseid==0) {
+						$baseid = $_GET['replyto'];
+					}
+					$stm = $DBH->prepare("UPDATE imas_msgs SET baseid=:baseid,parent=:parent WHERE id=:id");
+					$stm->execute(array(':baseid'=>$baseid, ':parent'=>$_GET['replyto'], ':id'=>$msgid));
 				}
-				$stm = $DBH->prepare("UPDATE imas_msgs SET baseid=:baseid,parent=:parent WHERE id=:id");
-				$stm->execute(array(':baseid'=>$baseid, ':parent'=>$_GET['replyto'], ':id'=>$msgid));
 			}
 			$stm = $DBH->prepare("SELECT name FROM imas_courses WHERE id=:id");
 			$stm->execute(array(':id'=>$cidP));
 			$cname = $stm->fetchColumn(0);
 			$stm = $DBH->prepare("SELECT msgnotify,email,FCMtoken FROM imas_users WHERE id=:id");
-			$stm->execute(array(':id'=>$_POST['to']));
+			$stm->execute(array(':id'=>$msgToPost));
 			list($msgnotify, $email, $FCMtokenTo) = $stm->fetch(PDO::FETCH_NUM);
 			if ($msgnotify==1) {
       	  		require_once "../includes/email.php";
@@ -280,6 +288,7 @@ If deleted on both ends, delete from DB
 					var newcid = $(el).val();
 					$("#to").hide();
 					if (newcid>0) {
+						$("#statusmsg").text(_("Loading recipients"));
 						$(el).after($("<img>", {src: staticroot+"/img/updating.gif", alt: "Loading recipients..."}));
 						$.ajax({
 							url: "msglist.php?cid=0&getstulist="+newcid,
@@ -291,6 +300,7 @@ If deleted on both ends, delete from DB
 							}
 							$("#to").show();
 							$(el).siblings("img").remove();
+							$("#statusmsg").text(_("Done"));
 						});
 					} else {
 						$("#to").val(0);
@@ -309,6 +319,7 @@ If deleted on both ends, delete from DB
                     if (stu !== "") {
                         $("#stusearchresultwrap").hide();
                         $("#stusearchwrap").after($("<img>", {src: staticroot+"/img/updating.gif", alt: "Loading recipients..."}));
+						$("#statusmsg").text(_("Loading recipients"));
                         $.ajax({
 							url: "msglist.php?cid='.$cid.'",
                             type: "POST",
@@ -324,6 +335,7 @@ If deleted on both ends, delete from DB
                             }
                             $("#stusearchresultwrap").show();
                             $("#stusearchwrap").siblings("img").remove();
+							$("#statusmsg").text(_("Done"));
                         });
                     }
                 }
@@ -375,9 +387,9 @@ If deleted on both ends, delete from DB
 
 			$courseid=($cid==0)?$filtercid:$cid;
 			if (isset($_GET['toquote']) || isset($_GET['replyto'])) {
-				$stm = $DBH->prepare("SELECT title,message,courseid FROM imas_msgs WHERE id=:id");
-				$stm->execute(array(':id'=>$replyto));
-        list($title, $message, $courseid) = $stm->fetch(PDO::FETCH_NUM);
+				$stm = $DBH->prepare("SELECT title,message,courseid FROM imas_msgs WHERE id=:id AND msgto=:msgto");
+				$stm->execute(array(':id'=>$replyto, ':msgto'=>$userid));
+        		list($title, $message, $courseid) = $stm->fetch(PDO::FETCH_NUM);
 				$title = _("Re: ").$title;
 				if (isset($_GET['toquote'])) {
 					$message = '<br/><hr/>'._('In reply to:').'<br/>'.$message;
@@ -386,7 +398,7 @@ If deleted on both ends, delete from DB
 				}
 			} else if (isset($_GET['quoteq'])) {
                 $parts = explode('-',$_GET['quoteq']);
-				$GLOBALS['assessver'] = $parts[4];
+				$GLOBALS['assessver'] = Sanitize::onlyInt($parts[4]);
                 if ($courseUIver > 1) {
                     require_once '../assess2/AssessStandalone.php';
                     $a2 = new AssessStandalone($DBH);
@@ -458,10 +470,15 @@ If deleted on both ends, delete from DB
 			if (isset($_GET['to'])) {
 				$to = Sanitize::onlyInt($_GET['to']);
 				$query = "SELECT iu.LastName,iu.FirstName,iu.email,i_s.lastaccess,iu.hasuserimg FROM imas_users AS iu ";
-				$query .= "LEFT JOIN imas_students AS i_s ON iu.id=i_s.userid AND i_s.courseid=:courseid WHERE iu.id=:id";
+				$query .= "LEFT JOIN imas_students AS i_s ON iu.id=i_s.userid AND i_s.courseid=:courseid ";				
+				$query .= "WHERE iu.id=:id";
 				$stm = $DBH->prepare($query);
 				$stm->execute(array(':courseid'=>$courseid, ':id'=>$_GET['to']));
 				$row = $stm->fetch(PDO::FETCH_NUM);
+				if ($row[3]===null && !check_user_in_course($_GET['to'], $courseid)) {
+					echo 'Invalid recipient';
+					exit;
+				}
 				printf('<span class="pii-full-name">%s, %s</span>',
                     Sanitize::encodeStringForDisplay($row[0]), Sanitize::encodeStringForDisplay($row[1]));
 				$ismsgsrcteacher = false;
@@ -493,7 +510,7 @@ If deleted on both ends, delete from DB
 				echo "<input type=hidden name=courseid value=\"".Sanitize::courseId($courseid)."\"/>\n";
 			} else {
 				if ($filtercid>0) {
-					echo '<select class="pii-full-name" name="to" id="to" aria-label="'._('Select an individual').'" onchange="checkTo(this)">';
+					echo '<select class="pii-full-name" name="to" id="to" aria-label="'._('Select the recipient').'" onchange="checkTo(this)">';
 					echo '<option value="0">' . _('Select a recipient...') . '</option>';
 					if ($isteacher || $msgset<2) {
 						$query = "SELECT imas_users.id,imas_users.FirstName,imas_users.LastName FROM ";
@@ -582,13 +599,12 @@ If deleted on both ends, delete from DB
 			if ($replyto>0) {
 				echo '<span class="form"></span><span class="formright"><input type="checkbox" name="sendunread" id="sendunread" value="1"/> <label for="sendunread">'._('Mark original message unread').'</label></span><br class="form"/>';
 			}
-			echo '<div class="submit"><button type="submit" name="submit" value="send">'._('Send Message').'</button></div>';
-
-			echo "</span></p>\n";
 
 			if ($msgmonitor==1) {
-				echo "<p><span class=red>Note</span>: Student-to-student messages may be monitored by your instructor</p>";
+				echo '<span class="red form">Note:</span><span class=formright>'._('Student-to-student messages may be monitored by your instructor').'</span><br class=form>';
 			}
+			echo '<div class="submit"><button type="submit" name="submit" value="send">'._('Send Message').'</button></div>';
+
 			echo '</form>';
 			require_once "../footer.php";
 			exit;
@@ -631,9 +647,12 @@ If deleted on both ends, delete from DB
 	}
 
 	$pagetitle = "Messages";
-	$placeinhead = "<script type=\"text/javascript\" src=\"$staticroot/javascript/msg.js?v=072217\"></script>";
+	$placeinhead = "<script type=\"text/javascript\" src=\"$staticroot/javascript/msg.js?v=052725\"></script>";
 	$placeinhead .= "<script type=\"text/javascript\">var AHAHsaveurl = '". $GLOBALS['basesiteurl'] . "/msgs/savetagged.php?cid=$cid';</script>";
-	$placeinhead .= '<style type="text/css"> tr.tagged {background-color: #dff;}</style>';
+	$placeinhead .= '<style type="text/css"> tr.tagged {background-color: #dff;}
+		.pagelist { display: inline-block; margin:0; padding: 0}
+		.pagelist li { display: inline-block; padding: 0 .5ch;} 
+		.pagelist li:has(a[aria-current]) { background-color: #ddd;} </style>';
 	if (isset($_SESSION['ltiitemtype'])) {
 		$nologo = true;
 	}
@@ -736,7 +755,8 @@ If deleted on both ends, delete from DB
 	}
 	$prevnext = '';
 	if ($numpages > 1 && !$limittotagged && !$limittonew) {
-		$prevnext .= "Page: ";
+		$prevnext .= '<nav aria-labelledby="pagelbl">';
+		$prevnext .= "<span id=pagelbl>Page:</span><ul class=pagelist> ";
 		if ($page < $numpages/2) {
 			$min = max(2,$page-4);
 			$max = min($numpages-1,$page+8+$min-$page);
@@ -744,36 +764,37 @@ If deleted on both ends, delete from DB
 			$max = min($numpages-1,$page+4);
 			$min = max(2,$page-8+$max-$page);
 		}
-		if ($page==1) {
-			$prevnext .= "<b>1</b> ";
+		if ($page>1) {
+			$prevnext .= "<li><a href=\"msglist.php?page=".($page-1)."&cid=$cid&filtercid=$filtercid&filteruid=$filteruid\">Previous</a></li>";
 		} else {
-			$prevnext .= "<a href=\"msglist.php?page=1&cid=$cid&filtercid=$filtercid&filteruid=$filteruid\">1</a> ";
+			$prevnext .= '<li>Previous</li>';
 		}
-		if ($min!=2) { $prevnext .= " ... ";}
+		if ($page==1) {
+			$prevnext .= "<li><a href=\"msglist.php?page=1&cid=$cid&filtercid=$filtercid&filteruid=$filteruid\" aria-current=\"page\"><b>1</b></a></li>";
+		} else {
+			$prevnext .= "<li><a href=\"msglist.php?page=1&cid=$cid&filtercid=$filtercid&filteruid=$filteruid\">1</a></li>";
+		}
+		if ($min!=2) { $prevnext .= "<li>...</li>";}
 		for ($i = $min; $i<=$max; $i++) {
 			if ($page == $i) {
-				$prevnext .= "<b>$i</b> ";
+				$prevnext .= "<li><a href=\"msglist.php?page=$i&cid=$cid&filtercid=$filtercid&filteruid=$filteruid\" aria-current=\"page\"><b>$i</b></a></li>";
 			} else {
-				$prevnext .= "<a href=\"msglist.php?page=$i&cid=$cid&filtercid=$filtercid&filteruid=$filteruid\">$i</a> ";
+				$prevnext .= "<li><a href=\"msglist.php?page=$i&cid=$cid&filtercid=$filtercid&filteruid=$filteruid\">$i</a></li>";
 			}
 		}
-		if ($max!=$numpages-1) { $prevnext .= " ... ";}
+		if ($max!=$numpages-1) { $prevnext .= "<li>...</li>";}
 		if ($page == $numpages) {
-			$prevnext .= "<b>$numpages</b> ";
+			$prevnext .= "<li><a href=\"msglist.php?page=$numpages&cid=$cid&filtercid=$filtercid&filteruid=$filteruid\" aria-current=\"page\"><b>$numpages</b></a></li>";
 		} else {
-			$prevnext .= "<a href=\"msglist.php?page=$numpages&cid=$cid&filtercid=$filtercid&filteruid=$filteruid\">$numpages</a> ";
+			$prevnext .= "<li><a href=\"msglist.php?page=$numpages&cid=$cid&filtercid=$filtercid&filteruid=$filteruid\">$numpages</a></li>";
 		}
-		$prevnext .= "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-		if ($page>1) {
-			$prevnext .= "<a href=\"msglist.php?page=".($page-1)."&cid=$cid&filtercid=$filtercid&filteruid=$filteruid\">Previous</a> ";
-		} else {
-			$prevnext .= 'Previous ';
-		}
+		
 		if ($page < $numpages) {
-			$prevnext .= "| <a href=\"msglist.php?page=".($page+1)."&cid=$cid&filtercid=$filtercid&filteruid=$filteruid\">Next</a> ";
+			$prevnext .= "<li><a href=\"msglist.php?page=".($page+1)."&cid=$cid&filtercid=$filtercid&filteruid=$filteruid\">Next</a></li>";
 		} else {
-			$prevnext .= '| Next';
+			$prevnext .= '<li>Next</li>';
 		}
+		$prevnext .= '</nav>';
 		echo "<div>$prevnext</div>\n";
 	}
 	$address = $GLOBALS['basesiteurl'] . "/msgs/msglist.php?cid=$cid&filtercid=";
@@ -832,7 +853,7 @@ function chgfilter() {
 	Check: <a href="#" onclick="return chkAllNone('qform','checked[]',true)">All</a> <a href="#" onclick="return chkAllNone('qform','checked[]',false)">None</a>
 	With Selected: <input type=submit name="unread" value="Mark as Unread">
 	<input type=submit name="markread" value="Mark as Read">
-	<input type=submit name="remove" value="Delete">
+	<input type=submit name="remove" value="Delete" onclick="return confirm('<?php echo _('Are you SURE you want to delete these messages?');?>');">
 
 
 	<table class=gb id="myTable">
@@ -933,13 +954,13 @@ function chgfilter() {
 		}
 
 		echo "</td><td>";
-		echo '<a href="#" onclick="toggletagged('.Sanitize::onlyInt($line['id']).');return false;">';
+		echo '<button type=button class=plain onclick="toggletagged('.Sanitize::onlyInt($line['id']).');" role="switch" aria-checked="'.($line['tagged']==1?'true':'false').'" aria-label="'._('Tag post').'">';
 		if ($line['tagged']==1) {
-			echo "<img class=\"pointer\" id=\"tag".Sanitize::onlyInt($line['id'])."\" src=\"$staticroot/img/flagfilled.gif\" alt=\"Flagged\"/>";
+			echo "<img class=\"pointer\" id=\"tag".Sanitize::onlyInt($line['id'])."\" src=\"$staticroot/img/flagfilled.gif\" alt=\"\"/>";
 		} else {
-			echo "<img class=\"pointer\" id=\"tag".Sanitize::onlyInt($line['id'])."\" src=\"$staticroot/img/flagempty.gif\" alt=\"Not flagged\"/>";
+			echo "<img class=\"pointer\" id=\"tag".Sanitize::onlyInt($line['id'])."\" src=\"$staticroot/img/flagempty.gif\" alt=\"\"/>";
 		}
-		echo '</a>';
+		echo '</button>';
 		echo '</td>';
 		printf('<td><span class="pii-full-name">%s</span></td>', Sanitize::encodeStringForDisplay($line['fullname']));
 

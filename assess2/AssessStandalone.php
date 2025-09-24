@@ -144,6 +144,23 @@ class AssessStandalone {
 
     $hidescoremarkers = !empty($this->getOpVal($options, 'hidescoremarkers', false));
 
+    $useda11yalt = false;
+
+    if ($attemptn == 0 || !empty($this->state['useda11yalt'][$qn])) {
+      if (!empty($this->state['useda11yalt'][$qn]) ||
+          (($this->qdata[$qsid]['a11yalttype']&1)==1 && ($_SESSION['userprefs']['graphdisp'] ?? 1)==0) ||
+          (($this->qdata[$qsid]['a11yalttype']&2)==2 && ($_SESSION['userprefs']['drawentry'] ?? 1)==0)
+      ) {
+        $qsid = $this->qdata[$qsid]['a11yalt'];
+        // temp swap to load question data
+        $origqsid = $this->state['qsid'][$qn];
+        $this->state['qsid'][$qn] = $qsid;
+        $this->loadQuestionData();
+        $this->state['qsid'][$qn] = $origqsid;
+        $useda11yalt = true;
+      }
+    }
+
     $showansparts = array();
     $showans = false;
 
@@ -272,6 +289,7 @@ class AssessStandalone {
     $outarr = array(
         'html' => $qout, 
         'jsparams' => $jsparams, 
+        'useda11yalt' => $useda11yalt,
         'errors'=>$question->getErrors()
     );
 
@@ -290,6 +308,15 @@ class AssessStandalone {
    */
   public function scoreQuestion($qn, $parts_to_score = true) {
     $qsid = $this->state['qsid'][$qn];
+
+    if (!empty($this->state['useda11yalt'][$qn])) {
+      $qsid = $this->qdata[$qsid]['a11yalt'];
+      $origqsid = $this->state['qsid'][$qn];
+      $this->state['qsid'][$qn] = $qsid;
+      $this->loadQuestionData();
+      $this->state['qsid'][$qn] = $origqsid;
+      $useda11yalt = true;
+    }
 
     $attemptn = empty($this->state['partattemptn'][$qn]) ? 0 : max($this->state['partattemptn'][$qn]);
 
@@ -390,6 +417,7 @@ class AssessStandalone {
     $returnData = [
         'scores'=>$scores,
         'raw'=>$rawparts,
+        'answeights'=>$scoreResult['answeights'],
         'errors'=>$scoreResult['errors'],
         'allans'=>$allPartsAns
     ];
@@ -403,20 +431,49 @@ class AssessStandalone {
   }
 
   private function parseScripts($html) {
-    $scripts = array();
-    preg_match_all("|<script([^>]*)>(.*?)</script>|s", $html, $matches, PREG_SET_ORDER);
-    foreach ($matches as $match) {
-      if (strlen(trim($match[2])) == 0 && preg_match('/src="(.*?)"/', $match[1], $sub)) {
+    $scripts = [];
+    $htmlout = '';
+    $pos = 0;
+    while (($scriptStart = strpos($html, '<script', $pos)) !== false) {
+      // Add content before script tag to clean HTML
+      $htmlout .= substr($html, $pos, $scriptStart - $pos);
+
+      // Find the end of the opening script tag
+      $tagEnd = strpos($html, '>', $scriptStart);
+      if ($tagEnd === false) {
+        $pos += 7;
+        break;
+      }
+
+      // Extract the opening tag (including attributes)
+      $openingTag = substr($html, $scriptStart, $tagEnd - $scriptStart + 1);
+      
+      // Find the closing script tag
+      $scriptEnd = strpos($html, '</script>', $tagEnd);
+      if ($scriptEnd === false) {
+        $pos = $tagEnd + 1;
+        break;
+      }
+      
+      // Extract script content between tags
+      $scriptContent = trim(substr($html, $tagEnd + 1, $scriptEnd - $tagEnd - 1));
+
+      if (strlen($scriptContent) == 0 && preg_match('/src="(.*?)"/', $openingTag, $sub)) {
         $scripts[] = array('src', $sub[1]);
       } else {
-        if (preg_match('/document\.write.*?script.*?src="(.*?)"/', $match[2], $sub)) {
+        if (preg_match('/document\.write.*?script.*?src="(.*?)"/', $scriptContent, $sub)) {
           $scripts[] = array('src', $sub[1]);
         }
-        $scripts[] = array('code', $match[2]);
+        $scripts[] = array('code', $scriptContent);
       }
-    }
-    $html = preg_replace("|<script([^>]*)>(.*?)</script>|s", '', $html);
-    return array($html, $scripts);
-  }
 
+      // Move position past the closing script tag
+      $pos = $scriptEnd + 9; // length of '</script>'
+    }
+    // Add remaining HTML after last script tag
+    $htmlout .= substr($html, $pos);
+
+    return array($htmlout, $scripts);
+  }
+  
 }

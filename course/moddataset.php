@@ -10,7 +10,8 @@
 //4 - CC-BY-SA
 
 	require_once "../init.php";
-
+	require_once '../includes/videodata.php';
+	require_once '../includes/htmlutil.php';
 
 	if ($myrights<20) {
 		require_once "../header.php";
@@ -21,46 +22,6 @@
 
 	// Determine if this is an AJAX quicksave call
 	$quicksave = isset($_GET['quick']) ? true : false;
-
-	function stripsmartquotes($text) {
-		$text = str_replace(
-			array("\xe2\x80\x98", "\xe2\x80\x99", "\xe2\x80\x9c", "\xe2\x80\x9d", "\xe2\x80\x93", "\xe2\x80\x94", "\xe2\x80\xa6"),
-			array("'", "'", '"', '"', '-', '--', '...'),
-			$text);
-		// Next, replace their Windows-1252 equivalents.
-		//removed - was messing with unicode
-		/*$text = str_replace(
-			array(chr(145), chr(146), chr(147), chr(148), chr(150), chr(151), chr(133)),
-			array("'", "'", '"', '"', '-', '--', '...'),
-			$text);*/
-		return $text;
- 	}
-
- 	function getvideoid($url) {
- 		$vidid = '';
- 		if (strpos($url,'youtube.com/watch')!==false) {
-			//youtube
-			$vidid = substr($url,strrpos($url,'v=')+2);
-			if (strpos($vidid,'&')!==false) {
-				$vidid = substr($vidid,0,strpos($vidid,'&'));
-			}
-			if (strpos($vidid,'#')!==false) {
-				$vidid = substr($vidid,0,strpos($vidid,'#'));
-			}
-			$vidid = str_replace(array(" ","\n","\r","\t"),'',$vidid);
-		} else if (strpos($url,'youtu.be/')!==false) {
-			//youtube
-			$vidid = substr($url,strpos($url,'.be/')+4);
-			if (strpos($vidid,'#')!==false) {
-				$vidid = substr($vidid,0,strpos($vidid,'#'));
-			}
-			if (strpos($vidid,'?')!==false) {
-				$vidid = substr($vidid,0,strpos($vidid,'?'));
-			}
-			$vidid = str_replace(array(" ","\n","\r","\t"),'',$vidid);
-		}
-		return Sanitize::simpleString($vidid);
- 	}
 
  	$cid = Sanitize::courseId($_GET['cid'] ?? '0');
 	$isadmin = false;
@@ -108,11 +69,11 @@
 		foreach (array('qcontrol','answer','solution') as $v) {
 			if (!isset($_POST[$v])) {$_POST[$v] = '';}
 		}
-		$_POST['qtext'] = stripsmartquotes($_POST['qtext']);
-		$_POST['control'] = stripsmartquotes($_POST['control'] ?? '');
-		$_POST['qcontrol'] = stripsmartquotes($_POST['qcontrol'] ?? '');
-		$_POST['answer'] = stripsmartquotes($_POST['answer'] ?? '');
-		$_POST['solution'] = stripsmartquotes($_POST['solution'] ?? '');
+		$_POST['qtext'] = Sanitize::replaceSmartQuotes($_POST['qtext']);
+		$_POST['control'] = Sanitize::replaceSmartQuotes($_POST['control'] ?? '');
+		$_POST['qcontrol'] = Sanitize::replaceSmartQuotes($_POST['qcontrol'] ?? '');
+		$_POST['answer'] = Sanitize::replaceSmartQuotes($_POST['answer'] ?? '');
+		$_POST['solution'] = Sanitize::replaceSmartQuotes($_POST['solution'] ?? '');
 		$_POST['qtext'] = preg_replace('/<span\s+class="AM"[^>]*>(.*?)<\/span>/sm','$1', $_POST['qtext']);
 		$_POST['solution'] = preg_replace('/<span\s+class="AM"[^>]*>(.*?)<\/span>/sm','$1', $_POST['solution']);
 
@@ -155,30 +116,10 @@
 			if ($vidid=='') {
 				$captioned = 0;
 			} else if (isset($CFG['YouTubeAPIKey'])) {
-                $captioned = 0;
-                $ctx = stream_context_create(array('http'=>array('timeout' => 1)));
-                $resp = @file_get_contents('https://youtube.googleapis.com/youtube/v3/captions?part=snippet&videoId='.$vidid.'&key='.$CFG['YouTubeAPIKey'], false, $ctx);
-                $capdata = json_decode($resp, true);
-                if ($capdata !== null && isset($capdata['items'])) {
-                    foreach ($capdata['items'] as $cap) {
-                        if ($cap['snippet']['trackKind'] == 'standard') {
-                            $captioned = 1;
-                            break;
-                        }
-                    }
-                }
-            } else {
-				$ctx = stream_context_create(array('http'=>
-				    array(
-					'timeout' => 1,
-                    'header' => "Accept-language: en\r\n" . 
-                                "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
-				    )
-				));
-				$t = @file_get_contents('https://www.youtube.com/watch?v='.$vidid, false, $ctx);
-                // auto-gen captions have vssId of "a.langcode"; manual are just ".langcode"
-                // so look for vssId that starts with .; don't care about language
-				$captioned = (preg_match('/"vssId":\s*"\./', $t))?1:0; 
+                $captioned = getCaptionDataByVidId($vidid);
+				if ($captioned === false || $captioned === '404') {
+					$captioned = 0;
+				}
             }
             $helpdescr = str_replace(['!!','~~'],'',Sanitize::stripHtmlTags($_POST['helpdescr']));
 			$newextref[] = $_POST['helptype'].'!!'.trim($_POST['helpurl']).'!!'.$captioned.'!!'.$helpdescr;
@@ -211,6 +152,14 @@
 		$_POST['solution'] = str_replace(array("<",">"),array("&lt;","&gt;"),$_POST['solution']);
 		$_POST['solution'] = str_replace(array("&&&L","&&&G"),array("<",">"),$_POST['solution']);
 
+		if ($_POST['a11yalttype']>0 && is_numeric($_POST['a11yalt'])) {
+			$a11yalttype = intval($_POST['a11yalttype']);
+			$a11yalt = intval($_POST['a11yalt']);
+		} else {
+			$a11yalttype = 0;
+			$a11yalt = 0;
+		}
+
         $isrand = preg_match('/((shuffle|getprimes?|rand[a-zA-Z]*)\s*\(|randweights)/',$_POST['control']) ? 1 : 0;
         if (!$isrand) { // check any included code
             preg_match_all('/includecodefrom\(\s*(\d+)\s*\)/',$_POST['control'],$matches,PREG_PATTERN_ORDER);
@@ -229,38 +178,38 @@
 			$qsetid = intval($_GET['id']);
 			$isok = true;
 			if ($isgrpadmin) {
-				$query = "SELECT iq.id,iq.ownerid,iq.userights,imas_users.groupid FROM imas_questionset AS iq,imas_users ";
+				$query = "SELECT iq.id,iq.ownerid,iq.userights,iq.license,iq.otherattribution,imas_users.groupid FROM imas_questionset AS iq,imas_users ";
 				$query .= "WHERE iq.id=:id AND iq.ownerid=imas_users.id AND (imas_users.groupid=:groupid OR iq.userights>2)";
 				$stm = $DBH->prepare($query);
 				$stm->execute(array(':id'=>$_GET['id'], ':groupid'=>$groupid));
-				if ($stm->rowCount()==0) {
+				$row = $stm->fetch(PDO::FETCH_ASSOC);
+				if ($row === false) {
 					$isok = false;
 				} else {
-					$row = $stm->fetch(PDO::FETCH_ASSOC);
 					if ($row['userights'] > 3 && $row['groupid'] != $groupid) {
-						// is a "allow mod by all" and not in group; cannot change userights
+						// is a "allow mod by all" and not in group; cannot change userights or license or attrib
 						$_POST['userights'] = $row['userights'];
+						$_POST['license'] = $row['license'];
+						$_POST['addattr'] = $row['otherattribution'];
 					}
 				}
-				//$query = "UPDATE imas_questionset AS iq,imas_users SET iq.description='{$_POST['description']}',iq.author='{$_POST['author']}',iq.userights='{$_POST['userights']}',";
-				//$query .= "iq.qtype='{$_POST['qtype']}',iq.control='{$_POST['control']}',iq.qcontrol='{$_POST['qcontrol']}',";
-				//$query .= "iq.qtext='{$_POST['qtext']}',iq.answer='{$_POST['answer']}',iq.lastmoddate=$now ";
-				//$query .= "WHERE iq.id='{$_GET['id']}' AND iq.ownerid=imas_users.id AND (imas_users.groupid='$groupid' OR iq.userights>2)";
 			}
 			if (!$isadmin && !$isgrpadmin) {  //check is owner or is allowed to modify
-				$query = "SELECT iq.id,iq.ownerid,iq.userights,imas_users.groupid FROM imas_questionset AS iq,imas_users ";
+				$query = "SELECT iq.id,iq.ownerid,iq.userights,iq.license,iq.otherattribution,imas_users.groupid FROM imas_questionset AS iq,imas_users ";
 				$query .= "WHERE iq.id=:id AND iq.ownerid=imas_users.id AND (iq.ownerid=:ownerid OR (iq.userights=3 AND imas_users.groupid=:groupid) OR iq.userights>3)";
 				$stm = $DBH->prepare($query);
 				$stm->execute(array(':id'=>$_GET['id'], ':ownerid'=>$userid, ':groupid'=>$groupid));
-				if ($stm->rowCount()==0) {
+				$row = $stm->fetch(PDO::FETCH_ASSOC);
+				if ($row === false) {
 					$isok = false;
 				} else {
-					$row = $stm->fetch(PDO::FETCH_ASSOC);
 					if ($row['ownerid'] != $userid &&
 						($row['userights'] != 3 || $row['groupid'] != $groupid)
 					) {
-						// cannot change userights
+						// cannot change userights or license or attrib
 						$_POST['userights'] = $row['userights'];
+						$_POST['license'] = $row['license'];
+						$_POST['addattr'] = $row['otherattribution'];
 					}
 				}
 			}
@@ -273,7 +222,8 @@
 			if ($isok && !isset($_POST['justupdatelibs'])) {
 				$query = "UPDATE imas_questionset SET description=:description,author=:author,userights=:userights,license=:license,";
 				$query .= "otherattribution=:otherattribution,qtype=:qtype,control=:control,qcontrol=:qcontrol,solution=:solution,isrand=:isrand,";
-				$query .= "qtext=:qtext,answer=:answer,lastmoddate=:lastmoddate,extref=:extref,replaceby=:replaceby,solutionopts=:solutionopts";
+				$query .= "qtext=:qtext,answer=:answer,lastmoddate=:lastmoddate,extref=:extref,replaceby=:replaceby,solutionopts=:solutionopts,";
+				$query .= "a11yalttype=:a11yalttype,a11yalt=:a11yalt";
 				if (isset($_POST['undelete'])) {
 					$query .= ',deleted=0';
 				}
@@ -282,7 +232,9 @@
 				$stm->execute(array(':description'=>$_POST['description'], ':author'=>$_POST['author'], ':userights'=>$_POST['userights'],
 					':license'=>$_POST['license'], ':otherattribution'=>($_POST['addattr'] ?? ''), ':qtype'=>$_POST['qtype'], ':control'=>$_POST['control'],
 					':qcontrol'=>$_POST['qcontrol'], ':solution'=>$_POST['solution'], ':isrand'=>$isrand, ':qtext'=>$_POST['qtext'], ':answer'=>$_POST['answer'],
-					':lastmoddate'=>$now, ':extref'=>$extref, ':replaceby'=>$replaceby, ':solutionopts'=>$solutionopts, ':id'=>$_GET['id']));
+					':lastmoddate'=>$now, ':extref'=>$extref, ':replaceby'=>$replaceby, ':solutionopts'=>$solutionopts, ':id'=>$_GET['id'],
+					':a11yalttype'=>$a11yalttype, ':a11yalt'=>$a11yalt
+				));
 
 				if ($stm->rowCount()>0) {
 					$outputmsg .= _("Question Updated.")." ";
@@ -300,7 +252,6 @@
 							$stm2 = $DBH->prepare("SELECT id FROM imas_qimages WHERE filename=:filename");
 							$stm2->execute(array(':filename'=>$row[1]));
 							if ($stm2->rowCount()==1) {
-								//unlink(rtrim(dirname(__FILE__), '/\\') .'/../assessment/qimages/'.$row[1]);
 								deleteqimage($row[1]);
 							}
 						}
@@ -363,14 +314,14 @@
 					$ancestorauthors = $lastauthor;
 				}
 			}
-			$query = "INSERT INTO imas_questionset (uniqueid,adddate,lastmoddate,description,ownerid,author,userights,license,otherattribution,qtype,control,qcontrol,qtext,answer,hasimg,ancestors,ancestorauthors,extref,replaceby,solution,solutionopts,isrand) VALUES ";
-			$query .= "(:uniqueid, :adddate, :lastmoddate, :description, :ownerid, :author, :userights, :license, :otherattribution, :qtype, :control, :qcontrol, :qtext, :answer, :hasimg, :ancestors, :ancestorauthors, :extref, :replaceby, :solution, :solutionopts, :isrand);";
+			$query = "INSERT INTO imas_questionset (uniqueid,adddate,lastmoddate,description,ownerid,author,userights,license,otherattribution,qtype,control,qcontrol,qtext,answer,hasimg,ancestors,ancestorauthors,extref,replaceby,solution,solutionopts,isrand,a11yalttype,a11yalt) VALUES ";
+			$query .= "(:uniqueid, :adddate, :lastmoddate, :description, :ownerid, :author, :userights, :license, :otherattribution, :qtype, :control, :qcontrol, :qtext, :answer, :hasimg, :ancestors, :ancestorauthors, :extref, :replaceby, :solution, :solutionopts, :isrand, :a11yalttype, :a11yalt);";
 			$stm = $DBH->prepare($query);
 			$stm->execute(array(':uniqueid'=>$uqid, ':adddate'=>$now, ':lastmoddate'=>$now, ':description'=>$_POST['description'], ':ownerid'=>$userid,
 				':author'=>$_POST['author'], ':userights'=>$_POST['userights'], ':license'=>$_POST['license'], ':otherattribution'=>($_POST['addattr'] ?? ''),
 				':qtype'=>$_POST['qtype'], ':control'=>$_POST['control'], ':qcontrol'=>$_POST['qcontrol'], ':qtext'=>$_POST['qtext'], ':answer'=>$_POST['answer'],
 				':hasimg'=>$_POST['hasimg'], ':ancestors'=>$ancestors, ':ancestorauthors'=>$ancestorauthors, ':extref'=>$extref, ':replaceby'=>$replaceby,
-				':solution'=>$_POST['solution'], ':solutionopts'=>$solutionopts, ':isrand'=>$isrand));
+				':solution'=>$_POST['solution'], ':solutionopts'=>$solutionopts, ':isrand'=>$isrand, ':a11yalttype'=>$a11yalttype, ':a11yalt'=>$a11yalt));
 			$qsetid = $DBH->lastInsertId();
 			$_GET['id'] = $qsetid;
 
@@ -768,6 +719,8 @@
 			$line['hasimg'] = 0;
 			$line['deleted'] = 0;
 			$line['replaceby'] = 0;
+			$line['a11yalttype'] = 0;
+			$line['a11yalt'] = '';
 			if (isset($_GET['aid']) && isset($_SESSION['lastsearchlibs'.$_GET['aid']])) {
 				$inlibs = $_SESSION['lastsearchlibs'.Sanitize::onlyInt($_GET['aid'])];
 			} else if (isset($_SESSION['lastsearchlibs'.$cid])) {
@@ -872,15 +825,7 @@
 	/// Start display ///
 	$pagetitle = _("Question Editor");
 	$placeinhead = '';
-	/*if ($_SESSION['mathdisp']==1 || $_SESSION['mathdisp']==2 || $_SESSION['mathdisp']==3) {
-		//these scripts are used by the editor to make image-based math work in the editor
-		$placeinhead .= '<script type="text/javascript">var AMTcgiloc = "'.$mathimgurl.'";';
-		//if ($mathdarkbg) {$placeinhead .=  'var mathbg = "dark";';}
-		$placeinhead .= '</script>';
-		$placeinhead .= "<script src=\"$imasroot/javascript/ASCIIMathTeXImg_min.js?ver=082911\" type=\"text/javascript\"></script>\n";
-		$placeinhead .= '<script type="text/javascript" src="'.$imasroot.'/tinymce4/tinymce.min.js?v=111612"></script>';
-	}
-	*/
+
 	$useeditor = "noinit";
 	$placeinhead .= '<script type="text/javascript" src="'.$staticroot.'/javascript/codemirror/codemirror-compressed.js?v=091522"></script>';
 	$placeinhead .= '<script type="text/javascript" src="'.$staticroot.'/javascript/codemirror/imathas.js?v=012925"></script>';
@@ -888,8 +833,7 @@
 
 	//$placeinhead .= '<script src="//sagecell.sagemath.org/embedded_sagecell.js"></script>'.PHP_EOL;
 	$placeinhead .= '<script type="text/javascript">
-	  var editoron = 0; var seditoron = 0;
-	  var coursetheme = "'.$coursetheme.'";';
+	  var editoron = 0; var seditoron = 0;';
 	if (!isset($CFG['GEN']['noFileBrowser'])) {
 		$placeinhead .= 'var filePickerCallBackFunc = filePickerCallBack;';
 	} else {
@@ -1006,7 +950,14 @@
 	   	}
 	   	$("#licensewarn").html("<br/>"+warn);
 	   }
-
+	   function changea11ytype() {
+	     let val = document.getElementById("a11yalttype").value;
+		 if (val > 0) {
+		 	$("#a11yaltwarn").show();
+		 } else {
+			$("#a11yaltwarn").hide();
+		 }
+       }
 	   function incctrlboxsize() {
 	   	$("#ccbox").find(".CodeMirror-scroll").css("min-height",0).css("max-height","none");
 	   	controlEditor.setSize("100%",$(controlEditor.getWrapperElement()).height()+28);
@@ -1041,7 +992,6 @@
             $(".dropdown-submenu").removeClass("open");
             $("#qtypedd a").removeClass("dd-active").attr("aria-expanded",false);
             var selel = $("#qtypedd a[data-sn=" + sn + "]");
-            console.log("#qtypedd a[data-sn=" + sn + "]");
             selel.addClass("dd-active"); 
             selel.closest(".dropdown-submenu").addClass("open").children("a").addClass("dd-active").attr("aria-expanded",true);
             var longname = selel.text();
@@ -1133,11 +1083,11 @@ if ($viewonly) {
 ?>
 <input type="hidden" name="hasimg" value="<?php echo Sanitize::encodeStringForDisplay($line['hasimg']);?>"/>
 <p>
-Description:<BR>
-<textarea cols=60 rows=4 name=description <?php if (!$canedit) echo "disabled";?>><?php echo Sanitize::encodeStringForDisplay($line['description'], true);?></textarea>
+<label for=description><?php echo _('Description');?></label>:<br/>
+<textarea cols=60 rows=4 name=description id=description <?php if (!$canedit) echo "disabled";?>><?php echo Sanitize::encodeStringForDisplay($line['description'], true);?></textarea>
 </p>
 <p>
-Author: <?php echo Sanitize::encodeStringForDisplay($line['author']); ?> <input type="hidden" name="author" value="<?php echo Sanitize::encodeStringForDisplay($author); ?>">
+<?php echo _('Author');?>: <?php echo Sanitize::encodeStringForDisplay($line['author']); ?> <input type="hidden" name="author" value="<?php echo Sanitize::encodeStringForDisplay($author); ?>">
 </p>
 <?php
 if (!isset($line['ownerid']) || isset($_GET['template']) || $line['ownerid']==$userid || ($line['userights']==3 && $line['groupid']==$groupid) || $isadmin || ($isgrpadmin && $line['groupid']==$groupid)) {
@@ -1145,7 +1095,7 @@ if (!isset($line['ownerid']) || isset($_GET['template']) || $line['ownerid']==$u
         echo '<p class=noticetext>'._('Note: The "make questions public by default" setting has been removed. To make a question public you must now explicitly set the use rights.').'</p>';
     }
     echo '<p>';
-	echo _('Use Rights:').' <select name="userights" id="userights">';
+	echo '<label for=userights>'._('Use Rights:').'</label> <select name="userights" id="userights">';
 	echo "<option value=\"0\" ";
 	if ($line['userights']==0) {echo "SELECTED";}
 	echo ">"._("Private")."</option>\n";
@@ -1159,7 +1109,7 @@ if (!isset($line['ownerid']) || isset($_GET['template']) || $line['ownerid']==$u
 	if ($line['userights']==4) {echo "SELECTED";}
 	echo ">"._("Allow use by all and modifications by all")."</option>\n";
 	echo '</select><br/>';
-	echo _('License:').' <select name="license" id="license" onchange="checklicense()">';
+	echo '<label for=license>' . _('License:').'</label> <select name="license" id="license" onchange="checklicense()">';
 	echo '<option value="0" '.($line['license']==0?'selected':'').'>Copyrighted</option>';
 	echo '<option value="1" '.($line['license']==1?'selected':'').'>IMathAS / WAMAP / MyOpenMath Community License (GPL + CC-BY)</option>';
 	echo '<option value="2" '.($line['license']==2?'selected':'').'>Public Domain</option>';
@@ -1172,7 +1122,7 @@ if (!isset($line['ownerid']) || isset($_GET['template']) || $line['ownerid']==$u
 	} else {
 		echo '<br/><span id="addattrspan">';
 	}
-	echo 'Additional Attribution: <input type="text" size="80" name="addattr" value="'.Sanitize::encodeStringForDisplay($line['otherattribution'], true).'"/>';
+	echo '<label for=addattr>'._('Additional Attribution').'</label>: <input type="text" size="80" name="addattr" id="addattr" value="'.Sanitize::encodeStringForDisplay($line['otherattribution'], true).'"/>';
 	if ($line['otherattribution']!='') {
 		echo '<br/><span class=noticetext style="font-size:80%">'._('You should only modify the attribution if you are SURE you are removing all portions of the question that require the attribution').'</span>';
 	}
@@ -1184,8 +1134,7 @@ if (!isset($line['ownerid']) || isset($_GET['template']) || $line['ownerid']==$u
 var curlibs = '<?php echo Sanitize::encodeStringForJavascript($inlibs);?>';
 var locklibs = '<?php echo Sanitize::encodeStringForJavascript($locklibs);?>';
 function libselect() {
-	//window.open('libtree.php?libtree=popup&cid=<?php echo $cid;?>&selectrights=1&libs='+curlibs+'&locklibs='+locklibs,'libtree','width=400,height='+(.7*screen.height)+',scrollbars=1,resizable=1,status=1,top=20,left='+(screen.width-420));
-	GB_show('Library Select','libtree2.php?cid=<?php echo $cid;?>&libtree=popup&selectrights=1&libs='+curlibs+'&locklibs='+locklibs,500,500);
+	GB_show('<?php echo _('Library Select');?>','libtree3.php?cid=<?php echo $cid;?>&libtree=popup&selectrights=1&libs='+curlibs+'&locklibs='+locklibs,500,500);
 }
 function setlib(libs) {
 	if (libs.charAt(0)=='0' && libs.indexOf(',')>-1) {
@@ -1198,7 +1147,7 @@ function setlibnames(libn) {
 	if (libn.indexOf('Unassigned')>-1 && libn.indexOf(',')>-1) {
 		libn = libn.substring(11);
 	}
-	document.getElementById("libnames").innerHTML = libn;
+	document.getElementById("libnames").textContent = libn;
 	$("#libonlysubmit").show();
 }
 function swapentrymode() {
@@ -1316,7 +1265,7 @@ if ($olnames !== '') {
 }?>
 </p>
 <div id=ccbox>
-<?php echo _('Common Control'); ?>: <span class="noselect"><span class=pointer onclick="incctrlboxsize('control')">[+]</span><span class=pointer onclick="decctrlboxsize('control')">[-]</span></span>
+<label for=control><?php echo _('Common Control'); ?></label>: <span class="noselect"><span class=pointer onclick="incctrlboxsize('control')">[+]</span><span class=pointer onclick="decctrlboxsize('control')">[-]</span></span>
 <input type=button id="solveropenbutton" value="Solver">
 <button type="submit"><?php echo _("Save"); ?></button>
 <input type=submit name=test value="Save and Test Question" class="saveandtest" />
@@ -1328,7 +1277,7 @@ if ($olnames !== '') {
 
 
 <div id=qtbox>
-<?php echo _('Question Text'); ?>: <span class="noselect"><span class=pointer onclick="incqtboxsize('qtext')">[+]</span><span class=pointer onclick="decqtboxsize('qtext')">[-]</span></span>
+<label for=qtext><?php echo _('Question Text'); ?></label>: <span class="noselect"><span class=pointer onclick="incqtboxsize('qtext')">[+]</span><span class=pointer onclick="decqtboxsize('qtext')">[-]</span></span>
 <button type="button" onclick="toggleeditor('qtext')" ><?php echo _("Toggle Editor"); ?></button>
 <button type="submit"><?php echo _("Save"); ?></button>
 <input type=submit name=test value="Save and Test Question" class="saveandtest" />
@@ -1346,30 +1295,33 @@ if ($line['solution']=='') {
 	echo '<div id="solutionwrapper">';
 }
 ?>
-<?php echo _('Detailed Solution:'); ?>
+<label for="solution"><?php echo _('Detailed Solution:'); ?></label>
 <span class="noselect"><span class=pointer onclick="incqtboxsize('solution')">[+]</span><span class=pointer onclick="decqtboxsize('solution')">[-]</span></span>
 <button type="button" onclick="toggleeditor('solution')" ><?php echo _("Toggle Editor"); ?></button>
 <button type="submit"><?php echo _("Save"); ?></button>
 <input type=submit name=test value="Save and Test Question" class="saveandtest" />
 <button type="button" class="quickSaveButton" onclick="quickSaveQuestion()"><?php echo _('Quick Save and Preview'); ?></button>
 <br/>
-<input type="checkbox" name="usesrand" value="1" <?php if (($line['solutionopts']&1)==1) {echo 'checked="checked"';};?>
+<label><input type="checkbox" name="usesrand" value="1" <?php if (($line['solutionopts']&1)==1) {echo 'checked="checked"';};?>
    onclick="$('#userandnote').toggle()">
-<?php echo _('Uses random variables from the question, or question is not randomized.'); ?>
+<?php echo _('Uses random variables from the question, or question is not randomized.'); ?></label>
  <span id="userandnote" <?php if (($line['solutionopts']&1)==1) {echo 'style="display:none;"';}?>>
    <i><?php echo _('Be sure to include the question you are solving in the text'); ?></i>
  </span><br/>
-<input type="checkbox" name="useashelp" value="2" <?php if (($line['solutionopts']&2)==2) {echo 'checked="checked"';};?>>
-<?php echo _('Use this as a "written example" help button'); ?><br/>
-<input type="checkbox" name="usewithans" value="4" <?php if (($line['solutionopts']&4)==4) {echo 'checked="checked"';};?>>
-<?php echo _('Display with the "Show Answer"'); ?><br/>
+<label><input type="checkbox" name="useashelp" value="2" <?php if (($line['solutionopts']&2)==2) {echo 'checked="checked"';};?>>
+<?php echo _('Use this as a "written example" help button'); ?></label><br/>
+<label><input type="checkbox" name="usewithans" value="4" <?php if (($line['solutionopts']&4)==4) {echo 'checked="checked"';};?>>
+<?php echo _('Display with the "Show Answer"'); ?></label><br/>
 <textarea style="width: 100%" cols=60 rows=<?php echo min(35,max(10,substr_count($line['solution'],"\n")+1));?> id="solution" name="solution" <?php if (!$canedit) echo "readonly=\"readonly\"";?>><?php echo Sanitize::encodeStringForDisplay($line['solution'], true);?></textarea>
 </div>
 <div id=imgbox>
 <input type="hidden" name="MAX_FILE_SIZE" value="500000" />
-<?php echo _('Image file:'); ?> <input type="file" name="imgfile" <?php if (!$canedit) {echo 'disabled';};?>/>
-  <?php echo _('assign to variable:'); ?> <input type="text" name="newimgvar" size="6" <?php if (!$canedit) {echo 'disabled';};?>/>
-  <?php echo _('Description:'); ?> <input type="text" size="20" name="newimgalt" value="" <?php if (!$canedit) {echo 'disabled';};?>/><br/>
+<label for=imgfile><?php echo _('Image file:'); ?></label> 
+	<input type="file" name="imgfile" id="imgfile" <?php if (!$canedit) {echo 'disabled';};?>/>
+  <label for=newimgvar><?php echo _('assign to variable:'); ?></label> 
+    <input type="text" name="newimgvar" id="newimgvar" size="6" <?php if (!$canedit) {echo 'disabled';};?>/>
+  <label for="newimgalt"><?php echo _('Description:'); ?></label> 
+    <textarea rows=1 cols=30 name="newimgalt" id="newimgalt" <?php if (!$canedit) {echo 'disabled';};?>></textarea><br/>
 <div id="imgListContainer" style="display:<?php echo (isset($images['vars']) && count($images['vars'])>0) ? 'block' : 'none'; ?>">
 	<?php echo _('Images:'); ?>
 	<ul id='imgList'>
@@ -1384,20 +1336,21 @@ if (isset($images['vars']) && count($images['vars'])>0) {
 			$urlimg = "$imasroot/assessment/qimages/{$images['files'][$id]}";
 		}
 		echo "<li>";
-		echo _("Variable:")." <input type=\"text\" name=\"imgvar-$id\" value=\"\$".Sanitize::encodeStringForDisplay($var)."\" size=\"10\" ".($canedit?'':'disabled')."/> <a href=\"".Sanitize::url($urlimg)."\" target=\"_blank\">View</a> ";
-		echo _("Description:")." <input type=\"text\" size=\"20\" name=\"imgalt-$id\" value=\"".Sanitize::encodeStringForDisplay($images['alttext'][$id])."\" ".($canedit?'':'disabled')."/> Delete? <input type=checkbox name=\"delimg-$id\" ".($canedit?'':'disabled')."/>";
+		echo "<label for=\"imgvar-$id\">"._("Variable:")."</label> <input type=\"text\" name=\"imgvar-$id\" id=\"imgvar-$id\" value=\"\$".Sanitize::encodeStringForDisplay($var)."\" size=\"10\" ".($canedit?'':'disabled')."/> <a href=\"".Sanitize::url($urlimg)."\" target=\"_blank\">View</a> ";
+		echo "<label for=\"imgalt-$id\">"._("Description:")."</label> <textarea rows=1 cols=30 name=\"imgalt-$id\" id=\"imgalt-$id\" ".($canedit?'':'disabled').">".Sanitize::encodeStringForDisplay($images['alttext'][$id])."</textarea> ";
+		echo "<label><input type=checkbox name=\"delimg-$id\" ".($canedit?'':'disabled')."/> Delete?</label>";
 		echo "</li>";
 	}
 }
 ?>
 	</ul>
 </div>
-<?php echo _('Help button: Type:'); ?> <select name="helptype" <?php if (!$canedit) {echo 'disabled';};?>>
+<label for=helptype><?php echo _('Help button: Type:'); ?></label> <select name="helptype" id="helptype" <?php if (!$canedit) {echo 'disabled';};?>>
  <option value="video"><?php echo _('Video'); ?></option>
  <option value="read"><?php echo _('Read'); ?></option>
  </select>
- <?php echo _('URL')?>: <input type="text" name="helpurl" size="30" <?php if (!$canedit) {echo 'disabled';};?>/>
- <?php echo _('Description')?>: <input type="text" name="helpdescr" size="30" <?php if (!$canedit) {echo 'disabled';};?>/>
+ <label for=helpurl><?php echo _('URL')?></label>: <input type="text" name="helpurl" id="helpurl" size="30" <?php if (!$canedit) {echo 'disabled';};?>/>
+ <label for=helpdescr><?php echo _('Description')?></label>: <input type="text" name="helpdescr" id="helpdescr" size="30" <?php if (!$canedit) {echo 'disabled';};?>/>
  <br/>
 <?php
 echo '<div id="helpbtnwrap" ';
@@ -1417,24 +1370,33 @@ if (count($extref)>0) {
     if (!empty($extrefpt[3])) {
         echo _('Description') . ': ' . Sanitize::encodeStringForDisplay($extrefpt[3]) . '. ';
     }
-    echo ' <label>'._('Delete?')." <input type=\"checkbox\" name=\"delhelp-$i\" ".($canedit?'':'disabled')."/></label></li>";
+    echo "<label><input type=\"checkbox\" name=\"delhelp-$i\" ".($canedit?'':'disabled').'/> '._('Delete?').'</label></li>';
 	}
 }
 echo '</ul></div>'; //helpbtnlist, helpbtnwrap
 
+echo '<p><label for=a11yalttype>'._('Use accessible alternative').':</label> ';
+$allylabels = [_('no'),_('visual alt'),_('mouse alt'),_('visual or mouse alt')];
+writeHtmlSelect ('a11yalttype',[0,1,2,3],$allylabels,$line['a11yalttype'],null,null,'onchange="changea11ytype()"');
+echo ' <label>'._('Accessible alt ID').' <input type=text size=10 name=a11yalt value="'.($line['a11yalt']==0?'':Sanitize::encodeStringForDisplay($line['a11yalt'])).'"/></label>';
+echo '<span id=a11yaltwarn' . ($line['a11yalt'] > 0 ? '' : ' style="display:none"').'> ';
+echo '<span class=noticetext><br>'._('It is likely you should not be using this option. Read the help for details.').'</span></span> ';
+echo '<a href="../help.php?section=a11yalt" target="_blank">'._('Help').'</a>';
+echo '</p>';
+
 if ($myrights==100) {
-	echo '<p>'._('Mark question as deprecated and suggest alternative?').' <input type="checkbox" name="doreplaceby" ';
+	echo '<p><label>'._('Mark question as deprecated and suggest alternative?').' <input type="checkbox" name="doreplaceby" ';
 	if ($line['replaceby']!=0) {
 		echo 'checked="checked"';
 	}
-	echo '/> '._('Suggested replacement ID:').' <input type="text" size="5" name="replaceby" value="';
+	echo '/></label> <label>'._('Suggested replacement ID:').' <input type="text" size="5" name="replaceby" value="';
 	if ($line['replaceby']>0) {
 		echo $line['replaceby'];
 	}
-	echo '"/>.  <i>'._('Do not use this unless you know what you\'re doing').'</i></p>';
+	echo '"/></label>.  <i>'._('Do not use this unless you know what you\'re doing').'</i></p>';
 }
 if ($line['deleted']==1 && ($myrights==100 || $line['ownerid']==$userid)) {
-	echo '<p>'._('This question is currently marked as deleted.').' <label><input type="checkbox" name="undelete"> '._('Un-delete question').'</p>';
+	echo '<p>'._('This question is currently marked as deleted.').' <label><input type="checkbox" name="undelete"> '._('Un-delete question').'</label></p>';
 }
 ?>
 </div>
@@ -1461,9 +1423,21 @@ if (FormData){ // Only allow quicksave if FormData object exists
 		$(".quickSaveNotice").html("Saving...");
 		// Save codemirror and tinyMCE data
 		try {
-			for (i in qEditor) { qEditor[i].save(); }
-			tinyMCE.triggerSave();
 			if (controlEditor) controlEditor.save();
+			if (window.tinyMCE) {
+				if (editoron) {
+					tinyMCE.get("qtext").save();
+				} else {
+					qEditor["qtext"].save();
+				}
+				if (seditoron) {
+					tinyMCE.get("solution").save();
+				} else {
+					qEditor["solution"].save();
+				}
+			} else {
+				for (i in qEditor) { qEditor[i].save(); }
+			}
 		} catch (err){
 			quickSaveQuestion.errorFunc();
 		}
@@ -1509,10 +1483,10 @@ if (FormData){ // Only allow quicksave if FormData object exists
 					for (id in images.vars){
 						imgCount++;
 						$("#imgList").append(
-							"<li> Variable: <input type='text' name='imgvar-" + id + "' value='$" + images.vars[id] + "' size='10' />" +
+							"<li><label>Variable: <input type='text' name='imgvar-" + id + "' value='$" + images.vars[id] + "' size='10' /></label>" +
 							" <a href='" + res.imgUrlBase + images.files[id] + "' target='_blank'>View</a>" +
-							" Description: <input type='text' size='20' name='imgalt-" + id + "' value='" + images.alttext[id] + "'/>" +
-							" Delete? <input type='checkbox' name='delimg-" + id + "'/>" +
+							" <label>Description: <textarea rows=1 cols=30 name='imgalt-" + id + "'>" + images.alttext[id] + "</textarea></label>" +
+							" <label><input type='checkbox' name='delimg-" + id + "'/> Delete?</label>" +
 							"</li>"
 						);
 					}
@@ -1530,7 +1504,7 @@ if (FormData){ // Only allow quicksave if FormData object exists
 						$("#helpbtnlist").append("<li>Type: "+res.extref[i][0] +
                             ", URL: <a href='"+res.extref[i][1]+"'>"+res.extref[i][1]+"</a>. " +
                             ((res.extref[i][2]) ? (_("Description")+": "+res.extref[i][2]+". "):"") +
-							_("Delete?")+" <input type=\"checkbox\" name=\"delhelp-"+i+"\"/></li>");
+							"<label><input type=\"checkbox\" name=\"delhelp-"+i+"\"/>" + _("Delete?") + "</label></li>");
 					}
 					$("#helpbtnwrap").removeClass("hidden");
 				} else {

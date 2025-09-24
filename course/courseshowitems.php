@@ -110,10 +110,10 @@ function getBlockDD($blocktype, $i, $parent, $bnum, $blockid, $name)
     global $cid, $staticroot;
     $blockid = intval($blockid);
     $out = '<div class="itemhdrdd dropdown">';
-    $out .= '<a tabindex=0 class="dropdown-toggle" id="dropdownMenu' . $i . '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
+    $out .= '<a tabindex=0 class="dropdown-toggle" role="button" id="dropdownMenuCtrl' . $i . '" aria-controls="dropdownMenu' . $i . '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
     $out .= ' <img src="' . $staticroot . '/img/gearsdd.png" alt="' . _('Options for') . ' ' . Sanitize::encodeStringForDisplay($name) . '" class="mida"/>';
     $out .= '</a>';
-    $out .= '<ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="dropdownMenu' . $i . '">';
+    $out .= '<ul class="dropdown-menu dropdown-menu-right" role="menu" id="dropdownMenu' . $i . '" aria-labelledby="dropdownMenuCtrl' . $i . '">';
     if ($blocktype == 'T') {
         $out .= " <li><a href=\"course.php?cid=$cid&folder=$parent-$bnum\">" . _('Edit Contents') . "</a></li>";
     } else if ($blocktype == 'E') {
@@ -132,10 +132,10 @@ function getAssessDD($i, $typeid, $parent, $itemid, $thisaddassess, $ver, $name)
 {
     global $cid, $staticroot;
     $out = '<div class="itemhdrdd dropdown">';
-    $out .= '<a tabindex=0 class="dropdown-toggle" id="dropdownMenu' . $i . '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
+    $out .= '<a tabindex=0 class="dropdown-toggle" role="button" id="dropdownMenuCtrl' . $i . '" aria-controls="dropdownMenu' . $i . '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
     $out .= ' <img src="' . $staticroot . '/img/gearsdd.png" alt="' . _('Options for') . ' ' . Sanitize::encodeStringForDisplay($name) . '" class="mida"/>';
     $out .= '</a>';
-    $out .= '<ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="dropdownMenu' . $i . '">';
+    $out .= '<ul class="dropdown-menu dropdown-menu-right" role="menu" id="dropdownMenu' . $i . '" aria-labelledby="dropdownMenuCtrl' . $i . '">';
     $out .= " <li><a href=\"addquestions2.php?aid=$typeid&cid=$cid\">" . _('Questions') . "</a></li>";
     $out .= " <li><a href=\"$thisaddassess?id=$typeid&block=$parent&cid=$cid\">" . _('Settings') . "</a></li>";
     $out .= " <li><a href=\"#\" onclick=\"return moveDialog('$parent','$itemid');\">" . _('Move') . '</a></li>';
@@ -155,10 +155,10 @@ function getDrillDD($i, $typeid, $parent, $itemid, $name)
 {
     global $cid, $staticroot;
     $out = '<div class="itemhdrdd dropdown">';
-    $out .= '<a tabindex=0 class="dropdown-toggle" id="dropdownMenu' . $i . '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
+    $out .= '<a tabindex=0 class="dropdown-toggle" role="button" id="dropdownMenuCtrl' . $i . '" aria-controls="dropdownMenu' . $i . '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
     $out .= ' <img src="' . $staticroot . '/img/gearsdd.png" alt="' . _('Options for') . ' ' . Sanitize::encodeStringForDisplay($name) . '" class="mida"/>';
     $out .= '</a>';
-    $out .= '<ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="dropdownMenu' . $i . '">';
+    $out .= '<ul class="dropdown-menu dropdown-menu-right" role="menu" id="dropdownMenu' . $i . '" aria-labelledby="dropdownMenuCtrl' . $i . '">';
     $out .= " <li><a href=\"adddrillassess.php?daid=$typeid&block=$parent&cid=$cid\">" . _('Modify') . "</a></li>";
     $out .= " <li><a href=\"#\" onclick=\"return moveDialog('$parent','$itemid');\">" . _('Move') . '</a></li>';
     $out .= " <li><a href=\"deletedrillassess.php?id=$typeid&block=$parent&cid=$cid&remove=ask\">" . _('Delete') . "</a></li>";
@@ -173,10 +173,10 @@ function getBasicDD($i, $typeid, $parent, $itemid, $typename, $statsletter, $sho
 {
     global $cid, $staticroot;
     $out = '<div class="itemhdrdd dropdown">';
-    $out .= '<a tabindex=0 class="dropdown-toggle" id="dropdownMenu' . $i . '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
+    $out .= '<a tabindex=0 class="dropdown-toggle" role="button" id="dropdownMenuCtrl' . $i . '" aria-controls="dropdownMenu' . $i . '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
     $out .= ' <img src="' . $staticroot . '/img/gearsdd.png" alt="' . _('Options for') . ' ' . Sanitize::encodeStringForDisplay($name) . '" class="mida"/>';
     $out .= '</a>';
-    $out .= '<ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="dropdownMenu' . $i . '">';
+    $out .= '<ul class="dropdown-menu dropdown-menu-right" role="menu" id="dropdownMenu' . $i . '" aria-labelledby="dropdownMenuCtrl' . $i . '">';
     $out .= " <li><a href=\"add$typename.php?id=$typeid&block=$parent&cid=$cid\">" . _('Modify') . "</a></li>";
     $out .= " <li><a href=\"#\" onclick=\"return moveDialog('$parent','$itemid');\">" . _('Move') . '</a></li>';
     $out .= " <li><a href=\"delete$typename.php?id=$typeid&block=$parent&cid=$cid&remove=ask\">" . _('Delete') . "</a></li>";
@@ -254,6 +254,9 @@ function showitems($items, $parent, $inpublic = false, $greyitems = 0)
             }
             if (!isset($items[$i]['id'])) { // hack fix
                 $items[$i]['id'] = 'tmpid' . $i;
+            }
+            if (!isset($items[$i]['SH'])) { // hack fix
+                $items[$i]['SH'] = 'HO';
             }
             $turnonpublic = false;
             if ($ispublic && !$inpublic) {
@@ -352,9 +355,9 @@ function showitems($items, $parent, $inpublic = false, $greyitems = 0)
                     echo "<div class=title>";
 
                     if ($ispublic) {
-                        echo "<a href=\"public.php?cid=$cid&folder=$parent-$bnum\" $astyle><b role=\"heading\">{$items[$i]['name']}</b></a> ";
+                        echo "<a href=\"public.php?cid=$cid&folder=$parent-$bnum\" $astyle><b>{$items[$i]['name']}</b></a> ";
                     } else {
-                        echo "<a href=\"course.php?cid=$cid&folder=$parent-$bnum\" $astyle><b role=\"heading\">{$items[$i]['name']}</b></a> ";
+                        echo "<a href=\"course.php?cid=$cid&folder=$parent-$bnum\" $astyle><b>{$items[$i]['name']}</b></a> ";
                     }
                     if (isset($items[$i]['newflag']) && $items[$i]['newflag'] == 1) {
                         echo "<span class=noticetext>", _('New'), "</span>";
@@ -445,7 +448,7 @@ function showitems($items, $parent, $inpublic = false, $greyitems = 0)
 
                     echo "<div class=title>";
 
-                    echo "<b role=\"heading\"><a id=\"blockh{$items[$i]['id']}\" href=\"#\" onClick=\"toggleblock(event,'{$items[$i]['id']}','$parent-$bnum'); return false;\" ";
+                    echo "<b><a id=\"blockh{$items[$i]['id']}\" href=\"#\" onClick=\"toggleblock(event,'{$items[$i]['id']}','$parent-$bnum'); return false;\" ";
                     echo 'aria-controls="block' . $items[$i]['id'] . '" aria-expanded="' . ($isopen ? "true" : "false") . '"';
                     echo "$astyle>" . Sanitize::encodeStringForDisplay($items[$i]['name']) . "</a></b> ";
                     if (isset($items[$i]['newflag']) && $items[$i]['newflag'] == 1) {
@@ -473,7 +476,7 @@ function showitems($items, $parent, $inpublic = false, $greyitems = 0)
                     echo "</div>\n"; //block
 
                     if ($isopen) {
-                        echo "<div aria-expanded=true class=blockitems ";
+                        echo "<div class=blockitems ";
                     } else {
                         echo "<div aria-hidden=true class=hidden ";
                     }
@@ -541,7 +544,7 @@ function showitems($items, $parent, $inpublic = false, $greyitems = 0)
 
                     echo "<div class=title>";
 
-                    echo "<a href=\"course.php?cid=$cid&folder=$parent-$bnum\" $astyle><b role=\"heading\">";
+                    echo "<a href=\"course.php?cid=$cid&folder=$parent-$bnum\" $astyle><b>";
                     if ($items[$i]['SH'][0] == 'S') {echo "{$items[$i]['name']}</b></a> ";} else {echo "<i>{$items[$i]['name']}</i></b></a>";}
                     if (isset($items[$i]['newflag']) && $items[$i]['newflag'] == 1) {
                         echo " <span class=noticetext>", _('New'), "</span>";
@@ -626,7 +629,7 @@ function showitems($items, $parent, $inpublic = false, $greyitems = 0)
 
                     echo "<div class=title>";
 
-                    echo "<b role=\"heading\">";
+                    echo "<b>";
                     $control = "onClick=\"toggleblock(event,'{$items[$i]['id']}','$parent-$bnum'); return false;\" ";
                     $control .= 'aria-controls="block' . $items[$i]['id'] . '" aria-expanded="' . ($isopen ? "true" : "false") . '"';
                     if ($items[$i]['SH'][0] == 'S') {
@@ -658,7 +661,7 @@ function showitems($items, $parent, $inpublic = false, $greyitems = 0)
                     echo "</div>\n"; //block
 
                     if ($isopen) {
-                        echo "<div aria-expanded=true class=blockitems ";
+                        echo "<div class=blockitems ";
                     } else {
                         echo "<div aria-hidden=true class=hidden ";
                     }
@@ -706,24 +709,25 @@ function showitems($items, $parent, $inpublic = false, $greyitems = 0)
             if ($ispublic) {continue;}
             //echo "<div class=item>\n";
             beginitem($canedit);
+            $calmenu = '';
             if ($canedit) {
                 /*echo '<span class="instronly">';
                 echo "<a href=\"addcalendar.php?id={$items[$i]}&block=$parent&cid=$cid&remove=true\">", _('Delete'), "</a>";
                 echo " | <a id=\"mcelink\" href=\"managecalitems.php?cid=$cid\">", _('Manage Events'), "</a>";
                 echo '</span>';
                  */
-                echo '<div class="floatright dropdown">';
-                echo '<a tabindex=0 class="dropdown-toggle" id="dropdownMenu' . $i . '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
-                echo ' <img src="' . $staticroot . '/img/gearsdd.png" alt="Options" class="mida"/>';
-                echo '</a>';
-                echo '<ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="dropdownMenu' . $i . '">';
-                echo " <li><a href=\"addcalendar.php?id={$items[$i]}&block=$parent&cid=$cid&remove=true\">", _('Delete'), "</a></li>";
-                echo " <li><a href=\"#\" onclick=\"return moveDialog('$parent','{$items[$i]}');\">", _('Move'), '</a></li>';
-                echo " <li><a id=\"mcelink\" href=\"managecalitems.php?cid=$cid\">", _('Manage Events'), "</a></li>";
-                echo '</ul>';
-                echo '</div>';
+                $calmenu .= '<div class="dropdown">';            
+                $calmenu .= '<a tabindex=0 class="dropdown-toggle" role="button" id="dropdownMenuCtrl' . $i . '" aria-controls="dropdownMenu' . $i . '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
+                $calmenu .= ' <img src="' . $staticroot . '/img/gearsdd.png" alt="Options" class="mida"/>';
+                $calmenu .= '</a>';
+                $calmenu .= '<ul class="dropdown-menu dropdown-menu-right" role="menu" id="dropdownMenu' . $i . '" aria-labelledby="dropdownMenuCtrl' . $i . '">';
+                $calmenu .= " <li><a href=\"addcalendar.php?id={$items[$i]}&block=$parent&cid=$cid&remove=true\">". _('Delete'). "</a></li>";
+                $calmenu .= " <li><a href=\"#\" onclick=\"return moveDialog('$parent','{$items[$i]}');\">". _('Move'). '</a></li>';
+                $calmenu .= " <li><a id=\"mcelink\" href=\"managecalitems.php?cid=$cid\">". _('Manage Events'). "</a></li>";
+                $calmenu .= '</ul>';
+                $calmenu .= '</div>';
             }
-            showcalendar("course");
+            showcalendar("course", $calmenu);
             enditem($canedit); // echo "</div>";
         } else if ($line['itemtype'] == "Assessment") {
             if ($ispublic) {continue;}
@@ -749,12 +753,13 @@ function showitems($items, $parent, $inpublic = false, $greyitems = 0)
             $duedatewords = _('Due');
             if (isset($exceptions[$items[$i]])) {
                 list($useexception, $canundolatepass, $canuselatepass) = $exceptionfuncs->getCanUseAssessException($exceptions[$items[$i]], $line);
+
                 if ($useexception) {
-                    $line['startdate'] = $exceptions[$items[$i]][0];
-                    $line['enddate'] = $exceptions[$items[$i]][1];
-                    if ($exceptions[$items[$i]][2] == 1) {
+                    $line['startdate'] = $exceptions[$items[$i]]['startdate'];
+                    $line['enddate'] = $exceptions[$items[$i]]['enddate'];
+                    if ($exceptions[$items[$i]]['islatepass'] == 1) {
                         $duedatewords = _('With LatePass, due');
-                    } else if (empty($exceptions[$items[$i]][3])) { //is_lti !isset or is 0
+                    } else if (empty($exceptions[$items[$i]]['is_lti'])) { //is_lti !isset or is 0
                         $duedatewords = _('With extension, due');
                     }
                 }
@@ -785,7 +790,7 @@ function showitems($items, $parent, $inpublic = false, $greyitems = 0)
             $nothidden = true;
             $showgreyedout = false;
             if (abs($line['reqscore']) > 0 && $line['reqscoreaid'] > 0 && !$viewall && $line['enddate'] > $now
-                && (!isset($exceptions[$items[$i]]) || $exceptions[$items[$i]][3] == 0)
+                && (!isset($exceptions[$items[$i]]) || ($exceptions[$items[$i]]['waivereqscore']&1) == 0)
                 && empty($excused['A' . $line['reqscoreaid']])
             ) {
                 if ($line['reqscore'] < 0 || $line['reqscoretype'] & 1) {
@@ -2175,40 +2180,42 @@ function quickview($items, $parent, $showdates = false, $showlinks = true)
             if (!isset($CFG['CPS']['miniicons']['folder'])) {
                 $icon = '<span class=icon style="background-color:' . $color . '">B</span>';
             } else {
-                $icon = '<img alt="folder" src="' . $staticroot . '/img/' . $CFG['CPS']['miniicons']['folder'] . '" class="mida icon" /> ';
+                $icon = '<span class=icon><img alt="folder" src="' . $staticroot . '/img/' . $CFG['CPS']['miniicons']['folder'] . '" class="mida"/></span> ';
             }
             echo '<li class="' . $liclass . '" id="' . "$parent-$bnum" . '" obn="' . Sanitize::encodeStringForDisplay($items[$i]['id']) . '">' . $icon;
+            
             if ($items[$i]['avail'] == 2 || ($items[$i]['avail'] == 1 && $items[$i]['startdate'] < $now && $items[$i]['enddate'] > $now)) {
-                echo '<b><span id="B' . $parent . '-' . $bnum . '" onclick="editinplace(this)">' . Sanitize::encodeStringForDisplay($items[$i]['name']) . "</span></b>";
+                echo '<b><span id="B' . $parent . '-' . $bnum . '">' . Sanitize::encodeStringForDisplay($items[$i]['name']) . "</span></b>";
                 //echo '<b>'.$items[$i]['name'].'</b>';
             } else {
-                echo '<i><b><span id="B' . $parent . '-' . $bnum . '" onclick="editinplace(this)">' . Sanitize::encodeStringForDisplay($items[$i]['name']) . "</span></b></i>";
+                echo '<i><b><span id="B' . $parent . '-' . $bnum . '">' . Sanitize::encodeStringForDisplay($items[$i]['name']) . "</span></b></i>";
                 //echo '<i><b>'.$items[$i]['name'].'</b></i>';
             }
+            if ($showlinks) {
+                echo " <span class=links><a href=\"addblock.php?cid=$cid&id=$parent-$bnum\">", _('Modify'), "</a>";
+                echo "<a href=\"deleteblock.php?cid=$cid&id=$parent-$bnum&bid=" . intval($items[$i]['id']) . "&remove=ask\">", _('Delete'), "</a>";
+                echo "<a href=\"copyoneitem.php?cid=$cid&copyid=$parent-$bnum\">", _('Copy'), "</a>";
+                //echo "<a href=\"course.php?cid=$cid&togglenewflag=$parent-$bnum\">", _('NewFlag'), "</a>";
+                echo '</span>';
+            }
+
             if ($showdates) {
                 echo " $show";
             }
-            if ($showlinks) {
-                echo '<span class="links">';
-                echo " <a href=\"addblock.php?cid=$cid&id=$parent-$bnum\">", _('Modify'), "</a>";
-                echo " | <a href=\"deleteblock.php?cid=$cid&id=$parent-$bnum&bid=" . intval($items[$i]['id']) . "&remove=ask\">", _('Delete'), "</a>";
-                echo " | <a href=\"copyoneitem.php?cid=$cid&copyid=$parent-$bnum\">", _('Copy'), "</a>";
-                echo " | <a href=\"course.php?cid=$cid&togglenewflag=$parent-$bnum\">", _('NewFlag'), "</a>";
-                echo '</span>';
-            }
+            echo '<ul class=qview ' . $qviewstyle . '>';
             if (count($items[$i]['items']) > 0) {
-                echo '<ul class=qview ' . $qviewstyle . '>';
                 quickview($items[$i]['items'], $parent . '-' . $bnum, $showdates, $showlinks);
-                echo '</ul>';
             }
+            echo '</ul>';
             echo '</li>';
         } else if ($itemtypes[$items[$i]][0] == 'Calendar') {
             if (!isset($CFG['CPS']['miniicons']['calendar'])) {
                 $icon = '<span class=icon style="background-color:#0f0;">C</span>';
             } else {
-                $icon = '<img alt="calendar" src="' . $staticroot . '/img/' . $CFG['CPS']['miniicons']['calendar'] . '" class="mida icon" /> ';
+                $icon = '<span class=icon><img alt="calendar" src="' . $staticroot . '/img/' . $CFG['CPS']['miniicons']['calendar'] . '" class="mida"/></span> ';
             }
-            echo '<li id="' . Sanitize::encodeStringForDisplay($items[$i]) . '">' . $icon . 'Calendar</li>';
+            echo '<li id="' . Sanitize::encodeStringForDisplay($items[$i]) . '">' . $icon;
+            echo '<span class="noedit" id="cal' . Sanitize::encodeStringForDisplay($items[$i]) .'">'._('Calendar').'</span></li>';
 
         } else if ($itemtypes[$items[$i]][0] == 'Assessment') {
             $typeid = Sanitize::onlyInt($itemtypes[$items[$i]][1]);
@@ -2238,12 +2245,13 @@ function quickview($items, $parent, $showdates = false, $showlinks = true)
             if (!isset($CFG['CPS']['miniicons']['assess'])) {
                 $icon = '<span class=icon style="background-color:' . $color . '">?</span>';
             } else {
-                $icon = '<img alt="assessment" src="' . $staticroot . '/img/' . $CFG['CPS']['miniicons']['assess'] . '" class="mida icon" /> ';
+                $icon = '<span class=icon><img alt="assessment" src="' . $staticroot . '/img/' . $CFG['CPS']['miniicons']['assess'] . '" class="mida"/></span> ';
             }
             echo '<li id="' . Sanitize::encodeStringForDisplay($items[$i]) . '">' . $icon;
+
             if ($line['avail'] == 1 && $line['startdate'] < $now && $line['enddate'] > $now) {
                 $show = sprintf(_('Available until %s'), $enddate);
-                echo '<b><span id="A' . $typeid . '" onclick="editinplace(this)">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b>";
+                echo '<b><span id="A' . $typeid . '">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b>";
                 //echo '<b>'.$line['name'].'</b> ';
             } else if ($line['avail'] == 1 && $line['startdate'] < $now && $line['reviewdate'] > $now) {
                 if ($line['ver'] > 1) {
@@ -2252,7 +2260,7 @@ function quickview($items, $parent, $showdates = false, $showlinks = true)
                     $show = sprintf(_('Review until %s'), $reviewdate);
                 }
                 //echo '<b>'.$line['name'].'</b> ';
-                echo '<b><span id="A' . $typeid . '" onclick="editinplace(this)">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b>";
+                echo '<b><span id="A' . $typeid . '">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b>";
             } else {
                 $show = sprintf(_('Available %1$s to %2$s'), $startdate, $enddate);
                 if ($line['reviewdate'] > 0 && $line['enddate'] != 2000000000) {
@@ -2263,29 +2271,32 @@ function quickview($items, $parent, $showdates = false, $showlinks = true)
                     }
                 }
                 //echo '<i><b>'.$line['name'].'</b></i> ';
-                echo '<i><b><span id="A' . Sanitize::encodeStringForDisplay($typeid) . '" onclick="editinplace(this)">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b></i>";
-            }
-            if ($showdates) {
-                echo Sanitize::encodeStringForDisplay($show);
+                echo '<i><b><span id="A' . Sanitize::encodeStringForDisplay($typeid) . '">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b></i>";
             }
             if ($showlinks) {
-                echo '<span class="links">';
+                echo ' <span class=links>';
+
                 if ($line['ver'] > 1) {
-                    echo " <a href=\"addquestions2.php?aid=" . Sanitize::onlyInt($typeid) . "&cid=$cid\">", _('Questions'), "</a> | ";
-                    echo "<a href=\"addassessment2.php?id=" . Sanitize::onlyInt($typeid) . "&cid=$cid\">", _('Settings'), "</a> | \n";
+                    echo "<a href=\"addquestions2.php?aid=" . Sanitize::onlyInt($typeid) . "&cid=$cid\">", _('Questions'), "</a>";
+                    echo "<a href=\"addassessment2.php?id=" . Sanitize::onlyInt($typeid) . "&cid=$cid\">", _('Settings'), "</a>";
                 } else {
-                    echo " <a href=\"addquestions.php?aid=" . Sanitize::onlyInt($typeid) . "&cid=$cid\">", _('Questions'), "</a> | ";
-                    echo "<a href=\"addassessment.php?id=" . Sanitize::onlyInt($typeid) . "&cid=$cid\">", _('Settings'), "</a> | \n";
+                    echo "<a href=\"addquestions.php?aid=" . Sanitize::onlyInt($typeid) . "&cid=$cid\">", _('Questions'), "</a>";
+                    echo "<a href=\"addassessment.php?id=" . Sanitize::onlyInt($typeid) . "&cid=$cid\">", _('Settings'), "</a>";
                 }
-                echo "<a href=\"deleteassessment.php?id=" . Sanitize::onlyInt($typeid) . "&block=$parent&cid=$cid&remove=ask\">", _('Delete'), "</a>\n";
-                echo " | <a href=\"copyoneitem.php?cid=$cid&copyid=" . Sanitize::encodeUrlParam($items[$i]) . "\">", _('Copy'), "</a>";
+                echo "<a href=\"deleteassessment.php?id=" . Sanitize::onlyInt($typeid) . "&block=$parent&cid=$cid&remove=ask\">", _('Delete'), "</a>";
+                echo "<a href=\"copyoneitem.php?cid=$cid&copyid=" . Sanitize::encodeUrlParam($items[$i]) . "\">", _('Copy'), "</a>";
                 if ($line['ver'] > 1) {
-                    echo " | <a href=\"gb-itemanalysis2.php?cid=$cid&aid=" . Sanitize::onlyInt($typeid) . "\">", _('Grades'), "</a>";
+                    echo "<a href=\"gb-itemanalysis2.php?cid=$cid&aid=" . Sanitize::onlyInt($typeid) . "\">", _('Grades'), "</a>";
                 } else {
-                    echo " | <a href=\"gb-itemanalysis.php?cid=$cid&asid=average&aid=" . Sanitize::onlyInt($typeid) . "\">", _('Grades'), "</a>";
+                    echo "<a href=\"gb-itemanalysis.php?cid=$cid&asid=average&aid=" . Sanitize::onlyInt($typeid) . "\">", _('Grades'), "</a>";
                 }
                 echo '</span>';
             }
+
+            if ($showdates) {
+                echo Sanitize::encodeStringForDisplay($show);
+            }
+
             echo "</li>";
 
         } else if ($itemtypes[$items[$i]][0] == 'InlineText') {
@@ -2314,28 +2325,31 @@ function quickview($items, $parent, $showdates = false, $showlinks = true)
             if (!isset($CFG['CPS']['miniicons']['inline'])) {
                 $icon = '<span class=icon style="background-color:' . $color . '">!</span>';
             } else {
-                $icon = '<img alt="text" src="' . $staticroot . '/img/' . $CFG['CPS']['miniicons']['inline'] . '" class="mida icon" /> ';
+                $icon = '<span class=icon><img alt="text" src="' . $staticroot . '/img/' . $CFG['CPS']['miniicons']['inline'] . '" class="mida"/></span> ';
             }
             echo '<li id="' . Sanitize::encodeStringForDisplay($items[$i]) . '">' . $icon;
+
+            $datedisp = '';
             if ($line['avail'] == 2 || ($line['avail'] == 1 && $line['startdate'] < $now && $line['enddate'] > $now)) {
-                echo '<b><span id="I' . Sanitize::encodeStringForDisplay($typeid) . '" onclick="editinplace(this)">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b>";
+                echo '<b><span id="I' . Sanitize::encodeStringForDisplay($typeid) . '">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b>";
                 // echo '<b>'.$line['name']. "</b>";
                 if ($showdates) {
-                    printf(_(' showing until %s'), Sanitize::encodeStringForDisplay($enddate));
+                    $datedisp = sprintf(_(' showing until %s'), Sanitize::encodeStringForDisplay($enddate));
                 }
             } else {
                 //echo '<i><b>'.$line['name']. "</b></i>";
-                echo '<i><b><span id="I' . Sanitize::encodeStringForDisplay($typeid) . '" onclick="editinplace(this)">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b></i>";
+                echo '<i><b><span id="I' . Sanitize::encodeStringForDisplay($typeid) . '">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b></i>";
                 if ($showdates) {
-                    printf(_(' showing %1$s until %2$s'), Sanitize::encodeStringForDisplay($startdate), Sanitize::encodeStringForDisplay($enddate));
+                    $datedisp = sprintf(_(' showing %1$s until %2$s'), Sanitize::encodeStringForDisplay($startdate), Sanitize::encodeStringForDisplay($enddate));
                 }
             }
             if ($showlinks) {
-                echo '<span class="links">';
-                echo " <a href=\"addinlinetext.php?id=" . Sanitize::onlyInt($typeid) . "&block=$parent&cid=$cid\">", _('Modify'), "</a> | \n";
-                echo "<a href=\"deleteinlinetext.php?id=" . Sanitize::onlyInt($typeid) . "&block=$parent&cid=$cid&remove=ask\">", _('Delete'), "</a>\n";
-                echo " | <a href=\"copyoneitem.php?cid=$cid&copyid=" . Sanitize::encodeUrlParam($items[$i]) . "\">", _('Copy'), "</a>";
-                echo '</span>';
+                echo " <span class=links><a href=\"addinlinetext.php?id=" . Sanitize::onlyInt($typeid) . "&block=$parent&cid=$cid\">", _('Modify'), "</a>";
+                echo "<a href=\"deleteinlinetext.php?id=" . Sanitize::onlyInt($typeid) . "&block=$parent&cid=$cid&remove=ask\">", _('Delete'), "</a>";
+                echo "<a href=\"copyoneitem.php?cid=$cid&copyid=" . Sanitize::encodeUrlParam($items[$i]) . "\">", _('Copy'), "</a></span>";
+            }
+            if ($showdates) {
+                echo $datedisp;
             }
             echo '</li>';
         } else if ($itemtypes[$items[$i]][0] == 'LinkedText') {
@@ -2361,28 +2375,32 @@ function quickview($items, $parent, $showdates = false, $showlinks = true)
             if (!isset($CFG['CPS']['miniicons']['linked'])) {
                 $icon = '<span class=icon style="background-color:' . $color . '">!</span>';
             } else {
-                $icon = '<img alt="link" src="' . $staticroot . '/img/' . $CFG['CPS']['miniicons']['linked'] . '" class="mida icon" /> ';
+                $icon = '<span class=icon><img alt="link" src="' . $staticroot . '/img/' . $CFG['CPS']['miniicons']['linked'] . '" class="mida"/></span> ';
             }
             echo '<li id="' . Sanitize::encodeStringForDisplay($items[$i]) . '">' . $icon;
+
+            $datedisp = '';
             if ($line['avail'] == 2 || ($line['avail'] == 1 && $line['startdate'] < $now && $line['enddate'] > $now)) {
                 //echo '<b>'.$line['name']. "</b>";
-                echo '<b><span id="L' . Sanitize::encodeStringForDisplay($typeid) . '" onclick="editinplace(this)">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b>";
+                echo '<b><span id="L' . Sanitize::encodeStringForDisplay($typeid) . '">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b>";
                 if ($showdates) {
-                    printf(_(' showing until %s'), Sanitize::encodeStringForDisplay($enddate));
+                    $datedisp = sprintf(_(' showing until %s'), Sanitize::encodeStringForDisplay($enddate));
                 }
             } else {
                 //echo '<i><b>'.$line['name']. "</b></i>";
-                echo '<i><b><span id="L' . Sanitize::encodeStringForDisplay($typeid) . '" onclick="editinplace(this)">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b></i>";
+                echo '<i><b><span id="L' . Sanitize::encodeStringForDisplay($typeid) . '">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b></i>";
                 if ($showdates) {
-                    printf(_(' showing %1$s until %2$s'), Sanitize::encodeStringForDisplay($startdate), Sanitize::encodeStringForDisplay($enddate));
+                    $datedisp = sprintf(_(' showing %1$s until %2$s'), Sanitize::encodeStringForDisplay($startdate), Sanitize::encodeStringForDisplay($enddate));
                 }
             }
             if ($showlinks) {
-                echo '<span class="links">';
-                echo " <a href=\"addlinkedtext.php?id=" . Sanitize::onlyInt($typeid) . "&block=$parent&cid=$cid\">", _('Modify'), "</a> | \n";
-                echo "<a href=\"deletelinkedtext.php?id=" . Sanitize::onlyInt($typeid) . "&block=$parent&cid=$cid&remove=ask\">", _('Delete'), "</a>\n";
-                echo " | <a href=\"copyoneitem.php?cid=$cid&copyid=" . Sanitize::encodeUrlParam($items[$i]) . "\">", _('Copy'), "</a>";
+                echo " <span class=links><a href=\"addlinkedtext.php?id=" . Sanitize::onlyInt($typeid) . "&block=$parent&cid=$cid\">", _('Modify'), "</a>";
+                echo "<a href=\"deletelinkedtext.php?id=" . Sanitize::onlyInt($typeid) . "&block=$parent&cid=$cid&remove=ask\">", _('Delete'), "</a>";
+                echo "<a href=\"copyoneitem.php?cid=$cid&copyid=" . Sanitize::encodeUrlParam($items[$i]) . "\">", _('Copy'), "</a>";
                 echo '</span>';
+            }
+            if ($showdates) {
+                echo $datedisp;
             }
             echo '</li>';
         } else if ($itemtypes[$items[$i]][0] == 'Forum') {
@@ -2408,28 +2426,32 @@ function quickview($items, $parent, $showdates = false, $showlinks = true)
             if (!isset($CFG['CPS']['miniicons']['forum'])) {
                 $icon = '<span class=icon style="background-color:' . $color . '">F</span>';
             } else {
-                $icon = '<img alt="forum" src="' . $staticroot . '/img/' . $CFG['CPS']['miniicons']['forum'] . '" class="mida icon" /> ';
+                $icon = '<span class=icon><img alt="forum" src="' . $staticroot . '/img/' . $CFG['CPS']['miniicons']['forum'] . '" class="mida"/></span> ';
             }
             echo '<li id="' . Sanitize::encodeStringForDisplay($items[$i]) . '">' . $icon;
+
+            $datedisp = '';
             if ($line['avail'] == 2 || ($line['avail'] == 1 && $line['startdate'] < $now && $line['enddate'] > $now)) {
                 //echo '<b>'.$line['name']. "</b>";
-                echo '<b><span id="F' . Sanitize::encodeStringForDisplay($typeid) . '" onclick="editinplace(this)">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b>";
+                echo '<b><span id="F' . Sanitize::encodeStringForDisplay($typeid) . '">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b>";
                 if ($showdates) {
-                    printf(_(' showing until %s'), Sanitize::encodeStringForDisplay($enddate));
+                    $datedisp = sprintf(_(' showing until %s'), Sanitize::encodeStringForDisplay($enddate));
                 }
             } else {
-                echo '<i><b><span id="F' . Sanitize::encodeStringForDisplay($typeid) . '" onclick="editinplace(this)">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b></i>";
+                echo '<i><b><span id="F' . Sanitize::encodeStringForDisplay($typeid) . '">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b></i>";
                 //echo '<i><b>'.$line['name']. "</b></i>";
                 if ($showdates) {
-                    printf(_(' showing %1$s until %2$s'), Sanitize::encodeStringForDisplay($startdate), Sanitize::encodeStringForDisplay($enddate));
+                    $datedisp = sprintf(_(' showing %1$s until %2$s'), Sanitize::encodeStringForDisplay($startdate), Sanitize::encodeStringForDisplay($enddate));
                 }
             }
             if ($showlinks) {
-                echo '<span class="links">';
-                echo " <a href=\"addforum.php?id=" . Sanitize::onlyInt($typeid) . "&block=$parent&cid=$cid\">", _('Modify'), "</a> | \n";
-                echo "<a href=\"deleteforum.php?id=" . Sanitize::onlyInt($typeid) . "&block=$parent&cid=$cid&remove=ask\">", _('Delete'), "</a>\n";
-                echo " | <a href=\"copyoneitem.php?cid=$cid&copyid=" . Sanitize::encodeUrlParam($items[$i]) . "\">", _('Copy'), "</a>";
+                echo " <span class=links><a href=\"addforum.php?id=" . Sanitize::onlyInt($typeid) . "&block=$parent&cid=$cid\">", _('Modify'), "</a>";
+                echo "<a href=\"deleteforum.php?id=" . Sanitize::onlyInt($typeid) . "&block=$parent&cid=$cid&remove=ask\">", _('Delete'), "</a>";
+                echo "<a href=\"copyoneitem.php?cid=$cid&copyid=" . Sanitize::encodeUrlParam($items[$i]) . "\">", _('Copy'), "</a>";
                 echo '</span>';
+            }
+            if ($showdates) {
+                echo $datedisp;
             }
             echo '</li>';
         } else if ($itemtypes[$items[$i]][0] == 'Wiki') {
@@ -2455,28 +2477,32 @@ function quickview($items, $parent, $showdates = false, $showlinks = true)
             if (!isset($CFG['CPS']['miniicons']['wiki'])) {
                 $icon = '<span class=icon style="background-color:' . $color . '">W</span>';
             } else {
-                $icon = '<img alt="wiki"  src="' . $staticroot . '/img/' . $CFG['CPS']['miniicons']['wiki'] . '" class="mida icon" /> ';
+                $icon = '<span class=icon><img alt="wiki"  src="' . $staticroot . '/img/' . $CFG['CPS']['miniicons']['wiki'] . '" class="mida" /></span> ';
             }
             echo '<li id="' . Sanitize::encodeStringForDisplay($items[$i]) . '">' . $icon;
+
+            $datedisp = '';
             if ($line['avail'] == 2 || ($line['avail'] == 1 && $line['startdate'] < $now && $line['enddate'] > $now)) {
                 //echo '<b>'.$line['name']. "</b>";
-                echo '<b><span id="W' . Sanitize::encodeStringForDisplay($typeid) . '" onclick="editinplace(this)">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b>";
+                echo '<b><span id="W' . Sanitize::encodeStringForDisplay($typeid) . '">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b>";
                 if ($showdates) {
-                    printf(_(' showing until %s'), Sanitize::encodeStringForDisplay($enddate));
+                    $datedisp = sprintf(_(' showing until %s'), Sanitize::encodeStringForDisplay($enddate));
                 }
             } else {
-                echo '<i><b><span id="W' . Sanitize::encodeStringForDisplay($typeid) . '" onclick="editinplace(this)">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b></i>";
+                echo '<i><b><span id="W' . Sanitize::encodeStringForDisplay($typeid) . '">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b></i>";
                 //echo '<i><b>'.$line['name']. "</b></i>";
                 if ($showdates) {
-                    printf(_(' showing %1$s until %2$s'), Sanitize::encodeStringForDisplay($startdate), Sanitize::encodeStringForDisplay($enddate));
+                    $datedisp = sprintf(_(' showing %1$s until %2$s'), Sanitize::encodeStringForDisplay($startdate), Sanitize::encodeStringForDisplay($enddate));
                 }
             }
             if ($showlinks) {
-                echo '<span class="links">';
-                echo " <a href=\"addwiki.php?id=" . Sanitize::onlyInt($typeid) . "&block=$parent&cid=$cid\">", _('Modify'), "</a> | \n";
-                echo "<a href=\"deletewiki.php?id=" . Sanitize::onlyInt($typeid) . "&block=$parent&cid=$cid&remove=ask\">", _('Delete'), "</a>\n";
-                echo " | <a href=\"copyoneitem.php?cid=$cid&copyid=" . Sanitize::encodeUrlParam($items[$i]) . "\">", _('Copy'), "</a>";
+                echo " <span class=links><a href=\"addwiki.php?id=" . Sanitize::onlyInt($typeid) . "&block=$parent&cid=$cid\">", _('Modify'), "</a>";
+                echo "<a href=\"deletewiki.php?id=" . Sanitize::onlyInt($typeid) . "&block=$parent&cid=$cid&remove=ask\">", _('Delete'), "</a>";
+                echo "<a href=\"copyoneitem.php?cid=$cid&copyid=" . Sanitize::encodeUrlParam($items[$i]) . "\">", _('Copy'), "</a>";
                 echo '</span>';
+            }
+            if ($showdates) {
+                echo $datedisp;
             }
             echo '</li>';
         } else if ($itemtypes[$items[$i]][0] == 'Drill') {
@@ -2502,29 +2528,33 @@ function quickview($items, $parent, $showdates = false, $showlinks = true)
             if (!isset($CFG['CPS']['miniicons']['drill'])) {
                 $icon = '<span class=icon style="background-color:' . $color . '">D</span>';
             } else {
-                $icon = '<img alt="wiki"  src="' . $staticroot . '/img/' . $CFG['CPS']['miniicons']['drill'] . '" class="mida icon" /> ';
+                $icon = '<span class=icon><img alt="wiki"  src="' . $staticroot . '/img/' . $CFG['CPS']['miniicons']['drill'] . '" class="mida" /></span> ';
             }
             echo '<li id="' . Sanitize::encodeStringForDisplay($items[$i]) . '">' . $icon;
+
+            $datedisp = '';
             if ($line['avail'] == 2 || ($line['avail'] == 1 && $line['startdate'] < $now && $line['enddate'] > $now)) {
                 //echo '<b>'.$line['name']. "</b>";
-                echo '<b><span id="D' . Sanitize::encodeStringForDisplay($typeid) . '" onclick="editinplace(this)">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b>";
+                echo '<b><span id="D' . Sanitize::encodeStringForDisplay($typeid) . '">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b>";
                 if ($showdates) {
-                    printf(_(' showing until %s'), Sanitize::encodeStringForDisplay($enddate));
+                    $datedisp = sprintf(_(' showing until %s'), Sanitize::encodeStringForDisplay($enddate));
                 }
             } else {
-                echo '<i><b><span id="D' . Sanitize::encodeStringForDisplay($typeid) . '" onclick="editinplace(this)">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b></i>";
+                echo '<i><b><span id="D' . Sanitize::encodeStringForDisplay($typeid) . '">' . Sanitize::encodeStringForDisplay($line['name']) . "</span></b></i>";
                 //echo '<i><b>'.$line['name']. "</b></i>";
                 if ($showdates) {
-                    printf(_(' showing %1$s until %2$s'), Sanitize::encodeStringForDisplay($startdate), Sanitize::encodeStringForDisplay($enddate));
+                    $datedisp = sprintf(_(' showing %1$s until %2$s'), Sanitize::encodeStringForDisplay($startdate), Sanitize::encodeStringForDisplay($enddate));
                 }
             }
             if ($showlinks) {
-                echo ' <span class="links">';
-                echo "<a href=\"adddrillassess.php?daid=" . Sanitize::onlyInt($typeid) . "&block=$parent&cid=$cid\">", _('Modify'), "</a> | \n";
-                echo "<a href=\"deletedrillassess.php?id=" . Sanitize::onlyInt($typeid) . "&block=$parent&cid=$cid&remove=ask\">", _('Delete'), "</a>\n";
-                echo " | <a href=\"copyoneitem.php?cid=$cid&copyid=" . Sanitize::encodeUrlParam($items[$i]) . "\">", _('Copy'), "</a>";
-                echo " | <a href=\"gb-viewdrill.php?cid=$cid&daid=" . Sanitize::onlyInt($typeid) . "\">", _('Scores'), "</a>";
+                echo " <span class=links><a href=\"adddrillassess.php?daid=" . Sanitize::onlyInt($typeid) . "&block=$parent&cid=$cid\">", _('Modify'), "</a>";
+                echo "<a href=\"deletedrillassess.php?id=" . Sanitize::onlyInt($typeid) . "&block=$parent&cid=$cid&remove=ask\">", _('Delete'), "</a>";
+                echo "<a href=\"copyoneitem.php?cid=$cid&copyid=" . Sanitize::encodeUrlParam($items[$i]) . "\">", _('Copy'), "</a>";
+                echo "<a href=\"gb-viewdrill.php?cid=$cid&daid=" . Sanitize::onlyInt($typeid) . "\">", _('Scores'), "</a>";
                 echo '</span>';
+            }
+            if ($showdates) {
+                echo $datedisp;
             }
             echo '</li>';
         }

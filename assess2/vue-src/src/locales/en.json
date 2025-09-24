@@ -146,10 +146,12 @@
     "details": "Details",
     "warn_unattempted": "There appears to be unattempted questions. Are you sure you want to submit now?",
     "withdrawn": "Question withdrawn",
+    "use_mq": "Use equation editor",
     "enable_mq": "Enable equation editor",
     "disable_mq": "Disable equation editor",
     "work_save": "Save progress",
     "work_saved": "Progress saved",
+    "work_save_avail": "Save progress button available",
     "work_saving": "Saving...",
     "confirm_assess_submit": "After submitting, you will not be able to change your answers on this version of the assessment. Are you ready to submit?",
     "confirm_assess_unattempted_submit": "There appears to be unattempted questions. After submitting, you will not be able to change your answers on this version of the assessment. Are you ready to submit?",
@@ -426,7 +428,7 @@
     "filters": "Filters and Options",
     "hide": "Hide",
     "hide_perfect": "Score = 100% (before penalties)",
-    "hide_100": "Score = 100% (after penalties)",
+    "hide_100": "Score ≥ 100% (after penalties)",
     "hide_nonzero": "0 < score < 100% (before penalties)",
     "hide_zero": "Score = 0",
     "hide_fb": "Questions with Feedback",
@@ -490,7 +492,8 @@
     "activitylog": "Activity Log",
     "nextq": "Next Question",
     "prevq": "Previous Question",
-    "oneatatime": "One at a time"
+    "oneatatime": "One at a time",
+    "a11yalt": "Accessible alternative"
   },
   "work": {
     "add": "Add Work",

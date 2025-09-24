@@ -190,7 +190,7 @@ class Imathas_LTI_Database implements LTI\Database
     {
         $stm = $this->dbh->prepare('SELECT * FROM imas_lti_deployments WHERE platform=? AND deployment=?');
         $stm->execute(array($platform_id, $deployment_id));
-        if ($stm->rowCount() === 0) {
+        if ($stm->fetchColumn(0) === false) {
             // no existing deployment record, create one
             $stm = $this->dbh->prepare('INSERT INTO imas_lti_deployments (platform,deployment) VALUES (?,?)');
             $stm->execute(array($platform_id, $deployment_id));
@@ -478,7 +478,7 @@ class Imathas_LTI_Database implements LTI\Database
             }
         } else {
             // check to see if they're already a teacher or tutor
-            $stm = $this->dbh->prepare('SELECT id FROM imas_teachers WHERE userid=? AND courseid=? UNION SELECT id FROM imas_tutors WHERE userid=? AND courseid=?');
+            $stm = $this->dbh->prepare('SELECT id FROM imas_teachers WHERE userid=? AND courseid=? UNION ALL SELECT id FROM imas_tutors WHERE userid=? AND courseid=?');
             $stm->execute(array($userid, $localcourse->get_courseid(), $userid, $localcourse->get_courseid()));
             if ($stm->fetchColumn(0) === false) {
                 $stm = $this->dbh->prepare('SELECT id,lticourseid FROM imas_students WHERE userid=? AND courseid=?');
@@ -839,6 +839,18 @@ class Imathas_LTI_Database implements LTI\Database
         $stm->execute(array($resource_link_id, $contextid, 'LTI13-' . $platform_id));
         $row = $stm->fetch(PDO::FETCH_ASSOC);
         if ($row !== false) {
+            if ($row['enddate'] === null) {
+                // lti link exists but assessment doesn't exist anymore
+                // so probably deleted since link was established.
+                throw new LTI_Exception("Linked assessment appears to have been deleted. Ref: " . $row['typeid'] . '-' . $resource_link_id);
+                /* Alt approach:
+                // Delete existing lti placement, which will trigger
+                // system to try to relink to assessment
+                $stm = $this->dbh->prepare("DELETE FROM imas_lti_placements WHERE placementtype='assess' AND linkid=? AND contextid=? AND org=?");
+                $stm->execute(array($resource_link_id, $contextid, 'LTI13-' . $platform_id));
+                return null;
+                */
+            }
             return LTI\LTI_Placement::new ()
                 ->set_typeid($row['typeid'])
                 ->set_placementtype($row['placementtype'])
@@ -910,9 +922,9 @@ class Imathas_LTI_Database implements LTI\Database
     /**
      * Get assessment info, including name, ptsposs, submitby, and dates
      * @param  int   $aid imas_assessments.id
-     * @return array
+     * @return array|false
      */
-    public function get_assess_info(int $aid): array
+    public function get_assess_info(int $aid) //: array|false
     {
         $stm = $this->dbh->prepare('SELECT name,ptsposs,startdate,enddate,date_by_lti,submitby FROM imas_assessments WHERE id=?');
         $stm->execute(array($aid));
@@ -946,15 +958,15 @@ class Imathas_LTI_Database implements LTI\Database
         $aid = $link->get_typeid();
         $stm = $this->dbh->prepare("SELECT startdate,enddate,islatepass,is_lti FROM imas_exceptions WHERE userid=:userid AND assessmentid=:assessmentid AND itemtype='A'");
         $stm->execute(array(':userid' => $userid, ':assessmentid' => $aid));
-        $exceptionrow = $stm->fetch(PDO::FETCH_NUM);
+        $exceptionrow = $stm->fetch(PDO::FETCH_ASSOC);
         $useexception = false;
         if ($exceptionrow != null) {
             //have exception.  Update using lti_duedate if needed
-            if ($link->get_date_by_lti() > 0 && $lms_duedate != $exceptionrow[1]) {
+            if ($link->get_date_by_lti() > 0 && $lms_duedate != $exceptionrow['enddate']) {
                 //if new due date is later, or no latepass used, then update
-                if ($exceptionrow[2] == 0 || $lms_duedate > $exceptionrow[1]) {
+                if ($exceptionrow['islatepass'] == 0 || $lms_duedate > $exceptionrow['enddate']) {
                     $stm = $this->dbh->prepare("UPDATE imas_exceptions SET startdate=:startdate,enddate=:enddate,is_lti=1,islatepass=0 WHERE userid=:userid AND assessmentid=:assessmentid AND itemtype='A'");
-                    $stm->execute(array(':startdate' => min($now, $lms_duedate, $exceptionrow[0]),
+                    $stm->execute(array(':startdate' => min($now, $lms_duedate, $exceptionrow['startdate']),
                         ':enddate' => $lms_duedate, ':userid' => $userid, ':assessmentid' => $aid));
                 }
             }

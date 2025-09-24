@@ -375,7 +375,7 @@ class LTI_Message_Launch {
     }
 
     private function get_public_key() {
-      $key_set_url = $this->registration->get_key_set_url();
+      $key_set_url = Sanitize::url($this->registration->get_key_set_url());
       if (empty($this->jwt['header']['kid'])) {
         throw new LTI_Exception("Missing key id", 1);
       }
@@ -498,7 +498,7 @@ class LTI_Message_Launch {
         if (empty($this->registration)) {
           echo "Unable to find registration with issuer ".
             Sanitize::encodeStringForDisplay($this->jwt['body']['iss']).
-            ' and client_id '.$client_id.'. ';
+            ' and client_id '.Sanitize::encodeStringForDisplay($client_id).'. ';
           echo "Ensure the LTI registration information (Client ID and such) from the LMS has been provided to the system admin.";
             throw new LTI_Exception("Registration not found.", 1);
         }

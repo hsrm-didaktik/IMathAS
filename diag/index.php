@@ -49,7 +49,7 @@
         exit;
     }
 	$pcid = $line['cid'];
-	$diagid = $line['id'];
+	$diagid = intval($line['id']);
 	if ($line['term']=='*mo*') {
 		$diagqtr = date("M y");
 	} else if ($line['term']=='*day*') {
@@ -97,7 +97,7 @@
 	if (!empty($_SESSION)) {
 	   $_SESSION = array();
 	   if (isset($_COOKIE[session_name()])) {
-		   setcookie(session_name(), '', time()-42000, '/', '', false, true);
+		   setsecurecookie(session_name(), '', time()-42000, true);
 	   }
 	   session_destroy();
 	   header('Location: ' . $GLOBALS['basesiteurl'] . "/diag/index.php?id=" . Sanitize::onlyInt($diagid));
@@ -130,7 +130,7 @@ if (isset($_POST['SID'])) {
 		if ($entrydig==0) {
 			$pattern .= '+';
 		} else {
-			$pattern .= '{'.$entrydig.'}';
+			$pattern .= '{'.intval($entrydig).'}';
 		}
 	}
 	$pattern .= '$/i';
@@ -226,9 +226,13 @@ if (isset($_POST['SID'])) {
 
 	$aids = explode(',',$line['aidlist']);
 	$paid = $aids[$_POST['course']];
-	$stm2 = $DBH->prepare("SELECT ver FROM imas_assessments WHERE id=:assessmentid");
-	$stm2->execute(array(':assessmentid'=>$paid));
+	$stm2 = $DBH->prepare("SELECT ver FROM imas_assessments WHERE id=:assessmentid AND courseid=:cid");
+	$stm2->execute(array(':assessmentid'=>$paid, ':cid'=>$pcid));
 	$aVer = $stm2->fetchColumn(0);
+	if ($aVer === false) {
+		echo 'Invalid aid';
+		exit;
+	}
 
 	$query = "SELECT iu.id,istu.id,iu.email FROM imas_users AS iu ";
 	$query .= "LEFT JOIN imas_students AS istu ON iu.id=istu.userid ";

@@ -137,6 +137,8 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
 		}
 	}
 	if (isset($existingid)) {  //already have id; update
+		$origSH = $sub[$existingid]['SH'];
+
 		$sub[$existingid]['name'] = htmlentities($_POST['title']);
 		$sub[$existingid]['startdate'] = $startdate;
 		$sub[$existingid]['enddate'] = $enddate;
@@ -149,6 +151,30 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
 		$sub[$existingid]['innav'] = $innav;
 		$sub[$existingid]['fixedheight'] = $fixedheight;
 		$sub[$existingid]['grouplimit'] = $grouplimit;
+
+		$now = time();
+		// if available and expand/collapse setting changed, update openblocks to reflect change
+		if (isset($_COOKIE['openblocks-'.$cid]) && $_COOKIE['openblocks-'.$cid]!='' &&
+			$origSH != $sub[$existingid]['SH'] && 
+			$now > $startdate && $now < $enddate 
+		) {
+			$openblocks = explode(',',$_COOKIE['openblocks-'.$cid]);
+			$blockid = $sub[$existingid]['id'];
+			$chg = false;
+			if ($_POST['availbeh'] == 'C' && in_array($blockid, $openblocks)) {
+				$openblocks = array_filter($openblocks, function ($item) use ($blockid) {
+					return ((string)$item !== (string)$blockid);
+				});
+				$chg = true;
+			} else if ($_POST['availbeh'] == 'O' && !in_array($blockid, $openblocks)) {
+				$openblocks[] = $blockid;
+				$chg = true;
+			}
+			if ($chg) {
+				setsecurecookie('openblocks-'.$cid, implode(',', $openblocks), 0, false);
+			}
+		}
+
 	} else { //add new
 		$blockitems = array();
 		$blockitems['name'] = htmlentities($_POST['title']);
@@ -275,6 +301,7 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
 	$stm = $DBH->prepare("SELECT DISTINCT section FROM imas_students WHERE courseid=:courseid ORDER BY section");
 	$stm->execute(array(':courseid'=>$cid));
 	while ($row = $stm->fetch(PDO::FETCH_NUM)) {
+		if ($row[0] === null || trim($row[0]) === '') { continue; }
 		$page_sectionlistval[] = 's-'.$row[0];
 		$page_sectionlistlabel[] = 'Section '.$row[0];
 	}
@@ -483,7 +510,7 @@ if ($overwriteBody==1) {
 
 	<br />&nbsp;<br/>
 	<label><input type=radio name="colors" id="colorcustom" value="custom" <?php if ($usedef==0) {echo "CHECKED";}?> /><?php echo _('Use custom'); ?></label>
-	<table class="coloropts" role="presentation" style="display: inline; border-collapse: collapse; margin-left: 15px;">
+	<table class="coloropts" role="presentation" style="display: inline; border-collapse: collapse; margin-left: 15px;" aria-hidden=true>
 		<tr>
 			<td id="ex1" style="border: 1px solid #000;background-color:
 			<?php echo $titlebg;?>;color:<?php echo $titletxt;?>;">

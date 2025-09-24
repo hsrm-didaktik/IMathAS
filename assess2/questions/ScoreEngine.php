@@ -152,6 +152,10 @@ class ScoreEngine
                 . ' on line '
                 . $t->getLine()
               );
+            if (!empty($GLOBALS['CFG']['newrelic_log_question_errors']) && extension_loaded('newrelic')) {
+                newrelic_add_custom_parameter('cur_qsid', $db_qsetid);
+                newrelic_notice_error($t);
+            }
         }
 
         /*
@@ -202,7 +206,7 @@ class ScoreEngine
             } else { 
                 list($parsedreqdec, $exactreqdec, $reqdecoffset, $reqdecscoretype) = parsereqsigfigs((string)$reqdecimals);
                 if (!isset($abstolerance) && !isset($reltolerance)) { //set global abstol
-                    if (count($reqdecscoretype)==2) {
+                    if (count($reqdecscoretype)==2) { // value set in reqdec string
                         if ($reqdecscoretype[0]=='abs') {
                             $abstolerance = $reqdecscoretype[1];
                         } else {
@@ -228,7 +232,6 @@ class ScoreEngine
                 }
             }
         }
-
         /*
          * Set RNG to a known state.
          */
@@ -288,7 +291,7 @@ class ScoreEngine
                 $stuanswers, $quesData['qtype']);
         } else {
             $scoreResult = $this->scorePartNonMultiPart($scoreQuestionParams, $quesData);
-            if ($quesData['qtype'] == "conditional") {
+            if ($quesData['qtype'] == "conditional" && isset($anstypes)) {
               // Store just-build $stuanswers as lastanswer for conditional
               // in case there was no POST (like multans checkbox), null out
               // stuanswers
@@ -548,6 +551,8 @@ class ScoreEngine
             } else if (is_numeric($_POST["qn$qnidx"])) { // number
               $stuanswersval[$thisq] = floatval($_POST["qn$qnidx"]);
             }
+            $stuanswers[$thisq] = str_replace(array('(:',':)','<<','>>'), array('<','>','<','>'), $stuanswers[$thisq]);
+
             if (isset($_SESSION['choicemap'][$assessmentId][$qnidx])) {
                 if (is_array($stuanswers[$thisq])) { //multans
                     foreach ($stuanswers[$thisq] as $k => $v) {
@@ -783,22 +788,39 @@ class ScoreEngine
             ->setAnswerType($qdata['qtype'])
             ->setIsMultiPartQuestion(false);
 
-        $scorePart = ScorePartFactory::getScorePart($scoreQuestionParams);
-        $scorePartResult = $scorePart->getResult();
-        $score = $scorePartResult->getRawScore();
+        $scorePartResults = false;
+        try {
+            $scorePart = ScorePartFactory::getScorePart($scoreQuestionParams);
+            $scorePartResult = $scorePart->getResult();
+            $score = $scorePartResult->getRawScore();
+        } catch (\Throwable $t) {
+            $this->addError(
+                _('Caught error while scoring parts in this question: ')
+                . $t->getMessage()
+                . ' on line '
+                . $t->getLine()
+                . ' of '
+                . basename($t->getFile())
+                );
+        }
 
         if (isset($scoremethod) && $scoremethod == "allornothing") {
             if ($score < .98) {
                 $score = 0;
             }
         }
-
         $returnData = array(
             'scores' => array(round($score, 3)),
             'rawScores' => array(round($score, 3)),
-            'lastAnswerAsGiven' => array($scorePartResult->getLastAnswerAsGiven()),
-            'lastAnswerAsNumber' => array($scorePartResult->getLastAnswerAsNumber()),
-            'correctAnswerWrongFormat' => array($scorePartResult->getCorrectAnswerWrongFormat()),
+            'lastAnswerAsGiven' => array(
+                $scorePartResult !== null ? $scorePartResult->getLastAnswerAsGiven() : ''
+            ),
+            'lastAnswerAsNumber' => array(
+                $scorePartResult !== null ? $scorePartResult->getLastAnswerAsNumber() : ''
+            ),
+            'correctAnswerWrongFormat' => array(
+                $scorePartResult !== null ? $scorePartResult->getCorrectAnswerWrongFormat() : false
+            ),
             'answeights' => array(1)
         );
 

@@ -99,7 +99,7 @@
     // chemistry
     imathasBuiltin += " chem_disp chem_mathdisp chem_isotopedisp chem_getsymbol chem_getnumber chem_getname chem_getweight chem_getmeltingpoint chem_getboilingpoint chem_getfamily chem_randelementbyfamily chem_diffrandelementsbyfamily chem_getrandcompound chem_getdiffrandcompounds chem_decomposecompound chem_getcompoundmolmass chem_randanion chem_randcation chem_makeioniccompound chem_getsolubility chem_eqndisp chem_balancereaction chem_vsepr";
     // chgbase
-    imathasBuiltin += " baseconvert asciitodec dectoascii";
+    imathasBuiltin += " baseconvert asciitodec dectoascii draw_mayan_number draw_babylonian_number";
     // complex
     imathasBuiltin += " cx_add cx_arg cx_conj cx_cubicRoot cx_div cx_format2pol cx_format2std cx_matrixreduce cx_modul cx_mul cx_quadRoot cx_prettyquadRoot cx_plot cx_pow cx_polEu cx_pol2std cx_root cx_std2pol cx_sub";
     // construct2
@@ -129,7 +129,7 @@
     // interval
     imathasBuiltin += " linegraph linegraphbrackets forminterval intervalstodraw";
     // JSXG
-    imathasBuiltin += " loadJSX JSXG_createAxes JSXG_createPolarAxes JSXG_addPolar JSXG_addFunction JSXG_addParametric JSXG_addText JSXG_addSlider JSXG_addTangent JSXG_setAttribute JSXG_createBlankBoard JSXG_addArrow JSXG_addPoint JSXG_addSegment JSXG_addLine JSXG_addRay JSXG_addAngle JSXG_addCircle JSXG_addPolygon JSXG_addGlider";
+    imathasBuiltin += " loadJSX JSXG_createAxes JSXG_createPolarAxes JSXG_addPolar JSXG_addFunction JSXG_addParametric JSXG_addText JSXG_addSlider JSXG_addTangent JSXG_setAttribute JSXG_createBlankBoard JSXG_addArrow JSXG_addPoint JSXG_addSegment JSXG_addLine JSXG_addRay JSXG_addAngle JSXG_addCircle JSXG_addPolygon JSXG_addGlider JSXG_getLabel";
     // jsxgraph
     imathasBuiltin += " jsxBoard jsxSlider jsxPoint jsxGlider jsxIntersection jsxFunction jsxParametric jsxPolar jsxText jsxCircle jsxLine jsxImage jsxSegment jsxRay jsxVector jsxAngle jsxPolygon jsxTangent jsxIntegral jsxRiemannSum jsx_getXCoord jsx_getYCoord jsx_getCoords jsxSuspendUpdate jsxUnsuspendUpdate jsxSetChild";
     // lineutil

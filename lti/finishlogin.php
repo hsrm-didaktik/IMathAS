@@ -20,7 +20,12 @@ if (!isset($_POST['launchid'])) {
   exit;
 }
 $db = new Imathas_LTI_Database($DBH);
-$launch = LTI\LTI_Message_Launch::from_cache($_POST['launchid'], $db);
+try {
+  $launch = LTI\LTI_Message_Launch::from_cache(Sanitize::simpleASCII($_POST['launchid']), $db);
+} catch (LTI_Exception $e) {
+  echo _('Error opening link.') . ' ';
+  echo _('Go back and open from the LMS again. If you continue to get this error, ensure you have 3rd party cookies enabled. If it is an option, try opening in a new tab/window.');
+}
 
 $role = standardize_role($launch->get_roles());
 $contextid = $launch->get_platform_context_id();
@@ -163,7 +168,7 @@ if (isset($_SESSION['userid']) && $_SESSION['userid'] != $localuserid) {
 $_SESSION['lti_user_id'] = $ltiuserid;
 $_SESSION['userid'] = $localuserid;
 $_SESSION['ltiver'] = '1.3';
-$_SESSION['tzoffset'] = $_POST['tzoffset'];
+$_SESSION['tzoffset'] = floatval($_POST['tzoffset']);
 $_SESSION['time'] = time();
 $_SESSION['started'] = time();
 $tzname = '';
@@ -200,7 +205,7 @@ if ($role == 'Instructor' && $localcourse === null) {
   $custom = $launch->get_custom();
   if (!empty($custom['canvas_sections']) && $role != 'Instructor') {
     $canvassections = json_decode($custom['canvas_sections'], true);
-    if (is_array($canvassections)) {
+    if (is_array($canvassections) && count($canvassections)>0) {
         if (strlen($sectionlabel) + strlen($canvassections[0]) > 37) {
             $sectionlabel = substr($sectionlabel, 0, 37 - strlen($canvassections[0]));
         }

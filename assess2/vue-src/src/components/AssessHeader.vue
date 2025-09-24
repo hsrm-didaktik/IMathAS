@@ -22,6 +22,14 @@
     </timer>
 
     <div class="flexgroup">
+      <span
+        v-if = "saveStatus > 0"
+        :class = "['noticetext', saveStatus === 3 ? 'sr-only' : '']"
+        aria-live = "polite"
+        aria-atomic = "true"
+      >
+        {{ saveStatusMsg }}
+      </span>
       <button
         v-if = "saveStatus === 3"
         class = "secondary"
@@ -30,12 +38,6 @@
       >
         {{ $t('header.work_save') }}
       </button>
-      <span
-        v-if = "saveStatus === 1 || saveStatus === 2"
-        class = "noticetext"
-      >
-        {{ saveStatus === 1 ? $t('header.work_saving') : $t('header.work_saved') }}
-      </span>
       <button
         v-if = "assessSubmitLabel !== ''"
         :class="{ primary: primarySubmit, secondary: !primarySubmit }"
@@ -70,14 +72,15 @@
       </tooltip-span>
 
       <tooltip-span
-        :tip="MQenabled?$t('header.disable_mq'):$t('header.enable_mq')"
+        :tip="$t('header.use_mq')"
         style="display: inline-block"
       >
         <button
           @click="toggleMQuse"
+          role="switch"
           :class="{plain:true, 'switch-toggle':true}"
-          :aria-label="MQenabled?$t('header.disable_mq'):$t('header.enable_mq')"
-          :aria-pressed="MQenabled"
+          :aria-label="$t('header.use_mq')"
+          :aria-checked="MQenabled"
         >
           <icons
             :name="MQenabled ? 'eqned' : 'eqnedoff'"
@@ -214,6 +217,20 @@ export default {
       //  return 0;
       // }
     },
+    saveStatusMsg () {
+      if (this.saveStatus === 1) {
+        return this.$t('header.work_saving');
+      } else if (this.saveStatus === 2) {
+        return this.$t('header.work_saved');
+      } else if (this.saveStatus === 3) {
+        // Removed for now. This has the potential to be really annoying
+        // and I don't think it's technically required
+        // return this.$t('header.work_save_avail');
+        return '';
+      } else {
+        return '';
+      }
+    },
     showPrint () {
       return (this.ainfo.noprint !== 1);
     },
@@ -309,7 +326,7 @@ export default {
   background-color: #f99;
   border-radius: 4px;
 }
-.switch-toggle[aria-pressed="true"] .switch-toggle2__ui {
+.switch-toggle[aria-checked="true"] .switch-toggle2__ui {
   background-color: #9f9
 }
 .switch-toggle2__ui:after {
@@ -326,7 +343,7 @@ export default {
   line-height: 10px;
   padding: 1px 2px;
 }
-.switch-toggle[aria-pressed="true"] .switch-toggle2__ui:after {
+.switch-toggle[aria-checked="true"] .switch-toggle2__ui:after {
   content: "On";
   color: #040;
   right: 0;
@@ -387,15 +404,15 @@ export default {
 }
 
 /* change the position of the knob to indicate it has been checked*/
-.switch-toggle[aria-pressed="true"] .switch-toggle__ui:after {
+.switch-toggle[aria-checked="true"] .switch-toggle__ui:after {
   right: 0em;
 }
 
 /* update the color of the "container" to further visually indicate state */
-.switch-toggle[aria-pressed="true"] .switch-toggle__ui:before {
+.switch-toggle[aria-checked="true"] .switch-toggle__ui:before {
   background: #0c0;
 }
-.switch-toggle[aria-pressed="true"] .switch-toggle__ui:after {
+.switch-toggle[aria-checked="true"] .switch-toggle__ui:after {
   background: #090;
 }
 </style>

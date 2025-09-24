@@ -146,6 +146,7 @@ $placeinhead .= '<script src="'.$imasroot.'/javascript/'.$CFG['coursebrowser'].'
 <link rel="stylesheet" href="coursebrowser.css?v=072018" type="text/css" />';
 
 $pagetitle = _('Course Browser');
+$noskipnavlink = true;
 require_once "../header.php";
 
 if (!isset($_GET['embedded'])) {
@@ -167,7 +168,7 @@ if (!isset($_GET['embedded'])) {
 </div>
 <div id="filters">
 	Filter results:
-	<span v-for="propname in propsToFilter" class="dropdown-wrap">
+	<span v-for="propname in propsToFilter" class="dropdown-wrap" @focusout="handleFocusOut" @keydown.esc="handleEsc">
 		<button @click="showFilter = (showFilter==propname)?'':propname">
 			{{ courseBrowserProps[propname].name }} {{ catprops[propname].length > 0 ? '('+catprops[propname].length+')': '' }}
 			<span class="arrow-down2" :class="{rotated: showFilter==propname}"></span>
@@ -236,13 +237,13 @@ const { createApp } = Vue;
 createApp({
 	data: function() {
         return {
-            selectedItems: [],
-            courseBrowserProps: courseBrowserProps,
-            showFilters: false,
-            showFilter: '',
-            filterLeft: 0,
-            courseTypes: courseBrowserProps.meta.courseTypes,
-            activeTab: 0,
+		selectedItems: [],
+		courseBrowserProps: courseBrowserProps,
+		showFilters: false,
+		showFilter: '',
+		filterLeft: 0,
+		courseTypes: courseBrowserProps.meta.courseTypes,
+		activeTab: 0,
         }
 	},
 	methods: {
@@ -271,7 +272,7 @@ createApp({
 						} else {
 							courseout[propname] = this.courseBrowserProps[propname].options[course[propname]];
 						}
-					} else if (courseBrowserProps[propname].type && courseBrowserProps[propname].type=='string' && propname!='name') {
+					} else if (courseBrowserProps[propname].type && (courseBrowserProps[propname].type=='string' || courseBrowserProps[propname].showinlist) && propname!='name') {
 						courseout[propname] = course[propname];
 					}
 				}
@@ -283,6 +284,7 @@ createApp({
 			for (propname in course) {
 				if (this.courseBrowserProps[propname] && 
                     this.courseBrowserProps[propname].type &&
+					!this.courseBrowserProps[propname].showinlist &&
                     this.courseBrowserProps[propname].type == 'textarea') {
 							courseout[propname] = course[propname];
 				}
@@ -318,6 +320,18 @@ createApp({
 			} else {
 				tgt.style.right = "auto";
 				tgt.style.left = "0px";
+			}
+		},
+		handleFocusOut(event) {
+			if (!event.currentTarget.contains(event.relatedTarget)) {
+				this.showFilter = '';
+			}
+		},
+		handleEsc(event) {
+			this.showFilter = '';
+			const button = event.currentTarget.querySelector('button');
+			if (button) {
+				button.focus();
 			}
 		}
 	},

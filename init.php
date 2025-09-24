@@ -22,7 +22,7 @@ if (isset($CFG['hooks']['init'])) {
 	require_once $CFG['hooks']['init'];
 }
 
-$lastvueupdate = '20250302';
+$lastvueupdate = '20250922';
 
 // setup session stuff
 if (!function_exists('disallowsSameSiteNone')) {
@@ -69,16 +69,14 @@ if ((!function_exists('isDevEnvironment') || !isDevEnvironment())
     && $hostdomain[0] != 'localhost'
     && !is_numeric($hostparts[count($hostparts)-1])
 ) {
+	$path = $imasroot == '' ? '/' : $imasroot;
 	$sess_cookie_domain = '.'.implode('.',array_slice($hostparts,isset($CFG['GEN']['domainlevel'])?$CFG['GEN']['domainlevel']:-2));
 	if (disallowsSameSiteNone()) {
-		session_set_cookie_params(0, '/', $sess_cookie_domain, false, true);
-	} else if (PHP_VERSION_ID < 70300) {
-		// hack to add samesite
-		session_set_cookie_params(0, '/; samesite=none', $sess_cookie_domain, true, true);
-  } else {
+		session_set_cookie_params(0, $path, $sess_cookie_domain, false, true);
+	} else {
 		session_set_cookie_params(array(
 			'lifetime' => 0,
-			'path' => '/',
+			'path' => $path,
 			'domain' => $sess_cookie_domain,
             'secure' => true,
             'httponly' => true,
@@ -87,18 +85,17 @@ if ((!function_exists('isDevEnvironment') || !isDevEnvironment())
   }
 }
 if (!function_exists('setsecurecookie')) {
-function setsecurecookie($name, $value, $expires=0) {
+function setsecurecookie($name, $value, $expires=0, $httponly=true) {
 	global $imasroot;
 	if ($_SERVER['HTTP_HOST'] == 'localhost' || disallowsSameSiteNone()) {
-		setcookie($name, $value, $expires);
-	} else if (PHP_VERSION_ID < 70300) {
-		setcookie($name, $value, $expires, '/; samesite=none;', '', true);
+		setcookie($name, $value, $expires, $imasroot == '' ? '/' : $imasroot, '', false, $httponly);
 	} else {
 		setcookie($name, $value, array(
 			'expires' => $expires,
 			'secure' => true,
 			'samesite'=>'None',
-			'path' => $imasroot.'/'
+			'httponly'=>$httponly,
+			'path' => ($imasroot == '' ? '/' : $imasroot)
 		));
 	}
 	$_COOKIE[$name] = $value;
@@ -117,17 +114,6 @@ if (!isset($use_local_sessions)) {
 			. 'prefix='.preg_replace('/\W/','',$installname);
   	ini_set('session.save_handler', 'redis');
   	ini_set('session.save_path', $redispath);
-	} else if (!empty($CFG['dynamodb'])) {
-  	require_once __DIR__ . "/includes/dynamodb/DynamoDbSessionHandler.php";
-  	(new Idealstack\DynamoDbSessionsDependencyFree\DynamoDbSessionHandler([
-  		'region' => $CFG['dynamodb']['region'],
-  		'table_name' => $CFG['dynamodb']['table'],
-  		'credentials' => [
-  			'key' => $CFG['dynamodb']['key'],
-  			'secret' => $CFG['dynamodb']['secret']
-  		],
-  		'base64' => false
-  	]))->register();
   } else {
 	require_once __DIR__ . "/includes/session.php";
 	session_set_save_handler(new SessionDBHandler(), true);

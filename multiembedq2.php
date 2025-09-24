@@ -17,7 +17,7 @@ $_SESSION = array();
 $inline_choicemap = !empty($CFG['GEN']['choicesalt']) ? $CFG['GEN']['choicesalt'] : 'test';
 $statesecret = !empty($CFG['GEN']['embedsecret']) ? $CFG['GEN']['embedsecret'] : 'test';
 $cid = 'embedq';
-$_SESSION['secsalt'] = "12345";
+$_SESSION['secsalt'] = $CFG['GEN']['embedsecret'] ?? "12345";
 $myrights = 5;
 
 $issigned = false;
@@ -30,14 +30,15 @@ if (isset($_POST['state'])) {
     $QS = $_GET;
 }
 
+if (!is_array($QS['id'])) {
+    $QS['id'] = explode('-', $QS['id']);
+}
+$QS['id'] = array_filter(array_map('trim', $QS['id']), 'is_numeric');
+
 if (empty($QS['id'])) {
     echo 'Need to supply an id';
     exit;
 }
-if (!is_array($QS['id'])) {
-    $QS['id'] = explode('-', $QS['id']);
-}
-$QS['id'] = array_map('trim', $QS['id']);
 
 // set user preferences
 $prefdefaults = array(
@@ -97,6 +98,7 @@ if (isset($_POST['state'])) {
         'stuanswersval' => array(),
         'scorenonzero' => array_fill(1, $numq, -1),
         'scoreiscorrect' => array_fill(1, $numq, -1),
+        'useda11yalt' => array_fill(0, $numq, false),
         'partattemptn' => array_fill(0, $numq, array()),
         'rawscores' => array_fill(0, $numq, array()),
     );
@@ -163,6 +165,7 @@ if (!empty($_POST['regen'])) {
     $state['scoreiscorrect'][$qntoregen+1] = -1;
     $state['partattemptn'][$qntoregen] = array();
     $state['rawscores'][$qntoregen] = array();
+    $state['useda11yalt'][$qntoregen] = false;
 }
 
 $a2->setState($state);
@@ -221,6 +224,7 @@ if (isset($_POST['toscoreqn'])) {
     $state['scoreiscorrect'][$qn+1] = -1;
     $state['partattemptn'][$qn] = array();
     $state['rawscores'][$qn] = array();
+    $state['useda11yalt'][$qn] = false;
     $a2->setState($state);
     
     // load question data
@@ -229,6 +233,10 @@ if (isset($_POST['toscoreqn'])) {
     $line = $stm->fetch(PDO::FETCH_ASSOC);
     $a2->setQuestionData($qsid, $line);
     $disp = $a2->displayQuestion($qn);
+    if ($disp['useda11yalt'] != $state['useda11yalt'][$qn]) {
+        $state['useda11yalt'][$qn] = $disp['useda11yalt'];
+        $a2->setState($state);
+    }
     $out = array(
         'state' => JWT::encode($a2->getState(), $statesecret),
         'disp' => $disp
@@ -252,6 +260,10 @@ for ($qn=0; $qn < $numq; $qn++) {
     $qsid = $QS['id'][$qn];
     $a2->setQuestionData($qsid, $qsdata[$qsid]);
     $disps[$qn] = $a2->displayQuestion($qn);
+    if ($disps[$qn]['useda11yalt'] != $state['useda11yalt'][$qn]) {
+        $state['useda11yalt'][$qn] = $disps[$qn]['useda11yalt'];
+        $a2->setState($state);
+    }
     // force submitall
     if ($state['submitall']) {
         $disps[$qn]['jsparams']['submitall'] = 1;
@@ -275,7 +287,6 @@ if (!empty($CFG['assess2-use-vue-dev'])) {
     $placeinhead .= '<script src="' . $staticroot . '/javascript/drawing.js?v=041920" type="text/javascript"></script>';
     $placeinhead .= '<script src="' . $staticroot . '/javascript/AMhelpers2.js?v=052120" type="text/javascript"></script>';
     $placeinhead .= '<script src="' . $staticroot . '/javascript/eqntips.js?v=041920" type="text/javascript"></script>';
-    $placeinhead .= '<script src="' . $staticroot . '/javascript/mathjs.js?v=20230729" type="text/javascript"></script>';
     $placeinhead .= '<script src="' . $staticroot . '/mathquill/AMtoMQ.js?v=052120" type="text/javascript"></script>';
     $placeinhead .= '<script src="' . $staticroot . '/mathquill/mqeditor.js?v=041920" type="text/javascript"></script>';
     $placeinhead .= '<script src="' . $staticroot . '/mathquill/mqedlayout.js?v=041920" type="text/javascript"></script>';
@@ -364,6 +375,7 @@ if ($_SESSION['mathdisp']==1 || $_SESSION['mathdisp']==3) {
 
 $flexwidth = true; //tells header to use non _fw stylesheet
 $nologo = true;
+$noskipnavlink = true;
 require_once "./header.php";
 
 echo '<div><ul id="errorslist" style="display:none" class="small"></ul></div>';

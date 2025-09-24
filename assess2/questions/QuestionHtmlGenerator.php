@@ -140,6 +140,17 @@ class QuestionHtmlGenerator
         $graphdispmode = $_SESSION['userprefs']['graphdisp'] ?? 1;
         $drawentrymode = $_SESSION['userprefs']['drawentry'] ?? 1;
 
+        if ($thisq != $this->questionParams->getDisplayQuestionNumber() + 1) {
+            // adjust things so that $thisq is displayquestionnumber
+            $dispqn = $this->questionParams->getDisplayQuestionNumber() + 1;
+            $stuanswers = $this->reIndexArray($stuanswers, $thisq, $dispqn);
+            $stuanswersval = $this->reIndexArray($stuanswersval, $thisq, $dispqn);
+            $autosaves = $this->reIndexArray($autosaves, $thisq, $dispqn);
+            $scorenonzero = $this->reIndexArray($scorenonzero, $thisq, $dispqn);
+            $scoreiscorrect = $this->reIndexArray($scoreiscorrect, $thisq, $dispqn);
+            $thisq = $dispqn;
+        }
+
         $isbareprint = !empty($GLOBALS['isbareprint']); // lazy hack
 
         $thiscourseid = (isset($GLOBALS['cid']) && is_numeric($GLOBALS['cid'])) ?
@@ -266,6 +277,10 @@ class QuestionHtmlGenerator
               . ' of '
               . $errsource
           );
+          if (!empty($GLOBALS['CFG']['newrelic_log_question_errors']) && extension_loaded('newrelic')) {
+            newrelic_add_custom_parameter('cur_qsid', $db_qsetid);
+            newrelic_notice_error($t);
+          }
 
         }
 
@@ -281,6 +296,29 @@ class QuestionHtmlGenerator
                         '<div class=\\"hidden dsbox\\" id=\\"dsboxTN'.uniqid().'\\">' . 
                         (empty($matches[2]) ? $matches[3] : $matches[2]) . '</div></div>';
                 },$toevalqtxt);
+        }
+        //                              1                 2            3       4
+        if (preg_match_all('~\[if\s+([\w_]*?)\s*(==|!=|>=|<=|>|<)\s*(\w+)\s*\](.*?)\[/if\]~ms', $toevalqtxt, $QHG_all_matches, PREG_SET_ORDER)) {
+            foreach ($QHG_all_matches as $QHG_match) {
+                $keep = false;
+                if (isset(${$QHG_match[1]})) {
+                    $val = ${$QHG_match[1]};
+                    if (($QHG_match[2]=='==' && $val==$QHG_match[3]) ||
+                        ($QHG_match[2]=='!=' && $val!=$QHG_match[3]) ||
+                        ($QHG_match[2]=='>=' && $val>=$QHG_match[3]) ||
+                        ($QHG_match[2]=='<=' && $val<=$QHG_match[3]) ||
+                        ($QHG_match[2]=='>' && $val>$QHG_match[3]) ||
+                        ($QHG_match[2]=='<' && $val<$QHG_match[3])
+                    ) {
+                        $keep = true;
+                    }
+                }
+                if ($keep) {
+                    $toevalqtxt = str_replace($QHG_match[0], $QHG_match[4], $toevalqtxt);
+                } else {
+                    $toevalqtxt = str_replace($QHG_match[0], '', $toevalqtxt);
+                }
+            }
         }
         $toevalqtxt = str_replace('\\', '\\\\', $toevalqtxt);
         $toevalqtxt = str_replace(array('\\\\n', '\\\\"', '\\\\$', '\\\\{'),
@@ -353,9 +391,14 @@ class QuestionHtmlGenerator
             }
 
             if ('answerformat' == $optionKey) {
-                $answerformat = str_replace(' ', '', $answerformat);
+                if (is_array($answerformat)) {
+                    array_walk_recursive($answerformat, function(&$v, $k) {
+                        $v = str_replace(' ', '', $v);
+                    });
+                } else {
+                    $answerformat = str_replace(' ', '', $answerformat);
+                }
             }
-
             $questionWriterVars[$optionKey] = ${$optionKey};
         }
 
@@ -620,16 +663,23 @@ class QuestionHtmlGenerator
                 ->setColorboxKeyword($questionColor)
                 ->setCorrectAnswerWrongFormat($correctAnswerWrongFormat[0] ?? false);
 
-            $answerBoxGenerator = AnswerBoxFactory::getAnswerBoxGenerator($answerBoxParams);
-            $answerBoxGenerator->generate();
+            try {
+                $answerBoxGenerator = AnswerBoxFactory::getAnswerBoxGenerator($answerBoxParams);
+                $answerBoxGenerator->generate();
 
-            $answerbox = $answerBoxGenerator->getAnswerBox();
-            $entryTips[0] = $answerBoxGenerator->getEntryTip();
-            $qnRef = $this->questionParams->getDisplayQuestionNumber();
-            $jsParams[$qnRef] = $answerBoxGenerator->getJsParams();
-            $jsParams[$qnRef]['qtype'] = $quesData['qtype'];
-            $displayedAnswersForParts[0] = $answerBoxGenerator->getCorrectAnswerForPart();
-            $previewloc = $answerBoxGenerator->getPreviewLocation();
+                $answerbox = $answerBoxGenerator->getAnswerBox();
+                $entryTips[0] = $answerBoxGenerator->getEntryTip();
+                $qnRef = $this->questionParams->getDisplayQuestionNumber();
+                $jsParams[$qnRef] = $answerBoxGenerator->getJsParams();
+                $jsParams[$qnRef]['qtype'] = $quesData['qtype'];
+                $displayedAnswersForParts[0] = $answerBoxGenerator->getCorrectAnswerForPart();
+                $previewloc = $answerBoxGenerator->getPreviewLocation();
+            } catch (\Throwable $t) {
+                $this->addError(
+                    _('Caught error while generating this question: ')
+                    . $t->getMessage());
+                $answerbox = '';
+            }
 
             if ($printFormat) {
                 $answerbox = preg_replace('/<ul class="?nomark"?>(.*?)<\/ul>/s', '<ol style="list-style-type:upper-alpha">$1</ol>', $answerbox);
@@ -656,7 +706,11 @@ class QuestionHtmlGenerator
 
         if (isset($hints) && is_array($hints) && count($hints) > 0 && $showHints) {
             // Eval'd question writer code expects this to be "$hintloc".
-            $hintloc = $this->getHintText($hints, $hintlabel ?? '');
+            if (isset($hintlabel) && is_array($hintlabel)) {
+                echo '$hintlabel should be a single string';
+                $hintlabel = '';
+            }
+            $hintloc = $this->getHintText($hints, $hintlabel ?? '', $thisq, $scoreiscorrect);
         }
 
         /*
@@ -824,7 +878,9 @@ class QuestionHtmlGenerator
                 if (!$lastGroupDone) { // not ready for it - unset stuff
                   unset($jsParams[$qnrefnum]);
                   unset($answerbox[$pn]);
-                  unset($showanswerloc[$pn]);
+                  if (is_array($showanswerloc)) {
+                    unset($showanswerloc[$pn]);
+                  }
                   $jsParams['hasseqnext'] = true;
                   $thisGroupDone = false;
                 }
@@ -860,7 +916,8 @@ class QuestionHtmlGenerator
             }
         }
 
-        $evaledqtext = "<div class=\"question\" role=region aria-label=\"" . _('Question') . "\">\n"
+        $evaledqtext = "<div class=\"question\" role=region aria-label=\"" . _('Question') . ' ' 
+            . ($this->questionParams->getDisplayQuestionNumber()+1) . "\">\n"
             . filter($evaledqtext);
 
 
@@ -1030,15 +1087,14 @@ class QuestionHtmlGenerator
      *
      * @param array $hints As provided by the question writer.
      * @param string $hintlabel 
+     * @param int $thisq
+     * @param array $scoreiscorrect
      * @return string|array The hint text.
      */
-    private function getHintText(array $hints, string $hintlabel)
+    private function getHintText(array $hints, string $hintlabel, int $thisq, array $scoreiscorrect)
     {
         $qdata = $this->questionParams->getQuestionData();
         $attemptn = $this->questionParams->getStudentAttemptNumber();
-        $scoreiscorrect = $this->questionParams->getScoreIsCorrect();
-
-        $thisq = $this->questionParams->getQuestionNumber() + 1;
 
         $hintloc = '';
 
@@ -1121,9 +1177,9 @@ class QuestionHtmlGenerator
                     (is_array($scoreiscorrect[$thisq]) && min($scoreiscorrect[$thisq]) == 1)
                 )) {
                     $usenum--;  // if correct, use prior hint
-                }
+                } 
             }
-            
+
             if (!empty($hints[$usenum])) {
                 if (!is_string($hints[$usenum])) { // shouldn't be, but a hack to get old bad code from throwing errors.
                     $hintloc = $hints[$usenum]; 
@@ -1358,7 +1414,8 @@ class QuestionHtmlGenerator
             }
         }
         if (($showhints&4)==4 && ($qdata['solutionopts'] & 2) == 2 && $qdata['solution'] != '') {
-            $addr = $GLOBALS['basesiteurl'] . "/assessment/showsoln.php?id=" . $qidx . '&sig=' . md5($qidx . $_SESSION['secsalt']);
+            $sig = hash_hmac('sha256', $qidx, $_SESSION['secsalt']);
+            $addr = $GLOBALS['basesiteurl'] . "/assessment/showsoln.php?id=" . $qidx . '&sig=' . urlencode($sig);
             $addr .= '&t=' . ($qdata['solutionopts'] & 1) . '&cid=' . $GLOBALS['cid'];
             if ($GLOBALS['cid'] == 'embedq' && isset($GLOBALS['theme'])) {
                 $addr .= '&theme=' . Sanitize::encodeUrlParam($GLOBALS['theme']);
@@ -1476,5 +1533,18 @@ class QuestionHtmlGenerator
         return preg_replace_callback('/`(.*?)`/s', function($m) {
             return '`' . str_replace(['degrees','degree'],'^@', $m[1]).'`';
         }, $str);
+    }
+
+    /*
+     * Reindex arrays like stuanswers when the display question number is different than $thisq,
+     * so that any $thisq references to these arrays will work
+     */
+    private function reIndexArray(array $arr, int $thisq, int $dispqn) {
+        $diff = $dispqn - $thisq;
+        foreach ($arr as $k=>$v) {
+            // duplicate rather than replace, so any absolute references should still work
+            $arr[$k+$diff] = $v;
+        }
+        return $arr;
     }
 }

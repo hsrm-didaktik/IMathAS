@@ -73,13 +73,8 @@
    
    $openblocks = Array(0);
    if (isset($_COOKIE['openblocks-'.$cid]) && $_COOKIE['openblocks-'.$cid]!='') {$openblocks = explode(',',$_COOKIE['openblocks-'.$cid]);}
-   if (isset($_COOKIE['prevloadedblocks-'.$cid]) && $_COOKIE['prevloadedblocks-'.$cid]!='') {$prevloadedblocks = explode(',',$_COOKIE['prevloadedblocks-'.$cid]);} else {$prevloadedblocks = array();}
+   if (!empty($_SESSION['prevloadedblocks-'.$cid])) {$prevloadedblocks = $_SESSION['prevloadedblocks-'.$cid];} else {$prevloadedblocks = array();}
    if (in_array($_GET['folder'],$prevloadedblocks)) { $firstload = false;} else {$firstload = true;}
-
-   //$oblist = implode(',',$openblocks);
-   //echo "<script>\n";
-   //echo "  oblist += ',$oblist';\n";
-   //echo "</script>\n";
 
 
    //get latepasses
@@ -129,7 +124,7 @@
 
 
    if ($firstload) {
-	   echo "<script>document.cookie = 'openblocks-$cid=' + oblist;</script>\n";
+	   echo "<script>setCookie('openblocks-$cid', oblist);</script>\n";
    }
    if (isset($tutorid) && isset($_SESSION['ltiitemtype']) && $_SESSION['ltiitemtype']==3) {
 	echo '<script type="text/javascript">$(".instrdates").hide();</script>';

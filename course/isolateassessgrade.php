@@ -19,11 +19,12 @@
     
     $stm = $DBH->prepare("SELECT minscore,timelimit,overtime_grace,deffeedback,startdate,enddate,LPcutoff,allowlate,name,itemorder,ver,deffeedbacktext,tutoredit,ptsposs FROM imas_assessments WHERE id=:id AND courseid=:cid");
 	$stm->execute(array(':id'=>$aid, ':cid'=>$cid));
-	if ($stm->rowCount()==0) {
+	$res = $stm->fetch(PDO::FETCH_NUM);
+	if ($res === false) {
 		echo "Invalid ID";
 		exit;
 	}
-	list($minscore,$timelimit,$overtime_grace,$deffeedback,$startdate,$enddate,$LPcutoff,$allowlate,$name,$itemorder,$aver,$deffeedbacktext,$tutoredit,$totalpossible) = $stm->fetch(PDO::FETCH_NUM);
+	list($minscore,$timelimit,$overtime_grace,$deffeedback,$startdate,$enddate,$LPcutoff,$allowlate,$name,$itemorder,$aver,$deffeedbacktext,$tutoredit,$totalpossible) = $res;
     if ($istutor && $tutoredit == 2) {  // tutor, no access to view grades
         echo 'No access';
         exit;
@@ -204,11 +205,11 @@
 //	$query .= "WHERE iu.id = istu.userid AND istu.courseid='$cid' AND iu.id=ias.userid AND ias.assessmentid='$aid'";
 
 	//get exceptions
-	$stm = $DBH->prepare("SELECT userid,startdate,enddate,islatepass FROM imas_exceptions WHERE assessmentid=:assessmentid AND itemtype='A'");
+	$stm = $DBH->prepare("SELECT userid,startdate,enddate,islatepass,is_lti FROM imas_exceptions WHERE assessmentid=:assessmentid AND itemtype='A'");
 	$stm->execute(array(':assessmentid'=>$aid));
 	$exceptions = array();
-	while ($row = $stm->fetch(PDO::FETCH_NUM)) {
-		$exceptions[$row[0]] = array($row[1],$row[2],$row[3]);
+	while ($row = $stm->fetch(PDO::FETCH_ASSOC)) {
+		$exceptions[$row['userid']] = $row;
 	}
 	if (count($exceptions)>0) {
 		require_once "../includes/exceptionfuncs.php";
@@ -255,7 +256,7 @@
 		if (isset($exceptions[$line['userid']])) {
 			$line['useexception'] = $exceptionfuncs->getCanUseAssessException($exceptions[$line['userid']], array('startdate'=>$startdate, 'enddate'=>$enddate, 'allowlate'=>$allowlate, 'LPcutoff'=>$LPcutoff), true);
 			if ($line['useexception']) {
-				$line['thisenddate'] = $exceptions[$line['userid']][1];
+				$line['thisenddate'] = $exceptions[$line['userid']]['enddate'];
 			} else {
                 $line['thisenddate'] = $enddate;
             }
@@ -267,7 +268,7 @@
 			// identify as unsubmitted if past due, or time limit is expired
 			$data = json_decode(Sanitize::gzexpand($line['scoreddata']), true);
             if (abs($timelimit) > 0) {
-			    $time_exp = $data['assess_versions'][count($data['assess_versions'])-1]['timelimit_end'];
+			    $time_exp = $data['assess_versions'][count($data['assess_versions'])-1]['timelimit_end'] ?? $now;
             }
 			if ($now > $line['thisenddate'] ||
 				(abs($timelimit) > 0 && $now > $time_exp + $overtime_grace * $line['timelimitmult'])
@@ -336,7 +337,7 @@
 			echo "<tr class=odd onMouseOver=\"this.className='highlight'\" onMouseOut=\"this.className='odd'\">";
 		}
 		$lc++;
-		echo '<td><input type=checkbox name="stus[]" value="'.Sanitize::onlyInt($line['userid']).'"> ';
+		echo '<td><label><input type=checkbox name="stus[]" value="'.Sanitize::onlyInt($line['userid']).'"> ';
 		if ($line['locked']>0) {
 			echo '<span style="text-decoration: line-through;">';
 			printf("<span class='pii-full-name'>%s, %s</span></span>",
@@ -347,7 +348,7 @@
 				Sanitize::encodeStringForDisplay($line['LastName']),
 				Sanitize::encodeStringForDisplay($line['FirstName']));
 		}
-		echo '</td>';
+		echo '</label></td>';
 		if ($hassection && !$hidesection) {
 			printf("<td>%s</td>", Sanitize::encodeStringForDisplay($line['section']));
 		}
@@ -383,7 +384,7 @@
 				$total += getpts($scores[$i]);
 			}
 			$timeused = $line['endtime']-$line['starttime'];
-			$timeontask = round(array_sum(explode(',',str_replace('~',',',$line['timeontask'])))/60,1);
+			$timeontask = round(array_sum(array_map('floatval', explode(',',str_replace('~',',',$line['timeontask']))))/60,1);
 			$isOvertime = ($timelimit>0) && ($timeused > $timelimit*$line['timelimitmult']);
 			$UA = 0;
 		}
@@ -398,7 +399,7 @@
 					'aid' => $aid
 				);
 
-				echo '<td><a href="' . $assessGbUrl . Sanitize::generateQueryStringFromMap($querymap) . '">-</a>';
+				echo '<td><a href="' . $assessGbUrl . Sanitize::encodeStringForDisplay(Sanitize::generateQueryStringFromMap($querymap)) . '">-</a>';
 			} else {
 				$querymap = array(
 					'gbmode' => $gbmode,
@@ -409,10 +410,10 @@
 					'aid' => $aid
 				);
 
-				echo '<td><a href="gb-viewasid.php?' . Sanitize::generateQueryStringFromMap($querymap) . '">-</a>';
+				echo '<td><a href="gb-viewasid.php?' . Sanitize::encodeStringForDisplay(Sanitize::generateQueryStringFromMap($querymap)) . '">-</a>';
 			}
 			if ($line['useexception']) {
-				if ($exceptions[$line['userid']][2]>0) {
+				if ($exceptions[$line['userid']]['islatepass']>0) {
 					echo '<sup>LP</sup>';
 				} else {
 					echo '<sup>e</sup>';
@@ -436,7 +437,7 @@
 					'aid' => $aid
 				);
 
-				echo '<td><a href="' . $assessGbUrl . Sanitize::generateQueryStringFromMap($querymap) . '">';
+				echo '<td><a href="' . $assessGbUrl . Sanitize::encodeStringForDisplay(Sanitize::generateQueryStringFromMap($querymap)) . '">';
 			} else {
 				$querymap = array(
 					'gbmode' => $gbmode,
@@ -447,7 +448,7 @@
 					'aid' => $aid
 				);
 
-				echo '<td><a href="gb-viewasid.php?' . Sanitize::generateQueryStringFromMap($querymap) . '">';
+				echo '<td><a href="gb-viewasid.php?' . Sanitize::encodeStringForDisplay(Sanitize::generateQueryStringFromMap($querymap)) . '">';
 			}
 			if ($line['thisenddate'] > $now) {
 				echo '<i>'.Sanitize::onlyFloat($total);
@@ -474,7 +475,7 @@
 			}
 			echo '</a>';
 			if ($line['useexception']) {
-				if ($exceptions[$line['userid']][2]>0) {
+				if ($exceptions[$line['userid']]['islatepass']>0) {
 					echo '<sup>LP</sup>';
 				} else {
 					echo '<sup>e</sup>';

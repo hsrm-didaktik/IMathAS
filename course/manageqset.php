@@ -65,7 +65,7 @@ if ($myrights<20) {
 						$stm->execute(array(':ownerid'=>$userid));
 					}
 					while ($row = $stm->fetch(PDO::FETCH_NUM)) {
-						$oktorem[] = $row[0];
+						$oktorem[] = intval($row[0]);
 					}
 					$remlist = implode(',',$oktorem);
 				}
@@ -166,19 +166,15 @@ if ($myrights<20) {
 	} else if (isset($_POST['chglib'])) {
 		if (isset($_POST['qtochg'])) {
 			if ($_POST['chglib']!='') {
-				$newlibs = $_POST['libs']; //array is sanitized later
-				if ($_POST['libs']=='') {
-					$newlibs = array();
-				} else {
-					$newlibs = array_map('intval', $newlibs);
-					if ($newlibs[0]==0) { //get rid of unassigned if checked
-						array_shift($newlibs);
-					}
+				$newlibs = array_map('intval', explode(',',$_POST['libs'])); 
+				sort($newlibs); // put unassigned first if selected
+				if (count($newlibs)>0 && $newlibs[0]==0) { //get rid of unassigned if checked
+					array_shift($newlibs);
 				}
 				//Verify we have rights to add to all of newlibs
-				$newliblist = implode(',', $newlibs);
 				if (!$isadmin && count($newlibs)>0) {
 					$oktoaddto = array();
+					$newliblist = implode(',', $newlibs);
 					$stm = $DBH->query("SELECT id,ownerid,userights,groupid FROM imas_libraries WHERE id IN ($newliblist)");
 					while ($row = $stm->fetch(PDO::FETCH_ASSOC)) {
 						if ($isgrpadmin) {
@@ -397,9 +393,8 @@ if ($myrights<20) {
 				$clist = implode(',', array_map('intval', $_POST['nchecked']));
 				$stm = $DBH->query("SELECT DISTINCT ili.libid FROM imas_library_items AS ili WHERE ili.qsetid IN ($clist) AND deleted=0");
 				while ($row = $stm->fetch(PDO::FETCH_NUM)) {
-					$checked[] = $row[0];
+					$checkedlibs[] = $row[0];
 				}
-				$_GET['selectrights'] = 1;
 			}
 		}
 
@@ -540,7 +535,7 @@ if ($myrights<20) {
 				$stm->execute(array(':groupid'=>$groupid));
 				$tochg = array();
 				while ($row = $stm->fetch(PDO::FETCH_NUM)) {
-					$tochg[] = $row[0];
+					$tochg[] = intval($row[0]);
 				}
 				if (count($tochg)>0) {
 					$chglist = implode(',',$tochg);
@@ -640,7 +635,7 @@ $testqpage = ($courseUIver>1) ? 'testquestion2.php' : 'testquestion.php';
 
 /******* begin html output ********/
 $placeinhead = "<script type=\"text/javascript\" src=\"$staticroot/javascript/junkflag.js\"></script>";
-$placeinhead .= "<script type=\"text/javascript\" src=\"$staticroot/javascript/qsearch.js?v=010925\"></script>";
+$placeinhead .= "<script type=\"text/javascript\" src=\"$staticroot/javascript/qsearch.js?v=071125\"></script>";
 $placeinhead .= "<script type=\"text/javascript\" src=\"$staticroot/javascript/DatePicker.js?v=080818\"></script>";
 $placeinhead .= "<script type=\"text/javascript\">var JunkFlagsaveurl = '" . $GLOBALS['basesiteurl'] . "/course/savelibassignflag.php';</script>";
 $placeinhead .= "<link rel=\"stylesheet\" href=\"$staticroot/course/addquestions2.css?v=060823\" type=\"text/css\" />";
@@ -656,8 +651,8 @@ $placeinhead .= "<script type=\"text/javascript\">
         }
 		</script>";
 if (!empty($_POST['chglib'])) {
-	$placeinhead .= '<link rel="stylesheet" href="'.$staticroot.'/course/libtree.css" type="text/css" />';
-	$placeinhead .= '<script type="text/javascript" src="'.$staticroot.'/javascript/libtree2.js?v=031111"></script>';
+	$placeinhead .= '<link rel="stylesheet" href="'.$staticroot.'/javascript/accessibletree.css" type="text/css" />';
+	$placeinhead .= '<script type="text/javascript" src="'.$staticroot.'/javascript/accessibletree.js?v=031111"></script>';
 }
 $placeinhead .= '<style>
   .qisprivate {
@@ -739,23 +734,24 @@ if (isset($searchtype)) {
 ?>
 		<script type="text/javascript">
 		var chgliblaststate = 0;
+		var existinglibs = [<?php echo implode(',', array_map(function($i){return '"lib'.$i.'"';}, $checkedlibs));?>];
 		function chglibtoggle(rad) {
 			var val = rad.value;
 			var help = document.getElementById("chglibhelp");
 			if (val==0) {
 				help.innerHTML = "Select libraries to add these questions to. ";
 				if (chgliblaststate==2) {
-					initlibtree(false);
+					treeWidget.unselectAll();
 				}
 			} else if (val==1 || val==3) {
 				help.innerHTML = "Select libraries to add these questions to.  Questions will only be removed from existing libraries if you have the rights to make those changes.";
 				if (chgliblaststate==2) {
-					initlibtree(false);
+					treeWidget.unselectAll();
 				}
 			} else if (val==2) {
 				help.innerHTML = "Unselect the libraries you want to remove questions from.  The questions will not be deleted; they will be moved to Unassigned if no other library assignments exist.  Questions will only be removed from existing libraries if you have the rights to make those changes.";
 				if (chgliblaststate==0 || chgliblaststate==1 || chgliblaststate==3) {
-					initlibtree(true);
+					treeWidget.setSelectedItems(existinglibs);
 				}
 			}
 			chgliblaststate = val;
@@ -765,19 +761,25 @@ if (isset($searchtype)) {
 			<input type=hidden name=chglib value="true">
 			<input type=hidden name=qtochg value="<?php echo Sanitize::encodeStringForDisplay($clist); ?>">
 			What do you want to do with these questions?<br/>
-			<input type=radio name="action" value="0" onclick="chglibtoggle(this)" checked="checked"/> Add to libraries, keeping any existing library assignments<br/>
-			<input type=radio name="action" value="1" onclick="chglibtoggle(this)"/> Add to libraries, removing existing library assignments<br/>
+			<label><input type=radio name="action" value="0" onclick="chglibtoggle(this)" checked="checked"/> Add to libraries, keeping any existing library assignments</label><br/>
+			<label><input type=radio name="action" value="1" onclick="chglibtoggle(this)"/> Add to libraries, removing existing library assignments</label><br/>
 			<?php
 			if (isset($_SESSION['searchtypec'.$cid]) && isset($_SESSION['lastsearchlibsc'.$cid]) && $_SESSION['searchtypec'.$cid]=='libs' && $_SESSION['lastsearchlibsc'.$cid]!='0') {
-				echo '<input type=radio name="action" value="3" onclick="chglibtoggle(this)"/> Add to libraries, removing library assignment in currently listed libraries<br/>';
+				echo '<label><input type=radio name="action" value="3" onclick="chglibtoggle(this)"/> Add to libraries, removing library assignment in currently listed libraries</label><br/>';
 			}
 			?>
-			<input type=radio name="action" value="2" onclick="chglibtoggle(this)"/> Remove library assignments
+			<label><input type=radio name="action" value="2" onclick="chglibtoggle(this)"/> Remove library assignments</label>
 			<p id="chglibhelp" style="font-weight: bold;">
 			Select libraries to add these questions to.
 			</p>
 
-			<?php $libtreeshowchecks = false; require_once "libtree2.php"; ?>
+			<?php 
+			$select = 'children';
+			$mode = 'multi';
+			$_GET['selectrights'] = 1;
+			require_once "libtree3.php"; 
+			
+			?>
 
 
 			<p>
@@ -786,7 +788,7 @@ if (isset($searchtype)) {
 			</p>
 		</form>
 <?php
-	} else if (isset($_POST['template'])) {
+	} /* else if (isset($_POST['template'])) {
 ?>
 
 		<form method=post action="manageqset.php?cid=<?php echo $cid ?>">
@@ -808,7 +810,7 @@ if (isset($searchtype)) {
 			</p>
 		</form>
 <?php
-	} else if (isset($_POST['license'])) {
+	} */ else if (isset($_POST['license'])) {
 ?>
 
 	<form method=post action="manageqset.php?cid=<?php echo $cid ?>">
@@ -912,151 +914,9 @@ if (isset($searchtype)) {
 	} else { //DEFAULT DISPLAY
 
 		echo $page_adminMsg;
-?>
-<div id="fullqsearchwrap">
-    <div id="searcherror" class="noticetext"></div>
-<div id="qsearchbarswrap">
-<div class="flexrow wrap dropdown searchbar">
-    <div class="dropdown">
-        <button id="cursearchtype" type="button" class="dropdown-toggle arrow-down" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <?php
-            if ($searchtype == 'all') {
-                echo _('All Libraries');
-            } else if ($searchtype == 'libs') {
-                echo _('In Libraries');
-            } else if ($searchtype == 'assess') {
-                echo _('In Assessments');
-            }
-            ?>
-        </button>
-        <ul class="dropdown-menu" id="searchtypemenu">
-            <li><a href="#" role="button" onclick="alllibs(); return false;">
-                <?php echo _('All Libraries'); ?>
-            </a></li>
-            <li><a href="#" role="button" onclick="libselect(); return false;">
-                <?php echo _('Select Libraries...'); ?>
-            </a></li>
-            <?php 
-            if ($cid != 'admin') {
-                echo '<li><a href="#" role="button" onclick="assessselect(); return false;">';
-                echo _('Select Assessments...');
-                echo '</a></li>';
-            }
-            ?>
-        </ul>
-    </div>
-    <div style="flex-grow:1" class="flexrow">
-        <div id="searchwrap" <?php if ($searchterms !== '') { echo 'class="hastext"';} ?>>
-            <input type=text name=search id=search  
-                value="<?php echo Sanitize::encodeStringForDisplay($searchterms); ?>">
-            <button type=button onclick="clearSearch()" 
-                id="searchclear" aria-label="Clear Search">&times;</button>
-        </div>
-        <div class="dropdown splitbtn" id="searchbtngrp" >
-            <button type="button" class="primary" onclick="startQuestionSearch()">
-                <?php echo _('Search');?>
-            </button><button type="button" id="advsearchbtn" class="primary dropdown-toggle arrow-down" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <span class="sr-only"><?php echo _('Advanced Search'); ?></span>
-            </button>
 
-            <div class="dropdown-menu dropdown-menu-right advsearch">
-                <form class="mform" id="advsearchform">
-                    <div><label for="search-words"><?php echo _('Has words');?>:</label>
-                        <input id="search-words"/></div>
-                    <div><label for="search-exclude"><?php echo _('Doesn\'t have');?>:</label> 
-                        <input id="search-exclude"/></div>
-                    <div><label for="search-author"><?php echo _('Author');?>:</label> 
-                        <input id="search-author"/></div>
-                    <div><label for="search-id"><?php echo _('ID');?>:</label> 
-                        <input id="search-id"></div>
-                    <div><label for="search-type"><?php echo _('Type');?>:</label> 
-                        <select id="search-type">
-                            <option value=""><?php echo _('All');?></option>
-                            <option value="number">Number</option>
-                            <option value="calculated">Calculated Number</option>
-                            <option value="choices">Multiple-Choice</option>
-                            <option value="multans">Multiple-Answer</option>
-                            <option value="matching">Matching</option>
-                            <option value="numfunc">Function</option>
-                            <option value="string">String</option>
-                            <option value="essay">Essay</option>
-                            <option value="draw">Drawing</option>
-                            <option value="ntuple">N-Tuple</option>
-                            <option value="calcntuple">Calculated N-Tuple</option>
-                            <option value="matrix">Numerical Matrix</option>
-                            <option value="calcmatrix">Calculated Matrix</option>
-                            <option value="interval">Interval</option>
-                            <option value="calcinterval">Calculated Interval</option>
-                            <option value="complex">Complex</option>
-                            <option value="calccomplex">Calculated Complex</option>
-							<option value="chemeqn">Chemical Equation</option>
-                            <option value="file">File Upload</option>
-                            <option value="multipart">Multipart</option>
-                            <option value="conditional">Conditional</option>
-                        </select></div>
-                    <div><label for="search-avgtime-min"><?php echo _('Avg Time');?>:</label> <div>
-                        <input size=2 id="search-avgtime-min"> to <input size=2 id="search-avgtime-max">
-                    </div></div>
-                    <div><label for="search-avgscore-min"><?php echo _('Avg Score');?>:</label> <div>
-                        <input size=2 id="search-avgscore-min">% to <input size=2 id="search-avgscore-max">%
-                    </div></div>
-                    <div><label for="search-lastmod-min"><?php echo _('Last Modified');?>:</label> <div>
-                        <input size=8 id="search-lastmod-min" name="search-lastmod-min">
-                        <a href="#" onClick="displayDatePicker('search-lastmod-min', this); return false">
-			            <img src="<?php echo $staticroot;?>/img/cal.gif" alt="Calendar"/></a>
-                        to 
-                        <input size=8 id="search-lastmod-max" name="search-lastmod-max">
-                        <a href="#" onClick="displayDatePicker('search-lastmod-max', this); return false">
-			            <img src="<?php echo $staticroot;?>/img/cal.gif" alt="Calendar"/></a>
-                    </div></div>
-                    <div><label for="search-created-min"><?php echo _('Created');?>:</label> <div>
-                        <input size=8 id="search-created-min" name="search-created-min">
-                        <a href="#" onClick="displayDatePicker('search-created-min', this); return false">
-			            <img src="<?php echo $staticroot;?>/img/cal.gif" alt="Calendar"/></a>
-                        to 
-                        <input size=8 id="search-created-max" name="search-created-max">
-                        <a href="#" onClick="displayDatePicker('search-created-max', this); return false">
-			            <img src="<?php echo $staticroot;?>/img/cal.gif" alt="Calendar"/></a>
-                    </div></div>
-                    <p><label><input type=checkbox id="search-mine"><?php echo _('Mine Only');?></label> 
-                        <label><input type=checkbox id="search-nopriv"><?php echo _('Exclude Private');?></label> 
-                        <label><input type=checkbox id="search-nopub"><?php echo _('Exclude Public');?></label> 
-                        <label><input type=checkbox id="search-newest"><?php echo _('Newest First');?></label> 
-                        <label><input type=checkbox id="search-nounrand"><?php echo _('Exclude non-randomized');?></label> 
-                    </p>
-                    <p><?php echo _('Helps');?>: 
-                        <label><input type=checkbox id="search-res-help" value="help"><?php echo _('Resource');?></label> 
-                        <label><input type=checkbox id="search-res-cap" value="cap"><?php echo _('Captioned Video');?></label> 
-                        <label><input type=checkbox id="search-res-WE" value="WE"><?php echo _('Written Example');?></label> 
-                        <label><input type=checkbox id="search-res-soln" value="soln"><?php echo _('Detailed Solution');?></label>
-                    </p>
-                    <p><label><input type=checkbox id="search-broken"><?php echo _('Broken');?></label> 
-                        <label><input type=checkbox id="search-wronglib"><?php echo _('Marked wrong library');?></label> 
-                    </p>
-                    <div>
-                        <div style="flex-grow:1">
-                        </div>
-                        <button type="button" class="primary" onclick="doAdvSearch()">
-                            <?php echo _('Search');?>
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="selectedlibs short" <?php if ($searchtype=='all') { echo 'style="display:none;"';}?>>
-    <span id="libnames">
-        <?php echo Sanitize::encodeStringForDisplay(implode(', ', $search_results['names'])); ?>
-    </span>
-    <button class="viewall" aria-hidden="true" onclick="this.style.display='none';this.parentNode.classList.remove('short');">
-        <?php echo _('View all');?>
-    </button>
-</div>
-</div>	
-<?php
-
-        echo '<div id="searchspinner" style="display:none;">' . _('Searching') . '...<br/><img alt="" src="../img/updating.gif"/></div>';
+		require_once('../includes/questionsearch.php');
+		outputSearchUI($searchtype, $searchterms, $search_results);
 
 		echo "<script type=\"text/javascript\" src=\"$staticroot/javascript/tablesorter.js?v=082913\"></script>\n";
 		echo "<form id=\"selq\" method=post action=\"manageqset.php?cid=$cid\">\n";
@@ -1064,7 +924,7 @@ if (isset($searchtype)) {
 		echo '<div class=pdiv>Check: <a href="#" onclick="return chkAllNone(\'selq\',\'nchecked[]\',true)">All</a> <a href="#" onclick="return chkAllNone(\'selq\',\'nchecked[]\',false)">None</a> ';
 
         echo '<span class="dropdown">';
-		echo ' <a tabindex=0 class="dropdown-toggle arrow-down" id="dropdownMenuWithsel" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
+		echo ' <a role=button tabindex=0 class="dropdown-toggle arrow-down" id="dropdownMenuWithsel" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
 		echo _('With Selected').'</a>';
 		echo '<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuWithsel">';
 		echo ' <li><a href="#" onclick="postWSform(\'transfer\');return false;" title="',_("Transfer question ownership"),'">', _('Transfer'), "</a></li>";
@@ -1101,21 +961,4 @@ if (isset($searchtype)) {
 require_once "../footer.php";
 
 
-function delqimgs($qsid) {
-  global $DBH;
-	$del_stm = $DBH->prepare("DELETE FROM imas_qimages WHERE id=:id");
-	$stm2 = $DBH->prepare("SELECT id FROM imas_qimages WHERE filename=:filename");
-
-	$stm = $DBH->prepare("SELECT id,filename,var FROM imas_qimages WHERE qsetid=:qsetid");
-	$stm->execute(array(':qsetid'=>$qsid));
-	while ($row = $stm->fetch(PDO::FETCH_NUM)) {
-		if (substr($row[1],0,4)!='http') {
-			$stm2->execute(array(':filename'=>$row[1]));
-			if ($stm2->rowCount()==1) {
-				unlink(rtrim(dirname(__FILE__), '/\\') .'/../assessment/qimages/'.$row[1]);
-			}
-		}
-		$del_stm->execute(array(':id'=>$row[0]));
-	}
-}
 ?>

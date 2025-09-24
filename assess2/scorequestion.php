@@ -52,7 +52,7 @@ if (!isset($_POST['toscoreqn']) || $_POST['toscoreqn'] == -1 || $_POST['toscoreq
   $verification = array();
 } else {
   $qnstoscore = json_decode($_POST['toscoreqn'], true);
-  $qns = array_keys($qnstoscore);
+  $qns = array_map('Sanitize::onlyInt',array_keys($qnstoscore));
   $lastloaded = array_map('Sanitize::onlyInt', explode(',', $_POST['lastloaded']));
   $timeactive = array_map('Sanitize::onlyInt', explode(',', $_POST['timeactive']));
   $verification = json_decode($_POST['verification'], true);
@@ -237,7 +237,7 @@ if (count($qns) > 0) {
   // If it's full test, we'll score time at the assessment attempt level
   if ($assess_info->getSetting('displaymethod') === 'full') {
     $minloaded = round(max($lastloaded)/1000); // front end sends milliseconds
-    if ($minloaded > 0) {
+    if ($minloaded > 0 && $minloaded < $now) {
       $assess_record->addTotalAttemptTime($now - $minloaded);
     }
   }
@@ -354,11 +354,11 @@ if ($end_attempt) {
       $toSign = $aid.$qn.$uid.$rawscores.$lastAnswer;
       $now = time();
       if (isset($CFG['GEN']['livepollpassword'])) {
-        $livepollsig = base64_encode(sha1($toSign . $CFG['GEN']['livepollpassword'] . $now, true));
+        $livepollsig = base64_encode(hash('sha256',$toSign . $CFG['GEN']['livepollpassword'] . $now, true));
       }
       $qs = Sanitize::generateQueryStringFromMap(array(
         'aid' => $aid,
-        'qn' => $qn,
+        'qn' => Sanitize::onlyInt($qn),
         'user' => $uid,
         'score' => $rawscores,
         'la' => $lastAnswer,

@@ -168,23 +168,28 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
 		}
     require_once "../includes/parsedatetime.php";
 		$toset['avail'] = Sanitize::onlyInt($_POST['avail']);
+		if ($toset['avail'] == 1 && $dates_by_lti == 0) {
+			if ($_POST['sdatetype']=='0') {
+				$toset['startdate'] = 0;
+			} else {
+				$toset['startdate'] = parsedatetime($_POST['sdate'],$_POST['stime'],0);
+			}
+			if ($_POST['edatetype']=='2000000000') {
+				$toset['enddate'] = 2000000000;
+			} else {
+				$toset['enddate'] = parsedatetime($_POST['edate'],$_POST['etime'],2000000000);
+			}
+		} else {
+			// set some default values which won't matter to prevent undefined errors
+			$toset['startdate'] = 0;
+			$toset['enddate'] = time();
+		}
 
-    if ($_POST['sdatetype']=='0') {
-      $toset['startdate'] = 0;
-    } else {
-      $toset['startdate'] = parsedatetime($_POST['sdate'],$_POST['stime'],0);
-    }
-    if ($_POST['edatetype']=='2000000000') {
-      $toset['enddate'] = 2000000000;
-    } else {
-      $toset['enddate'] = parsedatetime($_POST['edate'],$_POST['etime'],2000000000);
-    }
-
-    if (empty($_POST['allowpractice']) || $toset['enddate'] == 2000000000) {
-      $toset['reviewdate'] = 0;
-    } else {
-      $toset['reviewdate'] = 2000000000;
-    }
+		if (empty($_POST['allowpractice']) || $toset['enddate'] == 2000000000) {
+			$toset['reviewdate'] = 0;
+		} else {
+			$toset['reviewdate'] = 2000000000;
+		}
 
 		// Core options
 		if (!empty($_POST['copyfrom'])) { // copy options from another assessment
@@ -334,7 +339,7 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
 			$toset['password'] = trim(Sanitize::stripHtmlTags($_POST['assmpassword']));
 
 			$toset['reqscore'] = Sanitize::onlyInt($_POST['reqscore']);
-			if ($_POST['reqscoreshowtype']==-1 || $toset['reqscore']==0) {
+			if ($_POST['reqscoreshowtype']==-1 || $toset['reqscore']==0 || !isset($_POST['reqscoreaid'])) {
 				$toset['reqscore'] = 0;
 				$toset['reqscoretype'] = 0;
 				$toset['reqscoreaid'] = 0;
@@ -469,7 +474,7 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
 			if ($updategroupset == '') { // don't change group
 				unset($toset['groupsetid']);
 			}
-			if ($dates_by_lti>0) { // don't change dates
+			if ($dates_by_lti>0 || $toset['avail'] == 0) { // don't change dates
 				unset($toset['startdate']);
 				unset($toset['enddate']);
 			}
@@ -782,23 +787,25 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
           $skippenalty=10;
       } else
 			*/
-            if ($line['defpenalty'] === '') {
-                $line['defpenalty'] = '0';
-            }
-			if (is_string($line['defpenalty']) && $line['defpenalty'][0]==='S') {
-				$defattemptpenalty = substr($line['defpenalty'],2);
-				$defattemptpenalty_aftern = $line['defpenalty'][1];
+	  if ($line['defpenalty'] === '') {
+		$line['defpenalty'] = '0';
+	  }
+	  if (is_string($line['defpenalty']) && $line['defpenalty'][0]==='S') {
+		$defattemptpenalty = substr($line['defpenalty'],2);
+		$defattemptpenalty_aftern = $line['defpenalty'][1];
       } else {
         $defattemptpenalty = $line['defpenalty'];
-				$defattemptpenalty_aftern = 1;
+		$defattemptpenalty_aftern = 1;
       }
-      if ($line['defpenalty'] === '') { $line['defpenalty'] = '0'; }
-			if (is_string($line['defpenalty']) && $line['defregenpenalty'][0]==='S') {
-				$defregenpenalty = substr($line['defregenpenalty'],2);
-				$defregenpenalty_aftern = $line['defregenpenalty'][1];
+      if ($line['defregenpenalty'] === '') { 
+		$line['defregenpenalty'] = '0'; 
+	  }
+	  if (is_string($line['defregenpenalty']) && $line['defregenpenalty'][0]==='S') {
+		$defregenpenalty = substr($line['defregenpenalty'],2);
+		$defregenpenalty_aftern = $line['defregenpenalty'][1];
       } else {
         $defregenpenalty = $line['defregenpenalty'];
-				$defregenpenalty_aftern = 1;
+		$defregenpenalty_aftern = 1;
       }
       if ($line['reqscoreaid']==0) {
       	$reqscoredisptype=-1;
