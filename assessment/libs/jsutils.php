@@ -1,32 +1,54 @@
 <?php
 global $allowedmacros;
-array_push($allowedmacros,"js_value","js_setCookie","js_getCookie");
+array_push($allowedmacros,"js_setCookie","getCookie", "js_setLocal", "js_getLocal", "js_clearLocal", "js_setSession", "js_getSession");
 
-function js_value($qid,$partnr = 0) {
-    if ($stuanswers[$qid][$partnr] === null) {
-        return "not set";
-    }
-    return urldecode($stuanswers[$qid][$partnr]);
-}
+
 
 function js_setCookie($key,$val) {
-    $valencoded=urlencode($val);
-    return "<script>console.log('Setting ',$valencoded);document.cookie=\"$key =$valencoded\"</script>";
+    $valencoded=rawurlencode($val);
+    return "<script>
+    document.cookie=\"$key=$valencoded\";
+    </script>";
 }
 
-function js_getCookie($qid,$key,$partnr=0) {
-    $partnrS = sprintf("%'.02d",$partnr);
-    
-    $script="<script>
-    console.log(document.cookie);
-    function getCookieValue(a) {
-        const b = document.cookie.match('(^|;)\\\\s*' + a + '\\\\s*=\\\\s*([^;]+)');
-        return b ? b.pop() : '';
-     }
-     var c=getCookieValue('$key');
-     console.log('Setting in $partnrS');
-     $('#qn".$qid."0".$partnrS."').val(c);
-     </script>";
-     return $script;
+function getCookie($cookie_name) {
+    if (!isset($_COOKIE[$cookie_name])) {
+        return NULL;
+    } else {
+        return $_COOKIE[$cookie_name];
+    }
+}
+
+function js_setLocal($key,$val) {
+    return "<script>
+    localStorage.setItem(\"$key\",\"$val\");
+    </script>";
+}
+
+function js_getLocal($key) {
+    return "<span id=\"$key\"></span>
+    <script>
+        let val = localStorage.getItem(\"$key\");
+        document.getElementById(\"$key\").innerHTML=val;
+    </script>";
+}
+
+function js_clearLocal($label="Clear my data on this device",$confirm="Data deleted from local storage") {
+    return "<input type='button' value='$label' onClick='localStorage.clear();alert(\"$confirm\");'>";
+}
+
+function js_setSession($key,$val) {
+    return "<script>
+    window.sessionStorage.setItem(\"$key\",\"$val\");
+    </script>";
+}
+
+function js_getSession($key) {
+    return "<span id=\"$key\"></span>
+    <script>
+        let val = window.sessionStorage.getItem(\"$key\");
+        console.log('Session:'+val);
+        document.getElementById(\"$key\").innerHTML=val;
+    </script>";
 }
 ?>
