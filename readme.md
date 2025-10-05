@@ -65,12 +65,14 @@ These are all added to the `config.php` by the install script.
 -   `$allowcourseimport`: Whether anyone should be able to import/export questions and libraries from the course page. Intended for easy sharing between systems, but the course page is cleaner if turned off.
 -   `$enablebasiclti`: Set to true to enable use of IMathAS as an LTI producer (tool).
 -   `$AWSkey, $AWSsecret, $AWSbucket`: To allow students and teachers to upload files through the text editor, and to enable file upload questions, this specifies an Amazon S3 key, secret, and bucket to use for file storage. If not specified, local storage will be used instead.
-- `$CFG['GEN']['newpasswords']`:  all new installations should set this to `'only'` to use good-quality password security.  It can be set to `'transition'` for very old systems to transition to the new storage.  If omitted the system will use md5 for passwords, which is highly discouraged.
+- `$CFG['GEN']['newpasswords']`:  this is now obsolete.  The system now only supports this mode by default.
 - `$CFG['MySQL_ver']`: Set to your MySQL version, as a simple decimal with major version only, like 5.6, 8.0, or 8.1. Only necessary if you're using 8+. If upgrading from 5.x to 8,
 make sure you also edit your config.php and make sure the PDO connection includes a charset.  If it doesn't already, you'll want to add <code>;charset=latin1</code> to 
 the connection string (after the host= and dbname= portions) to ensure the encoding remains
 the same as the 5.x default after upgrade.  If on a new install, it's better to use <code>;charset=utf8mb4</code>.
-- `$CFG['YouTubeAPIKey']`: If the caption detection on videos attached to questions stops working, set this to your YouTube Data API v3 key, obtained from Google Cloud Platform, to use a more reliable method.
+- `$CFG['YouTubeAPIKey']`: To get caption detection on videos attached to questions to work, set this to your YouTube Data API v3 key, obtained from Google Cloud Platform.
+    - To get accessibility reports to process queued caption lookups, the `/util/queuecaptiondata.php` script needs to be called regularly, probably once a day right before midnight Pacific time.  If running on a single server, you can set this up as a cron job.  Alternatively, you could define `$CFG['video']['authcode']` and make a scheduled web call to  `/util/queuecaptiondata.php?authcode=####` using the code you define. 
+    - You can define `$CFG['video']['maxpull']` to control the max number of API calls made by queue.
 
 ### System Defaults
 
@@ -94,7 +96,8 @@ Many system defaults can be adjusted using config changes.
 -  `$CFG['use_csrfp']`: Set this to true to enable cross-site request forgery protection.
 - File Storage:  By default, all user-uploaded files are stored on the webserver.  The system supports using Amazon S3 for file storage instead.  To use S3:
     - Set `$AWSkey`, `$AWSsecret`, `$AWSbucket` to your AWS key, secret, and bucket name respectively.  
-    - `$GLOBALS['CFG']['GEN']['AWSforcoursefiles']`:   If the variables above are set, by default S3 will be used only for user uploads through the text editor, and local storage will still be used for course files and question images.  Set this option to true to also use S3 for these types of files.
+    - Set `$CFG['S3']['endpoint']` and `$CFG['S3']['region']`, and optionally `$CFG['S3']['useSSL']`
+    - `$CFG['GEN']['AWSforcoursefiles']`:   If the variables above are set, by default S3 will be used only for user uploads through the text editor, and local storage will still be used for course files and question images.  Set this option to true to also use S3 for these types of files.
 - `$CFG['GEN']['noFileBrowser']`: Set this to true to prevent the use of the file and image uploads through the text editor.  Do not define this to allow use of the file browser.
 - `$CFG['GEN']['sendquestionproblemsthroughcourse']`:  By default, clicking the "Report problem with question" will open email.  To send using an IMathAS message instead, set this option to a course ID, ideally one that all instructors are participants in.
 - `$CFG['GEN']['qerrorsendto']`:  Normally question errors are reported to the question author.  To have them sent do a different user, set this option.  Set to a user ID to send to that user.  You can also force the delivery method by defining this is an array of `array(userid, sendmethod, title, alsosendtoowner)`, like `array(2, "email", "Contact Support", true)`.  The email address for the specified user ID will be used.  If alsosendtoowner is set to true, the message will be sent both to the question owner as well.
@@ -200,13 +203,11 @@ If you wish to enable users to request browser push notifications (does not work
 
 - `$CFG['FCM']['SenderId']`: Your SenderId, from the Firebase project console.
 - `$CFG['FCM']['webApiKey']`: Your web API key, from the Firebase project console.
-- `$CFG['FCM']['serverApiKey']`: Your server key, from the Firebase project console.
 - `$CFG['FCM']['icon']`: an absolute web path to an icon to show on notifications.
-
-As of June 2024, the original method for interfacing with FCM will be eliminated, so to 
-continue using push notifications, you will need to:
-
-- In your config.php, add `$CFG['FCM']['project_id']`: your Project ID, from the Firebase project console.
+- `$CFG['FCM']['project_id']`: your Project ID, from the Firebase project console.
+- `$CFG['FCM']['app_id']`: your appId, from the Firebase project console.
+- `$CFG['FCM']['vapidKey']`: this is the public key, found under 
+  Project Settings, Cloud Messaging, Web configuration, in the Key pair column.
 - Go to the Firebase console, click on your project, go to Project Settings, click on Service Accounts,
   and click Generate new private key. This will download a .json file to your computer.
 - In the Project Settings, click on Cloud Messaging, and ensure Firebase Cloud Messaging API (V1) is
@@ -214,10 +215,16 @@ continue using push notifications, you will need to:
 - In your IMathAS install, while logged in as an admin, go to Admin Page, click Utilities, then click
   Set up FCM for push notifications.  Here, paste the contents of the .json file you downloaded, and Save.
 
+If you had an older setup, pre-June 2024, using the serverApiKey, you need to update it.
+
+
 ### Internationalization
 
 The student side of the system is pretty well set up for i18n, but the instructor side is  not yet.  Currently the only translation pack available is `de` (German).  See `/i18n/translating.md` for more information about generating translations.  To enable a translation:
 - `$CFG['locale']`: Set this to the desired language code, like `de`
+
+Also adjustable:
+- `$CFG['nocommathousandsseparator']`: set to `true` to disallow the use of comma as a thousands separator in large numbers.
 
 ### IPEDS / NCES 
 
@@ -284,9 +291,6 @@ to re-minify the javascript.  You can do this using the shell script
 If you change any of the Vue files for the assessment player, you'll need to
 re-build the distribution files.  See `/assess2/vue-src/README.md` for more
 info, and how to configure your system for development mode testing.
-
-If tinymce is changed, or the plugins used are changed, you will need to run
-`/tinymce4/maketinymcebundle.php` to re-generate `tinymce_bundled.js`.
 
 ### Changing Mathquill
 The version of Mathquill used in this repo has it's source in the repo

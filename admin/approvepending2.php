@@ -21,6 +21,12 @@ if (!empty($_POST['newstatus'])) {
     list($oldstatus, $reqdata) = $stm->fetch(PDO::FETCH_NUM);
 	$reqdata = json_decode($reqdata, true);
 
+	if ($oldstatus > 9) {
+		// already approved or denied
+		echo "User already processed";
+		exit;
+	}
+
 	if (!isset($reqdata['actions'])) {
 		$reqdata['actions'] = array();
 	}
@@ -39,7 +45,7 @@ if (!empty($_POST['newstatus'])) {
 
 		//call hook, if defined
 		if (function_exists('getMoreInfoMessage')) {
-			$message = getMoreInfoMessage($row['FirstName'], $row['LastName'], $row['SID'], $group);
+			$message = getMoreInfoMessage($row['FirstName'], $row['LastName'], $row['SID'], null);
 		} else {
 			$message = '<style type="text/css">p {margin:0 0 1em 0} </style><p>Hi '.Sanitize::encodeStringForDisplay($row['FirstName']).'</p>';
 			$message .= '<p>You recently requested an instructor account on '.$installname.' with the username <b>'.Sanitize::encodeStringForDisplay($row['SID']).'</b>. ';
@@ -70,7 +76,7 @@ if (!empty($_POST['newstatus'])) {
 
             //call hook, if defined
             if (function_exists('getDenyMessage')) {
-                $message = getDenyMessage($row['FirstName'], $row['LastName'], $row['SID'], $group);
+                $message = getDenyMessage($row['FirstName'], $row['LastName'], $row['SID'], null);
             } else {
                 $message = '<style type="text/css">p {margin:0 0 1em 0} </style><p>Hi '.Sanitize::encodeStringForDisplay($row['FirstName']).'</p>';
                 $message .= '<p>You recently requested an instructor account on '.$installname.' with the username <b>'.Sanitize::encodeStringForDisplay($row['SID']).'</b>. ';

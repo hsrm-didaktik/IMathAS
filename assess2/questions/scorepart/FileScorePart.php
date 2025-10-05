@@ -51,6 +51,7 @@ class FileScorePart implements ScorePart
         if (trim($filename)=='') {
             if (is_string($givenans) && substr($givenans,0,5) === '@FILE') { // has an autosaved file
                 $scorePartResult->setLastAnswerAsGiven($givenans);
+                /*
                 if ($answerformat=='excel') {
                   // TODO if we want to resurrect this
                     $filepath = getasidfilepath(substr($givenans,6,-1));
@@ -77,6 +78,7 @@ class FileScorePart implements ScorePart
                         unlink($filepath);
                     }
                 }
+                */
                 $hasfile = true;
                 if ($scoremethod == 'filesize') {
                     $filesize = getfilesize('adata', 'adata/'.substr($givenans,6,-1));
@@ -137,6 +139,7 @@ class FileScorePart implements ScorePart
             }
 
             if (is_uploaded_file($_FILES["qn$qn"]['tmp_name'])) {
+                /*
                 if ($answerformat=='excel') {
                     $zip = new ZipArchive;
                     if ($zip->open($_FILES["qn$qn"]['tmp_name'])) {
@@ -153,7 +156,7 @@ class FileScorePart implements ScorePart
                         return $scorePartResult;
                     }
                 }
-
+                */
                 $s3object = "adata/$s3asid/$filename";
                 if (is_uploaded_file($_FILES["qn$qn"]['tmp_name'])) {
                     $filesize = $_FILES["qn$qn"]['size'];

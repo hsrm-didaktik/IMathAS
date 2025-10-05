@@ -185,7 +185,7 @@ class DrawingScorePart implements ScorePart
                 $line = $lines[0]; //only use first line
                 $line = explode('),(',substr($line,1,strlen($line)-2));
                 foreach ($line as $j=>$pt) {
-                    $line[$j] = explode(',',$pt);
+                    $line[$j] = array_map('floatval', explode(',',$pt));
                 }
                 if ($scoremethod == 'ignoreextradots') {
                     $lastslope = null;
@@ -325,6 +325,11 @@ class DrawingScorePart implements ScorePart
                 } else {
                     $scoretype[$key] = 0;
                 }
+                $isdashedline = false;
+                if ($function[0] == 'dashedline') {
+                    $isdashedline = true;
+                    array_shift($function);
+                }
                 if ($function[0][0] === 'x') {
                     $function[0] = preg_replace('/x\s+(<|>|=)/','x$1', $function[0]);
                 }
@@ -416,7 +421,7 @@ class DrawingScorePart implements ScorePart
                             }
                         } else {
                             //$anslines[$key] = array('x',10000,(substr($function[0],2)- $settings[0])*$pixelsperx + $imgborder );
-                            $anslines[$key] = array('x',10000, $xp);
+                            $anslines[$key] = array('x',10000, $xp, $isdashedline);
                         }
                     }
                 } else {
@@ -531,7 +536,7 @@ class DrawingScorePart implements ScorePart
                             $slope = -1*($y4p-$y3p)/($x4p-$x3p);  //mult by -1 to get slope on left
                         }
                         if ($slope==0) {
-                            $anslines[$key] = array('y',$slope,$y2p);
+                            $anslines[$key] = array('y',$slope,$y2p, $isdashedline);
                         } else {
                             $xip = ($slope*($x4p+$x0p)+$y4p-$y0p)/(2*$slope);  //x value of "vertex"
                             $ansabs[$key] = array($xip,$slope*($xip-$x0p)+$y0p, $slope);
@@ -651,7 +656,7 @@ class DrawingScorePart implements ScorePart
                         $denom = round(-$x1*$y2+$x1*$y3+$x2*$y1-$x2*$y3-$x3*$y1+$x3*$y2, 10);
                         if ($denom == 0) {
                             $y = (($x1*$y1-$x2*$y2))/($x1-$x2);
-                            $anslines[$key] = array('y',0,$y);
+                            $anslines[$key] = array('y',0,$y,false);
                         } else {
                             $h = ($x1*$x2*$y1-$x1*$x2*$y2-$x1*$x3*$y1+$x1*$x3*$y3+$x2*$x3*$y2-$x2*$x3*$y3)/($denom);
                             $k = (($x1*$y1-$x2*$y2)-$h*($y1-$y2))/($x1-$x2);
@@ -693,10 +698,10 @@ class DrawingScorePart implements ScorePart
                             $slope = ($y2p-$y1p)/($x2p-$x1p);
                             if (abs($slope)>1.4) {
                                 //use x value at ymid
-                                $anslines[$key] = array('x',$slope,$x1p+($ymidp-$y1p)/$slope);
+                                $anslines[$key] = array('x',$slope,$x1p+($ymidp-$y1p)/$slope,$isdashedline);
                             } else {
                                 //use y value at x2
-                                $anslines[$key] = array('y',$slope,$y2p);
+                                $anslines[$key] = array('y',$slope,$y2p,$isdashedline);
                             }
                         }
                     } else {
@@ -744,23 +749,24 @@ class DrawingScorePart implements ScorePart
             } else {
                 $tplines = explode('),(', substr($tplines,1,strlen($tplines)-2));
                 foreach ($tplines as $k=>$val) {
-                    $pts = explode(',',$val);
-                    if ($pts[1]==$pts[3] && $pts[2]==$pts[4]) {
-                      //the points are the same; skip it
+                    $pts = array_map('floatval', explode(',',$val));
+                    if ($pts[1]==$pts[3] && $pts[2]==$pts[4] && $pts[0]!==5.4) {
+                      //the points are the same; skip it except for vectors
                       unset($tplines[$k]);
                       continue;
                     }
-                    if ($pts[0]==5) {
+                    if ($pts[0]==5 || $pts[0]==5.1) {
+                        $dashed = ($pts[0] == 5.1);
                         //line
                         if ($pts[3]==$pts[1]) {
-                            $lines[] = array('x',10000,$pts[1]);
+                            $lines[] = array('x',10000,$pts[1], $dashed);
                         } else {
                             $slope = ($pts[4]-$pts[2])/($pts[3]-$pts[1]);
                             if (abs($slope)>100) {$slope = 10000;}
                             if (abs($slope)>1) {
-                                $lines[] = array('x',$slope,$pts[1]+($ymidp-$pts[2])/$slope,$pts[2]+($x2p-$pts[1])*$slope);
+                                $lines[] = array('x',$slope,$pts[1]+($ymidp-$pts[2])/$slope,$pts[2]+($x2p-$pts[1])*$slope, $dashed);
                             } else {
-                                $lines[] = array('y',$slope,$pts[2]+($x2p-$pts[1])*$slope);
+                                $lines[] = array('y',$slope,$pts[2]+($x2p-$pts[1])*$slope, $dashed);
                             }
                         }
                     } else if ($pts[0]==5.2) {
@@ -780,7 +786,7 @@ class DrawingScorePart implements ScorePart
                         //                20 = a(x-h)^2
                         //                abs(20/a) = (x-h)^2
                         if ($pts[4]==$pts[2]) {
-                            $lines[] = array('y',0,$pts[4]);
+                            $lines[] = array('y',0,$pts[4], false);
                         } else if ($pts[3]!=$pts[1]) {
                             $a = ($pts[4]-$pts[2])/(($pts[3]-$pts[1])*($pts[3]-$pts[1]));
                             $y = $pts[2]+$a*400;
@@ -790,7 +796,7 @@ class DrawingScorePart implements ScorePart
                     } else if ($pts[0]==6.1) {
                         //same as above, but swap x and y
                         if ($pts[3]==$pts[1]) {
-                            $lines[] = array('x',0,$pts[3]);
+                            $lines[] = array('x',0,$pts[3], false);
                         } else if ($pts[4]!=$pts[2]) {
                             $a = ($pts[3]-$pts[1])/(($pts[4]-$pts[2])*($pts[4]-$pts[2]));
                             $x = $pts[1]+$a*400;
@@ -809,7 +815,7 @@ class DrawingScorePart implements ScorePart
                     } else if ($pts[0]==6.3) {
                         //cubic
                         if ($pts[4]==$pts[2]) {
-                            $lines[] = array('y',0,$pts[4]);
+                            $lines[] = array('y',0,$pts[4], false);
                         } else if ($pts[3]!=$pts[1]) {
                             //this is the cube root of the stretch factor
                             $a = safepow($pts[4]-$pts[2], 1/3)/($pts[3]-$pts[1]);
@@ -818,7 +824,7 @@ class DrawingScorePart implements ScorePart
                     } else if ($pts[0]==6.6) {
                         //cube root
                         if ($pts[4]==$pts[2]) {
-                            $lines[] = array('y',0,$pts[4]);
+                            $lines[] = array('y',0,$pts[4], false);
                         } else if ($pts[3]!=$pts[1]) {
                             $a = safepow($pts[4]-$pts[2],3)/($pts[3]-$pts[1]);
                             $cuberoots[] = array($pts[1],$pts[2],$a);
@@ -929,7 +935,7 @@ class DrawingScorePart implements ScorePart
             } else {
                 $dots = explode('),(', substr($dots,1,strlen($dots)-2));
                 foreach ($dots as $k=>$pt) {
-                    $dots[$k] = explode(',',$pt);
+                    $dots[$k] = array_map('floatval', explode(',',$pt));
                 }
             }
             if ($odots=='') {
@@ -937,7 +943,7 @@ class DrawingScorePart implements ScorePart
             } else {
                 $odots = explode('),(', substr($odots,1,strlen($odots)-2));
                 foreach ($odots as $k=>$pt) {
-                    $odots[$k] = explode(',',$pt);
+                    $odots[$k] = array_map('floatval', explode(',',$pt));
                 }
             }
 
@@ -970,6 +976,13 @@ class DrawingScorePart implements ScorePart
                 $scores[$scoretype[$key]][$key] = 0;
                 for ($i=0; $i<count($lines); $i++) {
                     if (!empty($usedline[$i])) { continue; }
+                    // check dash/nondash
+                    if (isset($lines[$i][4])) {
+                        if ($lines[$i][4] != $ansline[3]) { continue;}
+                    } else {
+                        if ($lines[$i][3] != $ansline[3]) { continue;}
+                    }
+                    
                     //check slope
                     $toladj = pow(10,-1-6*abs($ansline[1]));
                     if (abs($ansline[1]-$lines[$i][1])/(abs($ansline[1])+$toladj)>$deftol*$reltolerance) {
@@ -1517,7 +1530,7 @@ class DrawingScorePart implements ScorePart
                 }
                 $dir = $function[0][0];
                 if ($isxequals) {
-                    $anslines[$key] = array('x',$dir,$type,-10000,(substr($function[0],$c)- $settings[0])*$pixelsperx + $imgborder );
+                    $anslines[$key] = array('x',$dir,$type,-10000,(substr($function[0],$c)- $settings[0])*$pixelsperx + $imgborder);
                 } else {
                     $func = makepretty(substr($function[0],$c));
                     $func = makeMathFunction($func, 'x');
@@ -1571,7 +1584,7 @@ class DrawingScorePart implements ScorePart
             } else {
                 $ineqlines = explode('),(', substr($ineqlines,1,strlen($ineqlines)-2));
                 foreach ($ineqlines as $k=>$val) {
-                    $pts = explode(',',$val);
+                    $pts = array_map('floatval', explode(',',$val));
                     if($pts[0]<10.3){//linear
                         if ($pts[3]==$pts[1]) {
                             $slope = 10000;
@@ -1748,10 +1761,13 @@ class DrawingScorePart implements ScorePart
                 $lines = explode(';',$lines);
                 foreach ($lines as $k=>$line) {
                     $lines[$k] = explode('),(',substr($line,1,strlen($line)-2));
-                    $minp = explode(',', $lines[$k][0]);
-                    $maxp = explode(',', $lines[$k][count($lines[$k])-1]);
+                    $minp = array_map('floatval', explode(',', $lines[$k][0]));
+                    $maxp = array_map('floatval', explode(',', $lines[$k][count($lines[$k])-1]));
                     $lines[$k] = array(min($minp[0], $maxp[0]), max($minp[0], $maxp[0]));
+                    if ($lines[$k][0] < 1) { $lines[$k][0] = 1; }
+                    if ($lines[$k][1] > $settings[6]-1) { $lines[$k][1] = $settings[6]-1; }
                 }
+                
                 $newlines = array($lines[0]);
                 for ($i=1;$i<count($lines);$i++) {
                     $overlap = -1;
@@ -1772,9 +1788,11 @@ class DrawingScorePart implements ScorePart
                     }
                     if ($overlap==-1) {
                         $newlines[] = $lines[$i];
+                    } else {
+                        // fix any gaps caused by unset
+                        $newlines = array_values($newlines);
                     }
                 }
-                $lines = $newlines;
             }
             $defpttol = 5;
             if ($dots=='') {
@@ -1933,7 +1951,7 @@ class DrawingScorePart implements ScorePart
                 foreach ($lines as $k=>$line) {
                     $lines[$k] = explode('),(',substr($line,1,strlen($line)-2));
                     foreach ($lines[$k] as $j=>$pt) {
-                        $lines[$k][$j] = explode(',',$pt);
+                        $lines[$k][$j] = array_map('floatval', explode(',',$pt));
                     }
                 }
             }
@@ -1943,7 +1961,7 @@ class DrawingScorePart implements ScorePart
             } else {
                 $dots = explode('),(', substr($dots,1,strlen($dots)-2));
                 foreach ($dots as $k=>$pt) {
-                    $dots[$k] = explode(',',$pt);
+                    $dots[$k] = array_map('floatval', explode(',',$pt));
                 }
             }
             if ($odots=='') {
@@ -1951,7 +1969,7 @@ class DrawingScorePart implements ScorePart
             } else {
                 $odots = explode('),(', substr($odots,1,strlen($odots)-2));
                 foreach ($odots as $k=>$pt) {
-                    $odots[$k] = explode(',',$pt);
+                    $odots[$k] = array_map('floatval', explode(',',$pt));
                 }
             }
 

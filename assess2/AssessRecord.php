@@ -182,6 +182,10 @@ class AssessRecord
         exit;
       }
       $qarr[':scoreddata'] = gzcompress($encoded);
+      if (strlen($qarr[':scoreddata']) > 16777000) {
+        echo '{"error": "encoding_error"}';
+        exit;
+      }
     }
     if ($this->is_practice && !empty($this->data)) {
       $fields[] = 'practicedata';
@@ -191,6 +195,10 @@ class AssessRecord
         exit;
       }
       $qarr[':practicedata'] = gzcompress($encoded);
+      if (strlen($qarr[':practicedata']) > 16777000) {
+        echo '{"error": "encoding_error"}';
+        exit;
+      }
     }
 
     if ($this->hasRecord) {
@@ -449,6 +457,9 @@ class AssessRecord
     $lastaver = count($this->data['assess_versions'])-1;
     $this->data['assess_versions'][$lastaver]['questions'][$qn]['question_versions'][] = $newver;
 
+    // clear any autosave data
+    unset($this->data['autosaves'][$qn]);
+    
     // note that record needs to be saved
     $this->need_to_record = true;
     return $question;
@@ -778,11 +789,13 @@ class AssessRecord
   /**
    * Save relevant POST to autosaves
    * @param int  $time          Timestamp
+   * @param int  $timeactive
    * @param int  $qn            The question number
-   * @param array $pn           The part number to save
+   * @param int|string $pn           The part number to save
    * @return void
    */
   public  function setAutoSave($time, $timeactive, $qn, $pn) {
+    $qn = intval($qn);
     $this->parseData();
     $data = &$this->data['autosaves'];
     $seconds = $time - $this->assessRecord['starttime'];
@@ -807,7 +820,7 @@ class AssessRecord
     }
     $tosave = array();
 
-    $qref = ($qn+1)*1000 + $pn;
+    $qref = intval(($qn+1)*1000 + $pn);
     foreach ($_POST as $key=>$val) {
       if ($pn == 0) {
         if (preg_match('/^(qn|tc|qs)('.$qn.'\\b|'.$qref.'\\b)(-\d+|-val)?/', $key, $match)) {
@@ -1546,8 +1559,8 @@ class AssessRecord
         $score = $curq['scoreoverride'] * $out['points_possible'];
         $raw = $curq['scoreoverride'];
       }
-      $out['score'] = ($score != -1) ? round($score,2) : 0;
-      $out['rawscore'] = ($raw != -1) ? round($raw,4) : 0;
+      $out['score'] = ($score != -1) ? round($score + 1e-8,2) : 0;
+      $out['rawscore'] = ($raw != -1) ? round($raw + 1e-8,4) : 0;
     }
     // if jumped to answer, burn tries
     if (!empty($curq['jumptoans'])) {
@@ -1585,6 +1598,9 @@ class AssessRecord
       }
       if ($record_answeights) {
         $this->setAnsweights($qn, $out['answeights'], $ver);
+      }
+      if ($out['useda11yalt']) {
+        $this->setUsedA11yAlt($qn, $out['useda11yalt'], $ver);
       }
       if ($out['tries_max'] == 1) {
         $out['parts_entered'] = $this->getPartsEntered($qn, $curq['tries'], $out['answeights']);
@@ -1680,6 +1696,35 @@ class AssessRecord
   }
 
   /**
+   * Sets the useda11yalt for a question if needed
+   * @param int  $qn          Question number
+   * @param array $useda11yalt   value (true/false)
+   * @param string  $ver         attempt number, or 'last'
+   */
+  private function setUsedA11yAlt($qn, $useda11yalt, $ver = 'last') {
+    $by_question = ($this->assess_info->getSetting('submitby') == 'by_question');
+    $this->parseData();
+    if ($this->is_practice) {
+      $assessver = &$this->data['assess_versions'][0];
+    } else if ($by_question || !is_numeric($ver)) {
+      $assessver = &$this->data['assess_versions'][count($this->data['assess_versions']) - 1];
+    } else {
+      $assessver = &$this->data['assess_versions'][$ver];
+    }
+
+    $question_versions = &$assessver['questions'][$qn]['question_versions'];
+    if (!$by_question || !is_numeric($ver)) {
+      $curq = &$question_versions[count($question_versions) - 1];
+    } else {
+      $curq = &$question_versions[$ver];
+    }
+    if ((empty($curq['useda11yalt']) && $useda11yalt) || $useda11yalt !== $curq['useda11yalt']) {
+      $curq['useda11yalt'] = $useda11yalt;
+      $this->need_to_record = true;
+    }
+  }
+
+  /**
    * Generate the question API object for all questions
    * @param  boolean $include_scores Whether to include scores (def: false)
    * @param  boolean $include_parts  True to include part scores and details, false for just total score (def false)
@@ -1754,6 +1799,7 @@ class AssessRecord
 
     $qsettings = $this->assess_info->getQuestionSettings($qver['qid']);
     $exceptionPenalty = $this->assess_info->getSetting('exceptionpenalty');
+    $earlyBonus = $this->assess_info->getSetting('earlybonus');
     $overtimePenalty = $this->assess_info->getSetting('overtime_penalty');
 
     if (empty($qsettings['points_possible']) && $qsettings['points_possible'] !== 0) {
@@ -1795,12 +1841,12 @@ class AssessRecord
         $parts[$pn] = array(
           'try' => 0,
           'score' => 0,
-          'points_possible' => round($qsettings['points_possible'] * $answeights[$pn]/$answeightTot,3)
+          'points_possible' => round($qsettings['points_possible'] * $answeights[$pn]/$answeightTot + 1e-8,3)
         );
         // apply by-part overrides, if set
         if (isset($overrides[$pn])) {
           $partrawscores[$pn] = $overrides[$pn];
-          $partscores[$pn] = round($overrides[$pn] * $qsettings['points_possible'] * $answeights[$pn]/$answeightTot,3);
+          $partscores[$pn] = round($overrides[$pn] * $qsettings['points_possible'] * $answeights[$pn]/$answeightTot + 1e-8,3);
           $parts[$pn]['rawscore'] = $partrawscores[$pn];
           $parts[$pn]['score'] = $partscores[$pn];
         }
@@ -1828,6 +1874,7 @@ class AssessRecord
             $due_date,           // the due date
             $starttime + $submissions[$parttry['sub']], // submission time
             $exceptionPenalty,
+            $earlyBonus,
             isset($assessver['timelimit_end']) ? $assessver['timelimit_end'] : 0,
             $overtimePenalty,
             true
@@ -1851,16 +1898,16 @@ class AssessRecord
       // apply by-part overrides, if set
       if (isset($overrides[$pn])) {
         $partrawscores[$pn] = $overrides[$pn];
-        $partscores[$pn] = round($overrides[$pn] * $qsettings['points_possible'] * $answeights[$pn]/$answeightTot,3);
+        $partscores[$pn] = round($overrides[$pn] * $qsettings['points_possible'] * $answeights[$pn]/$answeightTot + 1e-8,3);
       }
 
       $parts[$pn] = array(
         'try' => count($qver['tries'][$pn]),
-        'score' => round($partscores[$pn],3),
-        'rawscore' => round($partrawscores[$pn],4),
+        'score' => round($partscores[$pn] + 1e-8,3),
+        'rawscore' => round($partrawscores[$pn] + 1e-8,4),
         'penalties' => $partpenalty,
         'req_manual' => $partReqManual,
-        'points_possible' => round($qsettings['points_possible'] * $answeights[$pn]/$answeightTot,3)
+        'points_possible' => round($qsettings['points_possible'] * $answeights[$pn]/$answeightTot + 1e-8,3)
       );
     }
 
@@ -1895,7 +1942,7 @@ class AssessRecord
     $work = isset($qver['work']) ? $qver['work'] : '';
     $worktime = '0';
     if (!empty($qver['worktime'])) {
-        $worktime = tzdate("n/j/y, g:i a", $qver['worktime'] + $this->assessRecord['starttime']);
+        $worktime = tzdate("n/j/y, g:i a", intval($qver['worktime']) + intval($this->assessRecord['starttime']));
     }
 
     // get the question settings
@@ -1906,6 +1953,7 @@ class AssessRecord
             'jsparams' => [],
             'answeights' => [1],
             'usedautosave' => false,
+            'useda11yalt' => false,
             'work' => '',
             'worktime' => '0',
             'errors' => _('Unable to load question data')
@@ -1978,7 +2026,7 @@ class AssessRecord
     for ($pn = 0; $pn < $numParts; $pn++) {
       // figure out try #
       $partattemptn[$pn] = isset($qver['tries'][$pn]) ? count($qver['tries'][$pn]) : 0;
-
+      
       /* These cases should already be handled in $stuanswers grab
       else if ($tryToShow === 'scored' && $qver['scored_try'][$pn] > -1) {
         $stuanswers[$qn+1][$pn] = $qver['tries'][$pn][$qver['scored_try'][$pn]]['stuans'];
@@ -2044,7 +2092,7 @@ class AssessRecord
         $correctAnswerWrongFormat[$pn] = 
           !empty($qver['tries'][$pn][$partattemptn[$pn] - 1]['wrongfmt']);
       }
-      if ($this->teacherInGb || $force_answers) {
+      if ($this->teacherInGb || $force_answers || (!empty($qsettings['jump_to_answer']) && !empty($qver['jumptoans']))) {
         $seqPartDone[$pn] = true;
       } else if ($showscores) {
         // move on if correct or out of tries or manually graded
@@ -2057,10 +2105,22 @@ class AssessRecord
         $seqPartDone[$pn] = ($partattemptn[$pn] > 0);
       }
     }
-    if ($numParts == 0 && $this->teacherInGb) {
+    if ($numParts == 0 && ($this->teacherInGb || (!empty($qsettings['jump_to_answer']) && !empty($qver['jumptoans'])))) {
         $seqPartDone = true;
     }
-
+    $useda11yalt = false;
+    if (($numParts == 0 || !empty($qver['useda11yalt'])) && $this->assess_info->getSetting('displaymethod') !== 'livepoll') {
+      $qsdata = $this->assess_info->getQuestionSetData($qsettings['questionsetid']);
+      if (!empty($qver['useda11yalt']) ||
+        (($qsdata['a11yalttype']&1)==1 && ($_SESSION['userprefs']['graphdisp'] ?? 1)==0) ||
+        (($qsdata['a11yalttype']&2)==2 && ($_SESSION['userprefs']['drawentry'] ?? 1)==0)
+      ) {
+        // sub out for accessible alt
+        $qsettings['questionsetid'] = $qsdata['a11yalt'];
+        $useda11yalt = true;
+      }
+    }
+    
     $attemptn = (count($partattemptn) == 0) ? 0 : max($partattemptn);
     $questionParams = new QuestionParams();
     $questionParams
@@ -2107,6 +2167,7 @@ class AssessRecord
         'html' => $qout,
         'jsparams' => $jsparams,
         'answeights' => $answeights,
+        'useda11yalt' => $useda11yalt,
         'usedautosave' => $usedAutosave,
         'work' => $work,
         'worktime' => $worktime,
@@ -2116,20 +2177,49 @@ class AssessRecord
   }
 
   private function parseScripts($html) {
-    $scripts = array();
-    preg_match_all("|<script([^>]*)>(.*?)</script>|s", $html, $matches, PREG_SET_ORDER);
-    foreach ($matches as $match) {
-      if (strlen(trim($match[2])) == 0 && preg_match('/src="(.*?)"/', $match[1], $sub)) {
+    $scripts = [];
+    $htmlout = '';
+    $pos = 0;
+    while (($scriptStart = strpos($html, '<script', $pos)) !== false) {
+      // Add content before script tag to clean HTML
+      $htmlout .= substr($html, $pos, $scriptStart - $pos);
+
+      // Find the end of the opening script tag
+      $tagEnd = strpos($html, '>', $scriptStart);
+      if ($tagEnd === false) {
+        $pos += 7;
+        break;
+      }
+
+      // Extract the opening tag (including attributes)
+      $openingTag = substr($html, $scriptStart, $tagEnd - $scriptStart + 1);
+      
+      // Find the closing script tag
+      $scriptEnd = strpos($html, '</script>', $tagEnd);
+      if ($scriptEnd === false) {
+        $pos = $tagEnd + 1;
+        break;
+      }
+      
+      // Extract script content between tags
+      $scriptContent = trim(substr($html, $tagEnd + 1, $scriptEnd - $tagEnd - 1));
+
+      if (strlen($scriptContent) == 0 && preg_match('/src="(.*?)"/', $openingTag, $sub)) {
         $scripts[] = array('src', $sub[1]);
       } else {
-        if (preg_match('/document\.write.*?script.*?src="(.*?)"/', $match[2], $sub)) {
+        if (preg_match('/document\.write.*?script.*?src="(.*?)"/', $scriptContent, $sub)) {
           $scripts[] = array('src', $sub[1]);
         }
-        $scripts[] = array('code', $match[2]);
+        $scripts[] = array('code', $scriptContent);
       }
+
+      // Move position past the closing script tag
+      $pos = $scriptEnd + 9; // length of '</script>'
     }
-    $html = preg_replace("|<script([^>]*)>(.*?)</script>|s", '', $html);
-    return array($html, $scripts);
+    // Add remaining HTML after last script tag
+    $htmlout .= substr($html, $pos);
+
+    return array($htmlout, $scripts);
   }
 
   /**
@@ -2177,13 +2267,18 @@ class AssessRecord
 
     // record work, if present
     if (isset($_POST['sw' . $qn])) {
-      $data['work'] = Sanitize::incomingHtml($_POST['sw' . $qn]);
+      $data['work'] = Sanitize::incomingHtml($_POST['sw' . $qn], true, 30000);
       $this->clearAutoSave($qn, 'work');
     }
 
     list($stuanswers, $stuanswersval) = $this->getStuanswers();
 
     $scoreEngine = new ScoreEngine($this->DBH, $GLOBALS['RND']);
+
+    if (!empty($qver['useda11yalt'])) {
+      $qsdata = $this->assess_info->getQuestionSetData($qsettings['questionsetid']);
+      $qsettings['questionsetid'] = $qsdata['a11yalt'];
+    }
 
     $scoreQuestionParams = new ScoreQuestionParams();
     $scoreQuestionParams
@@ -2390,6 +2485,12 @@ class AssessRecord
     $by_question = ($this->assess_info->getSetting('submitby') == 'by_question');
     $assessver = $this->getAssessVer($ver);
     $outall = array();
+    if (empty($assessver['questions'][$qn]['question_versions'])) {
+      // version doesn't exist for some reason; maybe was deleted after student started?
+      // return error and abort
+      echo '{"error": "not_ready"}';
+      exit;
+    }
     $question_versions = $assessver['questions'][$qn]['question_versions'];
     if (!$by_question || $ver === 'last') {
       $curq = $question_versions[count($question_versions) - 1];
@@ -2586,13 +2687,13 @@ class AssessRecord
         if ($by_question) {
           $curAver['questions'][$qn]['scored_version'] = $qScoredVer;
         }
-        $curAver['questions'][$qn]['score'] = round($maxQscore,2);
-        $curAver['questions'][$qn]['rawscore'] = round($maxQrawscore,4);
+        $curAver['questions'][$qn]['score'] = round($maxQscore + 1e-8,2);
+        $curAver['questions'][$qn]['rawscore'] = round($maxQrawscore + 1e-8,4);
         $curAver['questions'][$qn]['time'] = $totalQtime;
         $aVerScore += $maxQscore;
         $verTime += $totalQtime;
       } // end loop over questions
-      $curAver['score'] = round($aVerScore, 1);
+      $curAver['score'] = round($aVerScore + 1e-8, 1);
       if ($aVerScore >= $maxAscore && ($by_question || $curAver['status'] == 1)) {
         $maxAscore = $aVerScore;
         $aScoredVer = $av;
@@ -2622,9 +2723,9 @@ class AssessRecord
       if (isset($this->data['scoreoverride'])) {
         $this->assessRecord['score'] = $this->data['scoreoverride'];
       } else if ($keepscore === 'average' && count($allAssessVerScores) > 0) {
-        $this->assessRecord['score'] = round(array_sum($allAssessVerScores)/count($allAssessVerScores),1);
+        $this->assessRecord['score'] = round(array_sum($allAssessVerScores)/count($allAssessVerScores) + 1e-8,1);
       } else if (count($allAssessVerScores) > 0) { // best, last, or by_question
-        $this->assessRecord['score'] = round($allAssessVerScores[$this->data['scored_version']], 1);
+        $this->assessRecord['score'] = round($allAssessVerScores[$this->data['scored_version']] + 1e-8, 1);
       }
       $this->assessRecord['timeontask'] = $totalTime;
     }
@@ -3280,11 +3381,16 @@ class AssessRecord
     $GLOBALS['capturedrawinit'] = true;
 
     $out = $this->getQuestionObject($qn, $showScores, true, $generate_html, $by_question ? $qver : $aver, $showScores ? 'scored' : 'last', true);
+
     $out['showscores'] = $scoresInGb;
     $this->dispqn = null;
     if ($generate_html) { // only include this if we're displaying the question
       $out['qid'] = $qdata['qid'];
       $out['qsetid'] = $this->assess_info->getQuestionSetting($qdata['qid'], 'questionsetid');
+      if (!empty($out['useda11yalt'])) {
+        // overwrite qsetid with a11yalt
+        $out['qsetid'] = $this->assess_info->getQuestionSetData($out['qsetid'])['a11yalt'];
+      }
       $out['qowner'] = $this->assess_info->getQuestionSetData($out['qsetid'])['ownerid'];
       $out['seed'] = $qdata['seed'];
       if (isset($qdata['scoreoverride'])) {
@@ -3312,6 +3418,7 @@ class AssessRecord
         }
       }
     }
+
     return $out;
   }
 
@@ -3355,11 +3462,11 @@ class AssessRecord
       if ($ptsposs == 0) {
         $adjscore = 0;
       } else if (!isset($qdata['answeights']) || !empty($qdata['singlescore'])) {
-        $adjscore = round($score/$ptsposs, 5);
+        $adjscore = round($score/$ptsposs + 1e-8, 5);
       } else {
         $answeightTot = array_sum($qdata['answeights']);
         if ($qdata['answeights'][$pn] > 0) {
-          $adjscore = round($score/($ptsposs * $qdata['answeights'][$pn]/$answeightTot), 5);
+          $adjscore = round($score/($ptsposs * $qdata['answeights'][$pn]/$answeightTot) + 1e-8, 5);
         } else {
           $adjscore = 0;
         }
@@ -3916,6 +4023,7 @@ class AssessRecord
    * @param  int $regen_penalty_after
    * @param  int $duedate    Original due date timestamp
    * @param  int $exceptionpenalty
+   * @param  array $earlybonus
    * @param  int $timelimitEnd
    * @param  int $overtimePenalty
    * @param  int $subtime    Timestamp question was submitted
@@ -3924,7 +4032,7 @@ class AssessRecord
    * @return float  score after penalties if $returnPenalties = false
    *         array(score, array of penalties) if $returnPenalties = true
    */
-  private function scoreAfterPenalty($score, $points, $try, $retry_penalty, $retry_penalty_after, $regen, $regen_penalty, $regen_penalty_after, $duedate, $subtime, $exceptionpenalty, $timelimitEnd, $overtimePenalty, $returnPenalties = false) {
+  private function scoreAfterPenalty($score, $points, $try, $retry_penalty, $retry_penalty_after, $regen, $regen_penalty, $regen_penalty_after, $duedate, $subtime, $exceptionpenalty, $earlybonus, $timelimitEnd, $overtimePenalty, $returnPenalties = false) {
     $base = $score * $points;
     $penalties = array();
     if ($retry_penalty > 0) {
@@ -3948,12 +4056,16 @@ class AssessRecord
       if ($base < 0) { $base = 0; }
       $penalties[] = array('type'=>'late', 'pct'=>$exceptionpenalty);
     }
+    if ($earlybonus[0] > 0 && $subtime < $duedate - 3600 * $earlybonus[1]) {
+      $base *= (1 + $earlybonus[0] / 100);
+      $penalties[] = array('type'=>'early', 'pct'=>$earlybonus[0]);
+    }
     if ($timelimitEnd > 0 && $overtimePenalty > 0 && $subtime > $timelimitEnd+10) {
       $base *= (1 - $overtimePenalty / 100);
       if ($base < 0) { $base = 0; }
       $penalties[] = array('type'=>'overtime', 'pct'=>$overtimePenalty);
     }
-    $base = round($base, 5); // cut off weird computer arithmetic issues
+    $base = round($base + 1e-8, 5); // cut off weird computer arithmetic issues
     if ($returnPenalties) {
       return array($base, $penalties);
     } else {
@@ -4124,7 +4236,7 @@ class AssessRecord
       if ($during || 
         (($this->assess_info->getQuestionSetting($curq['qid'], 'showwork') & 2) == 2 && $acceptWorkAfter)
       ) {
-        $newwork = Sanitize::incomingHtml($val);
+        $newwork = Sanitize::incomingHtml($val, true, 30000);
         if (!isset($curq['work']) || $curq['work'] != $newwork) {
             $curq['work'] = $newwork;
             $curq['worktime'] = time() - $this->assessRecord['starttime'];

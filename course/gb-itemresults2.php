@@ -110,15 +110,20 @@ $placeinhead = ' <style type="text/css">
 
 }
 </style>';
+$stm = $DBH->prepare("SELECT defpoints,name,itemorder,tutoredit,courseid FROM imas_assessments WHERE id=:id");
+$stm->execute(array(':id'=>$aid));
+list ($defpoints, $aname, $itemorder,$tutoredit,$assesscid) = $stm->fetch(PDO::FETCH_NUM);
+
+if ($assesscid !== $cid) {
+	echo 'Invalid aid';
+	exit;
+}
 $useeqnhelper = 0;
 require_once "../assessment/header.php";
 echo "<div class=breadcrumb>$breadcrumbbase <a href=\"course.php?cid=".Sanitize::courseId($_GET['cid'])."\">".Sanitize::encodeStringForDisplay($coursename)."</a> ";
 echo "&gt; <a href=\"gradebook.php?stu=0&cid=$cid\">Gradebook</a> ";
 echo "&gt; Item Results</div>";
 echo '<div id="headergb-itemanalysis" class="pagetitle"><h1>Item Results: ';
-$stm = $DBH->prepare("SELECT defpoints,name,itemorder,tutoredit FROM imas_assessments WHERE id=:id");
-$stm->execute(array(':id'=>$aid));
-list ($defpoints, $aname, $itemorder,$tutoredit) = $stm->fetch(PDO::FETCH_NUM);
 echo Sanitize::encodeStringForDisplay($aname) . '</h1></div>';
 if (isset($tutorid) && $tutoredit==2) {
 	echo 'You do not have access to view scores for this assessment.';
@@ -225,25 +230,13 @@ function showresults($q,$qtype) {
 						$ql = $questions;
 					}
 					if ($type=='multans') {
-						if (is_array($answers)) {
-							$al = $answers[$i];
-						} else {
-							$al = $answers;
-						}
+						$al = $answers;
 					} else if ($type=='choices') {
-						if (is_array($answer)) {
-							$al = $answer[$i];
-						} else {
-							$al = $answer;
-						}
+						$al = $answer;
 					}
 					disp($q,$type,$i,$al,$ql);
 				} else {
-					if (is_array($answer)) {
-						$al = $answer[$i];
-					} else {
-						$al = $answer;
-					}
+					$al = $answer;
 					disp($q,$type,$i,$al);
 				}
 
@@ -265,6 +258,9 @@ function disp($q,$qtype,$part=-1,$answer='',$questions=array()) {
 	global $qdata,$qsdata,$qsids,$scorebarwidth;
 	$res = array();
 	$correct = array();
+	if (is_array($answer)) {
+		$answer = $answer[$part] ?? '';
+	}
 	$answer = explode(',',$answer);
 
 	if (array_key_exists($q, $qdata)) {

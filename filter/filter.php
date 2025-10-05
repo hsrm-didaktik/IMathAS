@@ -81,6 +81,13 @@
 		$w = preg_replace('/.*\bwidth\s*=\s*.?(\d+).*/',"$1",$arr[0]);
 		$h = preg_replace('/.*\bheight\s*=\s*.?(\d+).*/',"$1",$arr[0]);
 
+		if ($w === $arr[0]) {
+			$w = 200;
+		}
+		if ($h === $arr[0]) {
+			$h = 200;
+		}
+
 		if (strpos($arr[0],'style')!==FALSE) {
 			$sty = preg_replace('/.*style\s*=\s*(.)(.+?)\1.*/',"$2",$arr[0]);
 		} else {
@@ -108,6 +115,7 @@
 		if (strip_tags($str)==$str) {
 			$str = str_replace("\n","<br/>\n",$str);
 		}
+		$str = str_replace('alt="decorative"', 'alt=""', $str);
 		if ($_SESSION['graphdisp']==0) {
 			if (strpos($str,'embed')!==FALSE) {
 				$str = preg_replace('/<embed[^>]*alt="([^"]*)"[^>]*>/',"[$1]", $str);

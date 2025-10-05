@@ -11,7 +11,8 @@ array_push($allowedmacros,"nCr","nPr","mean","stdev","variance","absmeandev","pe
  "mosaicplot","checklineagainstdata","chi2teststat","checkdrawnlineagainstdata",
  "csvdownloadlink","modes","forceonemode","dotplot","gamma_cdf","gamma_inv","beta_cdf","beta_inv",
  "anova1way_f","anova1way","anova2way","anova_table","anova2way_f","student_t",
- "stats_randg","stats_randF","stats_randchi2","stats_randt","stats_randpoisson","cluster_bargraph","stem_plot");
+ "stats_randg","stats_randF","stats_randchi2","stats_randt","stats_randpoisson","cluster_bargraph",
+ "stem_plot","poissonpdf","poissoncdf","gamma_log");
 
 //nCr(n,r)
 //The Choose function
@@ -634,10 +635,11 @@ function fdhistogram($freq,$label,$start,$cw,$labelstart=false,$upper=false,$wid
 	if ($cw<0) { $cw *= -1;} else if ($cw==0) { echo "Error - classwidth cannot be 0"; return 0;}
 	$x = $start;
     $vertlabel = 'Frequency';
+	$valuelabels = false;
     if (is_array($labelstart)) {
         $opts = $labelstart;
         $labelstart = false;
-        foreach (['labelstart','upper','width','height','showgrid','fill','stroke','vertlabel'] as $v) {
+        foreach (['labelstart','upper','width','height','showgrid','fill','stroke','vertlabel','valuelabels'] as $v) {
             if (isset($opts[$v])) {
                 ${$v} = $opts[$v];
             }
@@ -654,8 +656,15 @@ function fdhistogram($freq,$label,$start,$cw,$labelstart=false,$upper=false,$wid
 		$dxdiff = $cw-$dx;
 	}
     $st = '';
+	if ($valuelabels) {
+		$st .= "fontfill=\"$fill\";";
+	}
 	for ($curr=0; $curr<count($freq); $curr++) {
 		$alt .= "<tr><td>$x</td><td>{$freq[$curr]}</td></tr>";
+		if ($valuelabels) {
+			$hx = $x + .5*$dx;
+			$st .= "text([$hx,{$freq[$curr]}],'{$freq[$curr]}','above');";
+		}
 		$st .= "rect([$x,0],";
 		$x += $dx;
 		$st .= "[$x,{$freq[$curr]}]);";
@@ -666,11 +675,14 @@ function fdhistogram($freq,$label,$start,$cw,$labelstart=false,$upper=false,$wid
 	if ($_SESSION['graphdisp']==0) {
 		return $alt;
 	}
-	$outst = "setBorder(".(40+7*strlen($maxfreq)).",40,20,5);  initPicture(".($start>0?(max($start-.9*$cw,0)):$start).",$x,0,$maxfreq);";
-	//$outst = "setBorder(10);  initPicture(". ($start-.1*($x-$start)) .",$x,". (-.1*$maxfreq) .",$maxfreq);";
 	$power = floor(log10($maxfreq))-1;
 	$base = $maxfreq/pow(10,$power);
 	if ($base>75) {$step = 20*pow(10,$power);} else if ($base>40) { $step = 10*pow(10,$power);} else if ($base>20) {$step = 5*pow(10,$power);} else if ($base>9) {$step = 2*pow(10,$power);} else {$step = pow(10,$power);}
+
+	$maxfreq = $step*ceil($maxfreq/$step);
+
+	$outst = "setBorder(".(40+7*strlen($maxfreq)).",40,20,20);  initPicture(".($start>0?(max($start-.9*$cw,0)):$start).",$x,0,$maxfreq);";
+	//$outst = "setBorder(10);  initPicture(". ($start-.1*($x-$start)) .",$x,". (-.1*$maxfreq) .",$maxfreq);";
 	//if ($maxfreq>100) {$step = 20;} else if ($maxfreq > 50) { $step = 10; } else if ($maxfreq > 20) { $step = 5;} else if ($maxfreq>9) {$step = 2;} else {$step=1;}
 	
 	if ($showgrid===true) {
@@ -3495,4 +3507,22 @@ function stem_plot($data,$options=array()) {
 	return $display;
 }
 
+function poissonpdf($lambda,$x) {
+	if ($x < 0 || $lambda < 0 || !is_nicenumber($lambda) || !is_nicenumber($x) || floor($x) != $x) {
+		echo 'invalid input to poissonpdf';
+		return false;
+	}
+	return exp(-$lambda + $x*log($lambda) - gamma_log($x+1));
+}
+function poissoncdf($lambda,$x) {
+	if ($x < 0 || $lambda < 0 || !is_nicenumber($lambda) || !is_nicenumber($x) || floor($x) != $x) {
+		echo 'invalid input to poissoncdf';
+		return false;
+	}
+	$sum = 0;
+	for ($i=0; $i<= $x; $i++) {
+		$sum += poissonpdf($lambda, $x);
+	}
+	return $sum;
+}
 ?>

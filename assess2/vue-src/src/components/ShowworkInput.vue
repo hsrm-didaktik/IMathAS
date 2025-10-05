@@ -139,6 +139,11 @@ export default {
     },
     uploadFile: function () {
       window.doImageUploadResize(this.$refs.fileinput, (el) => {
+        if (!el.files || el.files.length === 0) {
+          actions.handleError('file_error_cant_read');
+          this.$refs.fileinput.value = '';
+          return;
+        }
         if (el.files[0].size > 15000 * 1024) {
           actions.handleError('file_toolarge');
           this.$refs.fileinput.value = '';
@@ -150,7 +155,7 @@ export default {
         data.append('file', el.files[0]);
         this.uploading = true;
         window.$.ajax({
-          url: store.APIbase.replace(/\/\w+\/$/, '') + '/tinymce4/upload_handler.php',
+          url: store.APIbase.replace(/\/\w+\/$/, '') + '/tinymce8/upload_handler.php',
           type: 'POST',
           dataType: 'json',
           data: data,
@@ -187,7 +192,7 @@ export default {
           this.updateValueFromFilelist();
           // actually delete file, if possible
           window.$.ajax({
-            url: store.APIbase + '../tinymce4/upload_handler.php',
+            url: store.APIbase + '../tinymce8/upload_handler.php',
             type: 'POST',
             dataType: 'json',
             data: { remove: todel },

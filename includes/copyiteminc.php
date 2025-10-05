@@ -235,7 +235,7 @@ function copyitem($itemid, $gbcats = false, $sethidden = false)
         $query = "SELECT name,summary,intro,startdate,enddate,reviewdate,LPcutoff,
 			timelimit,minscore,displaymethod,defpoints,defattempts,deffeedback,
 			defpenalty,itemorder,shuffle,gbcategory,password,cntingb,showcat,showhints,showtips,
-			allowlate,exceptionpenalty,noprint,avail,groupmax,isgroup,groupsetid,endmsg,
+			allowlate,exceptionpenalty,earlybonus,noprint,avail,groupmax,isgroup,groupsetid,endmsg,
 			deffeedbacktext,eqnhelper,caltag,calrtag,tutoredit,posttoforum,msgtoinstr,
 			istutorial,viddata,reqscore,reqscoreaid,reqscoretype,ancestors,defoutcome,
 			posttoforum,ptsposs,extrefs,submitby,showscores,showans,viewingb,scoresingb,
@@ -302,8 +302,6 @@ function copyitem($itemid, $gbcats = false, $sethidden = false)
         if ($cid != $sourcecid) { // if same course, can keep this
             unset($row['autoexcuse']);
         }
-        $row['name'] .= $_POST['append'];
-
         $row['courseid'] = $cid;
 
         if (isset($datesbylti) && $datesbylti == true) {
@@ -321,9 +319,12 @@ function copyitem($itemid, $gbcats = false, $sethidden = false)
             $questionDefaults = array('defattempts' => $row['defattempts']);
         }
 
-        $fields = implode(",", array_keys($row));
-        //$vals = "'".implode("','",addslashes_deep(array_values($row)))."'";
-        $fieldplaceholders = ':' . implode(',:', array_keys($row));
+        $fieldsarr = array_map('Sanitize::simpleString',array_keys($row));
+        $fields = implode(",", $fieldsarr);
+        $fieldplaceholders = ':' . implode(',:', $fieldsarr);
+
+        $row['name'] .= Sanitize::simpleASCII($_POST['append']);
+
         $stm = $DBH->prepare("INSERT INTO imas_assessments ($fields) VALUES ($fieldplaceholders)");
         $queryarr = array();
         foreach ($row as $k => $v) {

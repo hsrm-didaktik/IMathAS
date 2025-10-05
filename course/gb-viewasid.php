@@ -13,13 +13,26 @@ if (isset($CFG['hooks']['course/gb-viewasid'])) {
 
 	$isteacher = isset($teacherid);
 	$istutor = isset($tutorid);
+	if (!$isteacher && !$istutor && !isset($studentid)) {
+		echo 'No access';
+		exit;
+	}
 	$cid = Sanitize::courseId($_GET['cid']);
 	if (!isset($_GET['asid'])) {
 		echo '<html>Error - invalid assessment session ID</html>';
-	} else if ($_GET['asid']=='new') {
+	} else if ($_GET['asid']=='new' && $isteacher) {
 		$asid = 'new';
 	} else {
 		$asid = Sanitize::onlyInt($_GET['asid']);
+		$stm = $DBH->prepare("SELECT ias.id FROM imas_assessment_sessions AS ias
+			JOIN imas_assessments AS ia ON ia.id=ias.assessmentid
+			JOIN imas_students AS istu ON istu.userid=ias.userid
+			WHERE ia.courseid=? AND istu.courseid=?");
+		$stm->execute([$cid,$cid]);
+		if ($stm->fetchColumn(0) === false) {
+			echo 'Invalid asid';
+			exit;
+		}
 	}
 
 	if (!isset($_GET['uid']) || (!$isteacher && !$istutor)) {
@@ -169,7 +182,13 @@ if (isset($CFG['hooks']['course/gb-viewasid'])) {
 				deleteasidfilesbyquery2($qp[0],$qp[1],$qp[2],1);
 				//deleteasidfilesbyquery(array($qp[0]=>$qp[1]),1);
 				$query = "DELETE FROM imas_assessment_sessions";
-				$query .= " WHERE {$qp[0]}=:qval AND assessmentid=:assessmentid"; //$qp[0] is "id" or "agroupid" from getasidquery
+				if ($qp[0] == 'id') {
+					$query .= " WHERE id=:qval AND assessmentid=:assessmentid"; 
+				} else if ($qp[0] == 'agroupid') {
+					$query .= " WHERE agroupid=:qval AND assessmentid=:assessmentid"; 
+				} else {
+					exit;
+				}
 				$stm = $DBH->prepare($query);
 				$stm->execute(array(':assessmentid'=>$qp[2], ':qval'=>$qp[1]));
 			}
@@ -241,12 +260,14 @@ if (isset($CFG['hooks']['course/gb-viewasid'])) {
 			$stm = $DBH->prepare($query);
 			$stm->execute(array(':id'=>$asid, ':courseid'=>$cid));
 			if ($stm->rowCount()>0) {
-				//$whereqry = getasidquery($_GET['asid']);
 				$qp = getasidquery($asid);
 				$aid = $qp[2];
-				//deleteasidfilesbyquery(array($qp[0]=>$qp[1]),1);
 				deleteasidfilesbyquery2($qp[0],$qp[1],$qp[2],1);
-				$stm = $DBH->prepare("SELECT seeds,lti_sourcedid,userid,bestscores FROM imas_assessment_sessions WHERE {$qp[0]}=:qval AND assessmentid=:assessmentid");
+				if ($qp[0] == 'id') {
+					$stm = $DBH->prepare("SELECT seeds,lti_sourcedid,userid,bestscores FROM imas_assessment_sessions WHERE id=:qval AND assessmentid=:assessmentid");
+				} else if ($qp[0] == 'agroupid') {
+					$stm = $DBH->prepare("SELECT seeds,lti_sourcedid,userid,bestscores FROM imas_assessment_sessions WHERE agroupid=:qval AND assessmentid=:assessmentid");
+				} else { exit; }
 				$stm->execute(array(':assessmentid'=>$qp[2], ':qval'=>$qp[1]));
 				list($seeds, $ltisourcedid, $uid, $bestscores) = $stm->fetch(PDO::FETCH_NUM);
 				$seeds = explode(',', $seeds);
@@ -254,7 +275,6 @@ if (isset($CFG['hooks']['course/gb-viewasid'])) {
 					require_once "../includes/ltioutcomes.php";
 					updateLTIgrade('update',$ltisourcedid,$aid,$uid,0);
 				}
-
 
 				$scores = array_fill(0,count($seeds),-1);
 				$attempts = array_fill(0,count($seeds),0);
@@ -268,7 +288,14 @@ if (isset($CFG['hooks']['course/gb-viewasid'])) {
 				$bestlalist = implode('~',$lastanswers);
 				$query = "UPDATE imas_assessment_sessions SET scores=:scores,attempts=:attempts,lastanswers=:lastanswers,reattempting='',";
 				$query .= "bestscores=:bestscores,bestattempts=:bestattempts,bestseeds=:bestseeds,bestlastanswers=:bestlastanswers ";
-				$query .= "WHERE {$qp[0]}=:qval AND assessmentid=:assessmentid";
+				if ($qp[0] == 'id') {
+					$query .= "WHERE id=:qval AND assessmentid=:assessmentid";
+				} else if ($qp[0] == 'agroupid') {
+					$query .= "WHERE agroupid=:qval AND assessmentid=:assessmentid";
+				} else {
+					exit;
+				}
+				
 				$stm = $DBH->prepare($query);
 				$stm->execute(array(':assessmentid'=>$qp[2], ':qval'=>$qp[1], ':attempts'=>$attemptslist, ':lastanswers'=>$lalist, ':scores'=>"$scorelist;$scorelist",
 					':bestattempts'=>$bestattemptslist, ':bestseeds'=>$bestseedslist, ':bestlastanswers'=>$bestlalist, ':bestscores'=>"$bestscorelist;$bestscorelist;$bestscorelist"));
@@ -315,7 +342,11 @@ if (isset($CFG['hooks']['course/gb-viewasid'])) {
 			$qp = getasidquery($asid);
 			//$whereqry = getasidquery($_GET['asid']);
 			$query = "SELECT id,attempts,lastanswers,reattempting,scores,seeds,bestscores,bestattempts,bestlastanswers,bestseeds,lti_sourcedid,userid ";
-			$query .= "FROM imas_assessment_sessions WHERE {$qp[0]}=:qval AND assessmentid=:assessmentid ORDER BY id";
+			if ($qp[0] == 'id') {
+				$query .= "FROM imas_assessment_sessions WHERE id=:qval AND assessmentid=:assessmentid ORDER BY id";
+			} else if ($qp[0] == 'agroupid') {
+				$query .= "FROM imas_assessment_sessions WHERE agroupid=:qval AND assessmentid=:assessmentid ORDER BY id";
+			} else { exit; }
 			$stm = $DBH->prepare($query);
 			$stm->execute(array(':assessmentid'=>$qp[2], ':qval'=>$qp[1]));
 			$err = '';
@@ -498,10 +529,13 @@ if (isset($CFG['hooks']['course/gb-viewasid'])) {
 				if (isset($_POST['updategroup'])) {
 					$qp = getasidquery($asid);
 					$query = "UPDATE imas_assessment_sessions SET bestscores=:bestscores,feedback=:feedback";
-					$query .=  " WHERE {$qp[0]}=:qval AND assessmentid=:assessmentid";
+					if ($qp[0] == 'id') {
+						$query .=  " WHERE id=:qval AND assessmentid=:assessmentid";
+					} else if ($qp[0] == 'agroupid') {
+						$query .=  " WHERE agroupid=:qval AND assessmentid=:assessmentid";
+					} else { exit; }
 					$stm = $DBH->prepare($query);
 					$stm->execute(array(':bestscores'=>$scorelist, ':feedback'=>$feedbackout, ':assessmentid'=>$qp[2], ':qval'=>$qp[1]));
-					//$query .= getasidquery($_GET['asid']);
 				} else {
 					$query = "UPDATE imas_assessment_sessions SET bestscores=:bestscores,feedback=:feedback WHERE id=:id";
 					$stm = $DBH->prepare($query);
@@ -542,7 +576,7 @@ if (isset($CFG['hooks']['course/gb-viewasid'])) {
 		$_SESSION['coursetheme'] = $coursetheme;
 		$_SESSION['isteacher'] = $isteacher;
 		if ($isteacher || $istutor) {
-			$placeinhead = '<script type="text/javascript" src="'.$staticroot.'/javascript/rubric.js?v=011823"></script>';
+			$placeinhead = '<script type="text/javascript" src="'.$staticroot.'/javascript/rubric.js?v=090725"></script>';
 			require_once "../includes/rubric.php";
 			$placeinhead .= '<script type="text/javascript" src="'.$staticroot.'/javascript/gb-scoretools.js?v=060724"></script>';
 			if ($_SESSION['useed']!=0) {
@@ -553,11 +587,13 @@ if (isset($CFG['hooks']['course/gb-viewasid'])) {
 		require_once "../assessment/header.php";
 		echo "<style type=\"text/css\">p.tips {	display: none;} .pseudohidden {visibility:hidden;position:absolute;}\n</style>\n";
 		if (isset($_GET['starttime']) && $isteacher) {
-
-			//$query .= getasidquery($_GET['asid']);
 			$qp = getasidquery($asid);
 			$query = "UPDATE imas_assessment_sessions SET starttime=:starttime ";
-			$query .= "WHERE {$qp[0]}=:qval AND assessmentid=:assessmentid";
+			if ($qp[0] == 'id') {
+				$query .= "WHERE id=:qval AND assessmentid=:assessmentid";
+			} else if ($qp[0] == 'agroupid') {
+				$query .= "WHERE agroupid=:qval AND assessmentid=:assessmentid";
+			} else { exit; }
 			$stm = $DBH->prepare($query);
 			$stm->execute(array(':starttime'=>$_GET['starttime'], ':assessmentid'=>$qp[2], ':qval'=>$qp[1]));
 		}
@@ -731,12 +767,12 @@ if (isset($CFG['hooks']['course/gb-viewasid'])) {
 			'LPcutoff'=>$line['LPcutoff']
 			);
 
-		$stm2 = $DBH->prepare("SELECT startdate,enddate,islatepass FROM imas_exceptions WHERE userid=:userid AND assessmentid=:assessmentid AND itemtype='A'");
+		$stm2 = $DBH->prepare("SELECT startdate,enddate,islatepass,is_lti FROM imas_exceptions WHERE userid=:userid AND assessmentid=:assessmentid AND itemtype='A'");
 		$stm2->execute(array(':userid'=>$get_uid, ':assessmentid'=>$line['assessmentid']));
 		$useexception = false;
 		if ($stm2->rowCount()>0) {
-			$exception = $stm2->fetch(PDO::FETCH_NUM);
-			$exped = $exception[1];
+			$exception = $stm2->fetch(PDO::FETCH_ASSOC);
+			$exped = $exception['enddate'];
 			if ($exped>$saenddate) {
 				$saenddate = $exped;
 			}
@@ -748,7 +784,7 @@ if (isset($CFG['hooks']['course/gb-viewasid'])) {
 		if ($isteacher) {
 			if (isset($exped) && $exped!=$line['enddate']) {
 				$padata = array('id'=>$line['id'], 'allowlate'=>$line['allowlate'], 'enddate'=>$exped);
-				$lpnote = ($exception[2]>0)?" (LatePass)":"";
+				$lpnote = ($exception['islatepass']>0)?" (LatePass)":"";
 				if ($useexception) {
 					echo "<p>Has exception$lpnote, with due date: ".tzdate("F j, Y, g:i a",$exped);
 					echo "  <button type=\"button\" onclick=\"window.location.href='exception.php?cid=$cid&aid={$line['assessmentid']}&uid=$get_uid&asid=$asid&from=$from&stu=$stu'\">Edit Exception</button>";
@@ -1381,10 +1417,8 @@ function getasidquery($asid) {
 	list($agroupid,$aid) = $stm->fetch(PDO::FETCH_NUM);
 	if ($agroupid>0) {
 		return array('agroupid',$agroupid,$aid);
-		//return (" WHERE agroupid='$agroupid'");
 	} else {
 		return array('id',$asid,$aid);
-		//return (" WHERE id='$asid' LIMIT 1");
 	}
 }
 function isasidgroup($asid) {

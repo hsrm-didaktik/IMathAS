@@ -26,6 +26,7 @@
           :id="'scorebox' + qn + (partPoss.length > 1 ? '-' + i : '')"
           pattern="N\/A|\d*\.?\d*"
           v-model="curScores[i]"
+          :aria-label="$t('gradebook.score') + (partPoss.length > 1 ? ' ' + $t('gradebook.part_n', {n:i+1}) : '')"
           @input="updateScore(i, $event)"
           @keyup.enter="$emit('submitform')"
         /><span v-else>{{ curScores[i] }}</span>/{{ poss }}
@@ -403,14 +404,17 @@ export default {
     },
     allFull () {
       for (let i = 0; i < this.answeights.length; i++) {
-        this.curScores[i] = this.partPoss[i];
-        actions.setScoreOverride(this.qn, i, this.curScores[i] / this.partPoss[i]);
+        if (this.curScores[i] < this.partPoss[i]) {
+          this.curScores[i] = this.partPoss[i];
+          actions.setScoreOverride(this.qn, i, this.curScores[i] / this.partPoss[i]);
+        }
       }
     },
     manualFull () {
       for (let i = 0; i < this.answeights.length; i++) {
         if (this.qdata.parts[i] && this.qdata.parts[i].hasOwnProperty('req_manual') &&
-          this.qdata.parts[i].req_manual === true
+          this.qdata.parts[i].req_manual === true &&
+          this.curScores[i] < this.partPoss[i]
         ) {
           this.curScores[i] = this.partPoss[i];
           actions.setScoreOverride(this.qn, i, this.curScores[i] / this.partPoss[i]);
@@ -445,7 +449,7 @@ export default {
         }
       }
       this.curScores = out;
-      this.showfeedback = (this.qdata.feedback !== null && this.qdata.feedback.length > 0);
+      this.showfeedback = (this.qdata.hasOwnProperty('feedback') && this.qdata.feedback.length > 0);
     },
     showRubric (pn) {
       if (!window.imasrubrics) {

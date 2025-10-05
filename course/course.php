@@ -42,7 +42,7 @@ if (!isset($teacherid) && !isset($tutorid) && !isset($studentid) && !isset($inst
 } else { // PERMISSIONS ARE OK, PROCEED WITH PROCESSING
 	$cid = Sanitize::courseId($_GET['cid']);
     if (!empty($_COOKIE['fromltimenu'])) {
-        setcookie('fromltimenu', '', time()-3600);
+        setsecurecookie('fromltimenu', '', time()-3600, false);
     }
 	if (isset($teacherid) && isset($_SESSION['sessiontestid']) && !isset($_SESSION['actas']) && $_SESSION['courseid']==$cid) {
 		//clean up coming out of an assessment
@@ -252,9 +252,15 @@ if (!isset($teacherid) && !isset($tutorid) && !isset($studentid) && !isset($inst
 	//$jsAddress2 = $GLOBALS['basesiteurl'] . "/course";
 
 	$openblocks = Array(0);
-	$prevloadedblocks = array(0);
-	if (isset($_COOKIE['openblocks-'.$cid]) && $_COOKIE['openblocks-'.$cid]!='') {$openblocks = explode(',',$_COOKIE['openblocks-'.$cid]); $firstload=false;} else {$firstload=true;}
-	if (isset($_COOKIE['prevloadedblocks-'.$cid]) && $_COOKIE['prevloadedblocks-'.$cid]!='') {$prevloadedblocks = explode(',',$_COOKIE['prevloadedblocks-'.$cid]);}
+	$prevloadedblocks = array();
+	$firstload = false;
+	if (isset($_COOKIE['openblocks-'.$cid]) && $_COOKIE['openblocks-'.$cid]!='') {$openblocks = explode(',',$_COOKIE['openblocks-'.$cid]);} 
+	if (!empty($_SESSION['prevloadedblocks-'.$cid])) {$prevloadedblocks = $_SESSION['prevloadedblocks-'.$cid];}
+	if (!in_array($_GET['folder'], $prevloadedblocks)) {
+		$firstload = true;
+		$prevloadedblocks[] = Sanitize::simpleString($_GET['folder']);
+	} 
+
 	$plblist = implode(',',$prevloadedblocks);
 	$oblist = implode(',',$openblocks);
 
@@ -381,7 +387,7 @@ if (!isset($teacherid) && !isset($tutorid) && !isset($studentid) && !isset($inst
 	}
 }
 
-$placeinhead = "<script type=\"text/javascript\" src=\"$staticroot/javascript/course.js?v=011823\"></script>";
+$placeinhead = "<script type=\"text/javascript\" src=\"$staticroot/javascript/course.js?v=081325\"></script>";
 if (isset($tutorid) && isset($_SESSION['ltiitemtype']) && $_SESSION['ltiitemtype']==3) {
 	$placeinhead .= '<script type="text/javascript">$(function(){$(".instrdates").hide();});</script>';
 }
@@ -442,8 +448,8 @@ if ($overwriteBody==1) {
 	if (isset($CFG['GEN']['courseinclude'])) {
 		require_once $CFG['GEN']['courseinclude'];
 		if ($firstload) {
-			echo "<script>document.cookie = 'openblocks-$cid=' + oblist;\n";
-			echo "document.cookie = 'loadedblocks-$cid=0';</script>\n";
+			echo "<script>setCookie('openblocks-$cid', oblist);</script>\n";
+			$_SESSION['prevloadedblocks-'.$cid] = $prevloadedblocks;
 		}
 		require_once "../footer.php";
 		exit;
@@ -451,7 +457,9 @@ if ($overwriteBody==1) {
 ?>
 	<div class=breadcrumb>
 		<?php
-		if (isset($CFG['GEN']['logopad'])) {
+		if (empty($smallheaderlogo)) {
+			echo '<span class="floatright hideinmobile">';
+		} else if (isset($CFG['GEN']['logopad'])) {
 			echo '<span class="padright hideinmobile" style="padding-right:'.$CFG['GEN']['logopad'].'">';
 		} else {
 			echo '<span class="padright hideinmobile">';
@@ -460,9 +468,9 @@ if ($overwriteBody==1) {
 			echo '<span class="noticetext">', _('Instructor Preview'), '</span> ';
 		}
 		if (isset($_SESSION['ltiitemtype'])) {
-			echo "<a href=\"#\" onclick=\"GB_show('"._('User Preferences')."','$imasroot/admin/ltiuserprefs.php?cid=$cid&greybox=true',800,'auto');return false;\" title=\""._('User Preferences')."\" aria-label=\""._('Edit User Preferences')."\">";
+			echo "<a href=\"#\" onclick=\"GB_show('"._('User Preferences')."','$imasroot/admin/ltiuserprefs.php?cid=$cid&greybox=true',800,'auto');return false;\" title=\""._('User Preferences')."\">";
 			echo "<span id=\"myname\" class=\"pii-full-name\">".Sanitize::encodeStringForDisplay($userfullname)."</span>";
-			echo "<img style=\"vertical-align:top\" src=\"$staticroot/img/gears.png\" alt=\"\"/></a>";
+			echo "<img style=\"vertical-align:top\" src=\"$staticroot/img/gears.png\" alt=\""._('User Preferences')."\"/></a>";
 		} else {
 			echo '<span class="pii-full-name">'.Sanitize::encodeStringForDisplay($userfullname).'</span>';
 		}
@@ -647,16 +655,18 @@ if ($overwriteBody==1) {
 
 
 	   if ($quickview=='on' && isset($teacherid)) {
-		   echo '<style type="text/css">.drag {color:red; background-color:#fcc;} .icon {cursor: pointer;}</style>';
+		   echo '<style type="text/css">.drag {color:red; background-color:#fcc;} .icon {cursor: pointer;} span.icon { padding:0;}</style>';
 		   echo "<script>var AHAHsaveurl = '$imasroot/course/savequickreorder.php?cid=$cid';";
 		   echo 'var unsavedmsg = "'._("You have unrecorded changes.  Are you sure you want to abandon your changes?").'";';
 		   echo 'var itemorderhash="'.md5(serialize($items)).'";';
            echo 'var blockiconsrc="'.$staticroot.'/img/'.$CFG['CPS']['miniicons']['folder'].'";';
+		   echo 'var caneditallnames=true;';
 		   echo "</script>";
-		   echo "<script src=\"$staticroot/javascript/nestedjq.js?v=011522\"></script>";
+		   echo "<script src=\"$staticroot/javascript/nestedjq.js?v=080625\"></script>";
 		   echo '<p><button type="button" onclick="quickviewexpandAll()">'._("Expand All").'</button> ';
 		   echo '<button type="button" onclick="quickviewcollapseAll()">'._("Collapse All").'</button> ';
 		   echo '<button type="button" onclick="addnewblock()">'._("Add Block").'</button></p>';
+		   echo '<div class="sr-only" tabindex=0 onfocus="this.className=\'\'">'._('Keyboard instructions: In the tree, use arrow keys to move within the tree. On an item, press Tab to edit the title and access links. To rearrange, press Space to select the item, then use the arrow keys to rearrange the item up or down, left to move out of a branch, right to move into a branch when positioned below it. Press Space again to deselect.').'</div>';
 		   echo '<ul id=qviewtree class=qview>';
 		   quickview($items,0);
 		   echo '</ul>';
@@ -683,8 +693,8 @@ if ($overwriteBody==1) {
    echo "</div>"; //centercontent
 
    if ($firstload) {
-		echo "<script>document.cookie = 'openblocks-$cid=' + oblist;\n";
-		echo "document.cookie = 'loadedblocks-$cid=0';</script>\n";
+		echo "<script>setCookie('openblocks-$cid', oblist);</script>\n";
+		$_SESSION['prevloadedblocks-'.$cid] = $prevloadedblocks;
    }
 }
 
@@ -739,10 +749,10 @@ function makeTopMenu() {
 		echo '<span class="showinmobile"><b>'._('Quick Rearrange.'), "</b> <a href=\"course.php?cid=$cid&quickview=off\">", _('Back to regular view'), "</a>.</span> ";
 
 		if (isset($CFG['CPS']['miniicons'])) {
-			echo _('Use icons to drag-and-drop order.'),' ',_('Click the icon next to a block to expand or collapse it. Click an item title to edit it in place.'), '  <input type="button" id="recchg" disabled="disabled" value="', _('Save Changes'), '" onclick="submitChanges(\'json\')"/>';
+			echo _('Use icons to drag-and-drop order.'),' ',_('Click the [+] or [-] next to a block to expand or collapse it. Click a title to edit in place. Hover-over or click on an element to show links (when there are not unsaved changes).'), '  <input type="button" id="recchg" disabled="disabled" value="', _('Save Changes'), '" onclick="submitChanges(\'json\',\'changed\')"/>';
 
 		} else {
-			echo _('Use colored boxes to drag-and-drop order.'),' ',_('Click the B next to a block to expand or collapse it. Click an item title to edit it in place.'), '  <input type="button" id="recchg" disabled="disabled" value="', _('Save Changes'), '" onclick="submitChanges(\'json\')"/>';
+			echo _('Use colored boxes to drag-and-drop order.'),' ',_('Click the [+] or [-] next to a block to expand or collapse it. Click a title to edit in place. Hover-over or click on an element to show links.'), '  <input type="button" id="recchg" disabled="disabled" value="', _('Save Changes'), '" onclick="submitChanges(\'json\')"/>';
 		}
 		 echo '<span id="submitnotice" class=noticetext></span>';
 		 echo '<div class="clear"></div>';

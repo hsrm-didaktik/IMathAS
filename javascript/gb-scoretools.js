@@ -140,10 +140,10 @@ function quicksave() {
 			$("#quicksavenotice").html(_("Saved"));
 			setTimeout(function() {$("#quicksavenotice").html("&nbsp;");}, 2000);
 		} else {
-			$("#quicksavenotice").html(msg);
+			$("#quicksavenotice").text(msg);
 		}
 	}).fail(function(jqXHR, textStatus) {
-		$("#quicksavenotice").html(textStatus);
+		$("#quicksavenotice").text(textStatus);
 	});
 }
 function hidegroupdup(el) {  //el.checked = one per group
@@ -346,6 +346,7 @@ function sidebysidegrading(state) {
 function sidebysidemoveels(state,base) {
     if (typeof base === 'undefined') { base = 'body'; }
     if (state) {
+		$(base).closest(".sidebyside").find(".sidepreviewtarget").empty();
         $(base).find(".question div.introtext").each(function(i,el) {
             $(el).find(".keywrap.inwrap").insertAfter($(el));
             var tgt = $(el).closest(".sidebyside").find('.sidepreview');

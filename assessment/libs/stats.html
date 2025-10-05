@@ -55,6 +55,8 @@ A library of Stats functions.  Version 1.30, Nov 20, 2021
 <li><a href="#invchi2cdf">invchi2cdf</a></li>
 <li><a href="#fcdf">fcdf</a></li>
 <li><a href="#invfcdf">invfcdf</a></li>
+<li><a href="#poissonpdf">poissonpdf</a></li>
+<li><a href="#poissoncdf">poissoncdf</a></li>
 <li><a href="#gamma_cdf">gamma_cdf</a></li>
 <li><a href="#gamma_inv">gamma_inv</a></li>
 <li><a href="#beta_cdf">beta_cdf</a></li>
@@ -199,7 +201,8 @@ fdhistogram(freqarray,label,start,cw,[labelstart,upper,width,height,showgrid,fil
 <BR>&nbsp;stroke (optional) = the line color of the bins; default is black
 <p>To fill in only some optional parameters, the 5th argument can instead be an associate array 
  of values to fill in, like ['width'=>500, 'fill'=>'blue'].  When used this way, 'vertlabel' can 
- be used to change the vertical axis label.</p>
+ be used to change the vertical axis label, and 'valuelabels'=>true can be used to add frequency labels
+ above the bars.</p>
  <h3><a name="stem_plot"></a><strong>stem_plot</strong>(data, [options])</h3>
  <p>The function stem_plot() produces a basic stem-and-leaf display. </p>
  <p><em>Parameters:</em></p>
@@ -314,7 +317,17 @@ boxplot(array,axislabel,[options])
 <BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Nplus1: percentile method, using .25*(n+1)
 <BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TI: TI calculator method, a mix of n and nplus1 methods
 <BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Excel: A method based on (n-1), with some linear interpolation
+<BR>&nbsp;&nbsp;&nbsp;"width" = width of the boxplot
 <BR>For backwards compatability, options can also just be an array of datalabels
+<p>Examples using options array:</p>
+<pre>
+  $opts = ['qmethod'=>'N', 'width'=>300]
+  $b = boxplot($data, "Heights", $opts)
+</pre>
+<p>or</p>
+<pre>
+  $b = boxplot([$data1,$data2],"Heights", ['datalabels'=>['Group 1','Group 2'], 'showvals'=>true])
+</pre>
 <BR><h3><a name="normalcdf">normalcdf</a></h3>
 normalcdf(z,[dec])
 <BR>calculates the area under the standard normal distribution to the left of the
@@ -396,6 +409,14 @@ invfcdf(p,df1,df2)
 <BR>with degrees of freedom df1 and df2
 <BR>Algorithm is accurate to approximately 2-4 decimal places
 <BR>Less accurate for smaller p-values
+<BR><h3><a name="poissonpdf">poissonpdf</a></h3>
+poissonpdf(lambda, x)
+<BR>Computes the probability of x events
+<BR>with an expectation of lambda events
+<BR><h3><a name="poissoncdf">poissoncdf</a></h3>
+poissoncdf(lambda, x)
+<BR>Computes the probability of &lt;=x events
+<BR>with an expectation of lambda events
 <h3><a name="gamma_cdf">gamma_cdf</a></h3>
 gamma_cdf(x,shape,[scale,offset])
 <BR>Calculated the gamma cdf

@@ -44,15 +44,15 @@ if ($page==-4) {
 } else {
 	$redirecturl = $GLOBALS['basesiteurl'] . "/forums/thread.php?cid=$cid&forum=$forumid&page=$page";
 }
-$query = "SELECT ifs.settings,ifs.replyby,ifs.defdisplay,ifs.name,ifs.points,ifs.groupsetid,ifs.postby,ifs.rubric,ifs.tutoredit,ifs.enddate,ifs.avail,ifs.allowlate,ifs.autoscore,ifs.courseid,ift.forumid ";
-$query .= "FROM imas_forums AS ifs JOIN imas_forum_threads AS ift ON ifs.id=ift.forumid WHERE ifs.id=:id AND ift.id=:threadid";
+$query = "SELECT ifs.settings,ifs.replyby,ifs.defdisplay,ifs.name,ifs.points,ifs.groupsetid,igs.name AS igsname,ifs.postby,ifs.rubric,ifs.tutoredit,ifs.enddate,ifs.avail,ifs.allowlate,ifs.autoscore,ifs.courseid,ift.forumid ";
+$query .= "FROM imas_forums AS ifs JOIN imas_forum_threads AS ift ON ifs.id=ift.forumid LEFT JOIN imas_stugroupset AS igs ON igs.id=ifs.groupsetid WHERE ifs.id=:id AND ift.id=:threadid AND ifs.courseid=:cid";
 $stm = $DBH->prepare($query);
-$stm->execute(array(':id'=>$forumid, ':threadid'=>$threadid));
-if ($stm->rowCount()==0) {
+$stm->execute(array(':id'=>$forumid, ':threadid'=>$threadid, ':cid'=>$cid));
+list($forumsettings, $replyby, $defdisplay, $forumname, $pointsposs, $groupsetid, $groupsetname, $postby, $rubric, $tutoredit, $enddate, $avail, $allowlate, $autoscore, $forumcourseid, $threadforum) = $stm->fetch(PDO::FETCH_NUM);
+if ($forumsettings === null) {
 	echo "Invalid forum ID or thread ID";
 	exit;
 }
-list($forumsettings, $replyby, $defdisplay, $forumname, $pointsposs, $groupsetid, $postby, $rubric, $tutoredit, $enddate, $avail, $allowlate, $autoscore, $forumcourseid, $threadforum) = $stm->fetch(PDO::FETCH_NUM);
 if ($forumcourseid != $cid) {
 	echo "Invalid forum ID";
 	exit;
@@ -84,10 +84,10 @@ if (isset($_GET['marktagged'])) {
 }
 
 if (($postby>0 && $postby<2000000000) || ($replyby>0 && $replyby<2000000000)) {
-	$stm = $DBH->prepare("SELECT startdate,enddate,islatepass,waivereqscore,itemtype FROM imas_exceptions WHERE assessmentid=:assessmentid AND userid=:userid AND (itemtype='F' OR itemtype='P' OR itemtype='R')");
+	$stm = $DBH->prepare("SELECT startdate,enddate,islatepass,is_lti,waivereqscore,itemtype FROM imas_exceptions WHERE assessmentid=:assessmentid AND userid=:userid AND (itemtype='F' OR itemtype='P' OR itemtype='R')");
 	$stm->execute(array(':assessmentid'=>$forumid, ':userid'=>$userid));
 	if ($stm->rowCount()>0) {
-		$exception = $stm->fetch(PDO::FETCH_NUM);
+		$exception = $stm->fetch(PDO::FETCH_ASSOC);
 	} else {
 		$exception = null;
 	}
@@ -123,6 +123,7 @@ $groupid = 0;
 
 
 if ($groupsetid>0) {
+	$isSectionGroups = ($groupsetname == '##autobysection##');
 	if (!isset($_GET['grp'])) {
 		if (!$canviewall) {
 			$query = 'SELECT i_sg.id FROM imas_stugroups AS i_sg JOIN imas_stugroupmembers as i_sgm ON i_sgm.stugroupid=i_sg.id ';
@@ -153,13 +154,13 @@ if ($groupsetid>0) {
 }
 $placeinhead = '';
 if ($haspoints && $caneditscore && $rubric != 0) {
-	$placeinhead .= '<script type="text/javascript" src="'.$staticroot.'/javascript/rubric_min.js?v=022622"></script>';
+	$placeinhead .= '<script type="text/javascript" src="'.$staticroot.'/javascript/rubric_min.js?v=090725"></script>';
 	require_once "../includes/rubric.php";
 }
 
 
 if (isset($_GET['view'])) {
-	$view = $_GET['view'];
+	$view = Sanitize::onlyInt($_GET['view']);
 } else {
 	$view = $defdisplay;  //0: expanded, 1: collapsed, 2: condensed
 }
@@ -169,7 +170,7 @@ require_once "posthandler.php";
 
 $pagetitle = "Posts";
 $placeinhead .= '<link rel="stylesheet" href="'.$staticroot.'/forums/forums.css?ver=010619" type="text/css" />';
-$placeinhead .= '<script type="text/javascript" src="'.$staticroot.'/javascript/posts.js?v=011517"></script>';
+$placeinhead .= '<script type="text/javascript" src="'.$staticroot.'/javascript/posts.js?v=053025"></script>';
 //$placeinhead = "<style type=\"text/css\">\n@import url(\"$imasroot/forums/forums.css\");\n</style>\n";
 if ($caneditscore && $_SESSION['useed']!=0) {
 	$useeditor = "noinit";
@@ -479,12 +480,15 @@ if (!$oktoshow) {
 		echo "Next";
 	}
 
-	echo " | <a href=\"posts.php?cid=$cid&forum=$forumid&thread=$threadid&page=$page&markunread=true\">Mark Unread</a> ";
+	echo " | <a class=\"abutton\" role=\"button\" href=\"posts.php?cid=$cid&forum=$forumid&thread=$threadid&page=$page&markunread=true\">Mark Unread</a> ";
+
+	echo '<button type=button class="plain nopad" onclick="toggletagged('.$threadid.');" role="switch" aria-checked="'.($tagged?'true':'false').'" aria-label="'._('Tag post').'">';
 	if ($tagged) {
-		echo "| <img class=\"pointer\" id=\"tag$threadid\" src=\"$staticroot/img/flagfilled.gif\" onClick=\"toggletagged($threadid);return false;\" alt=\"Flagged\" /> ";
+		echo "<img class=\"pointer\" id=\"tag".$threadid."\" src=\"$staticroot/img/flagfilled.gif\" alt=\"\"/>";
 	} else {
-		echo "| <img class=\"pointer\" id=\"tag$threadid\" src=\"$staticroot/img/flagempty.gif\" onClick=\"toggletagged($threadid);return false;\" alt=\"Not flagged\"/> ";
+		echo "<img class=\"pointer\" id=\"tag".$threadid."\" src=\"$staticroot/img/flagempty.gif\" alt=\"\"/>";
 	}
+	echo '</button>';
 
 	echo '| <button onclick="expandall()">'._('Expand All').'</button>';
 	echo '<button onclick="collapseall()">'._('Collapse All').'</button> | ';
@@ -519,8 +523,8 @@ function printchildren($base,$restricttoowner=false) {
 		if ($restricttoowner && $ownerid[$child] != $userid) {
 			continue;
 		}
-		echo "<div class=block> ";
-		echo '<span class="leftbtns">';
+		echo '<div class="block flexgroup"> ';
+		echo '<span class=nowrap>';
 		if (isset($children[$child])) {
 			if ($view==1) {
 				$lbl = '+';
@@ -529,51 +533,20 @@ function printchildren($base,$restricttoowner=false) {
 				$lbl = '-';
 				$img = "collapse";
 			}
-			echo "<img class=\"pointer expcol\" src=\"$staticroot/img/$img.gif\" onClick=\"toggleshow(this)\" alt=\"Expand/Collapse\"/> ";
+			echo '<button class="plain nopad" aria-controls="childwrap'.$child.'" aria-expanded="'.($view==1?'false':'true').'" onClick="toggleshow(this)">';
+			echo "<img class=\"expcol\" src=\"$staticroot/img/$img.gif\" alt=\"Expand/Collapse\" /></button>";
 		}
 		if ($hasuserimg[$child]==1) {
+			echo '<button type=button class="plain nopad" onclick="togglepic(this)">';
 			if(isset($GLOBALS['CFG']['GEN']['AWSforcoursefiles']) && $GLOBALS['CFG']['GEN']['AWSforcoursefiles'] == true) {
-				echo "<img class=\"pii-image\" src=\"{$urlmode}{$GLOBALS['AWSbucket']}.s3.amazonaws.com/cfiles/userimg_sm{$ownerid[$child]}.jpg\"  onclick=\"togglepic(this)\" alt=\"User picture\"/>";
+				echo "<img class=\"pii-image\" src=\"{$urlmode}{$GLOBALS['AWSbucket']}.s3.amazonaws.com/cfiles/userimg_sm{$ownerid[$child]}.jpg\" alt=\"User picture\" />";
 			} else {
-				echo "<img class=\"pii-image\" src=\"$imasroot/course/files/userimg_sm{$ownerid[$child]}.jpg\"  onclick=\"togglepic(this)\" alt=\"User picture\"/>";
+				echo "<img class=\"pii-image\" src=\"$imasroot/course/files/userimg_sm{$ownerid[$child]}.jpg\" alt=\"User picture\" />";
 			}
+			echo '</button>';
 		}
 		echo '</span>';
-		echo "<span class=right>";
-
-		if ($view==2) {
-			echo "<input type=button class=\"shbtn\" value=\"Show\" onClick=\"toggleitem(this)\">\n";
-		} else {
-			echo "<input type=button class=\"shbtn\" value=\"Hide\" onClick=\"toggleitem(this)\">\n";
-		}
-		if ($posttype[$child]!=2 && $myrights > 5 && $allowreply) {
-			$embedstr = isset($_GET['embed'])?'&embed=true':'';
-			echo "<a href=\"posts.php?view=$view&cid=$cid&forum=$forumid&thread=$threadid&page=$page&modify=reply&replyto=$child$embedstr\" onclick=\"return checkchgstatus(0,$child)\">Reply</a> ";
-		}
-		if ($isteacher || ($ownerid[$child]==$userid && $allowmod && (($base==0 && time()<$postby) || ($base>0 && time()<$replyby))) || ($allowdel && $ownerid[$child]==$userid && !isset($children[$child]))) {
-			echo '<span class="dropdown">';
-			echo '<a tabindex=0 class="dropdown-toggle" id="dropdownMenu'.$child.'" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
-			echo ' <img src="'.$staticroot.'/img/gears.png" class="mida" alt="Options"/>';
-			echo '</a>';
-			echo '<ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="dropdownMenu'.$child.'">';
-
-			if ($isteacher) {
-				echo "<li><a href=\"posts.php?view=$view&cid=$cid&forum=$forumid&thread=$threadid&page=$page&move=$child\">Move</a></li>\n";
-			}
-			if ($isteacher || ($ownerid[$child]==$userid && $allowmod)) {
-				if (($base==0 && time()<$postby) || ($base>0 && time()<$replyby) || $isteacher) {
-					echo "<li><a href=\"posts.php?view=$view&cid=$cid&forum=$forumid&thread=$threadid&page=$page&modify=$child\" onclick=\"return checkchgstatus(1,$child)\">Modify</a></li>\n";
-				}
-			}
-			if ($isteacher || ($allowdel && $ownerid[$child]==$userid && !isset($children[$child]))) {
-				echo "<li><a href=\"posts.php?view=$view&cid=$cid&forum=$forumid&thread=$threadid&page=$page&remove=$child\">Remove</a></li>\n";
-			}
-
-			echo '</ul></span>';
-		}
-
-		echo "</span>\n";
-		echo '<span style="float:left">';
+		echo '<span style="flex-grow:1">';
 		echo "<b>".$re[$child]. Sanitize::encodeStringForDisplay($subject[$child]) . "</b><br/>"._('Posted by').": ";
 		//if ($isteacher && $ownerid[$child]!=0) {
 		//	echo "<a href=\"mailto:{$email[$child]}\">";
@@ -587,7 +560,7 @@ function printchildren($base,$restricttoowner=false) {
 		}
 		echo '<span class="pii-full-name">'.Sanitize::encodeStringForDisplay($poster[$child]).'</span>'; // This is the user's first and last name.
 		if (($canviewall || $allowmsg) && $ownerid[$child]!=0) {
-			echo "</a>";
+			echo "<span class=\"sr-only\">send message</span></a>";
 		}
 		if ($isteacher && $ownerid[$child]!=0 && $ownerid[$child]!=$userid) {
 			echo " <a class=\"small\" href=\"$imasroot/course/gradebook.php?cid=$cid&stu={$ownerid[$child]}\" target=\"_blank\">[GB]</a>";
@@ -617,6 +590,8 @@ function printchildren($base,$restricttoowner=false) {
 		}
 		echo '</span>';
 
+		// right buttons
+		echo "<span class=nowrap>"; 
 		if ($allowlikes) {
 			$icon = (in_array($child,$mylikes))?'liked':'likedgray';
 			$likemsg = 'Liked by ';
@@ -653,17 +628,51 @@ function printchildren($base,$restricttoowner=false) {
 				$likemsg = 'Click to like this post. '.$likemsg;;
 			}
 
-			echo '<div class="likewrap">';
-			echo "<img id=\"likeicon$child\" class=\"likeicon$likeclass\" src=\"$staticroot/img/$icon.png\" title=\"$likemsg\" onclick=\"savelike(this)\" alt=\"Like\">";
-			echo " <span class=\"pointer\" id=\"likecnt$child\" onclick=\"GB_show('"._('Post Likes')."','listlikes.php?cid=$cid&amp;post=$child',500,500);\">".($likecnt>0?$likecnt:'').' </span> ';
-			echo '</div>';
+			//echo '<div class="likewrap">';
+			echo '<button type=button id="likeicon'.$child.'" class="plain nopad" role="switch" aria-checked="' . ($icon=='liked'?'true':'false').'" onclick="savelike(this)">';
+			echo "<img class=\"likeicon$likeclass\" src=\"$staticroot/img/$icon.png\" title=\"$likemsg\" alt=\"Like\">";
+			echo '</button>';
+			echo "<a href=\"#\" id=\"likecnt$child\" onclick=\"GB_show('"._('Post Likes')."','listlikes.php?cid=$cid&amp;post=$child',500,500);return false;\" aria-label=\"View likes\">".($likecnt>0?$likecnt:'').' </a> ';
+			//echo '</div>';
 		}
+		if ($view==2) {
+			echo "<input type=button class=\"shbtn\" value=\"Show\" onClick=\"toggleitem(this)\" aria-controls=\"pb$child\" aria-expanded=\"false\">\n";
+		} else {
+			echo "<input type=button class=\"shbtn\" value=\"Hide\" onClick=\"toggleitem(this)\" aria-controls=\"pb$child\" aria-expanded=\"true\">\n";
+		}
+		if ($posttype[$child]!=2 && $myrights > 5 && $allowreply) {
+			$embedstr = isset($_GET['embed'])?'&embed=true':'';
+			echo "<a href=\"posts.php?view=$view&cid=$cid&forum=$forumid&thread=$threadid&page=$page&modify=reply&replyto=$child$embedstr\" onclick=\"return checkchgstatus(0,$child)\">Reply</a> ";
+		}
+		if ($isteacher || ($ownerid[$child]==$userid && $allowmod && (($base==0 && time()<$postby) || ($base>0 && time()<$replyby))) || ($allowdel && $ownerid[$child]==$userid && !isset($children[$child]))) {
+			echo '<span class="dropdown">';
+			echo '<a tabindex=0 class="dropdown-toggle" id="dropdownMenu'.$child.'" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
+			echo ' <img src="'.$staticroot.'/img/gears.png" class="mida" alt="Options"/>';
+			echo '</a>';
+			echo '<ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="dropdownMenu'.$child.'">';
+
+			if ($isteacher) {
+				echo "<li><a href=\"posts.php?view=$view&cid=$cid&forum=$forumid&thread=$threadid&page=$page&move=$child\">Move</a></li>\n";
+			}
+			if ($isteacher || ($ownerid[$child]==$userid && $allowmod)) {
+				if (($base==0 && time()<$postby) || ($base>0 && time()<$replyby) || $isteacher) {
+					echo "<li><a href=\"posts.php?view=$view&cid=$cid&forum=$forumid&thread=$threadid&page=$page&modify=$child\" onclick=\"return checkchgstatus(1,$child)\">Modify</a></li>\n";
+				}
+			}
+			if ($isteacher || ($allowdel && $ownerid[$child]==$userid && !isset($children[$child]))) {
+				echo "<li><a href=\"posts.php?view=$view&cid=$cid&forum=$forumid&thread=$threadid&page=$page&remove=$child\">Remove</a></li>\n";
+			}
+
+			echo '</ul></span>';
+		}
+
+		echo "</span>\n";
 		echo '<div class="clear"></div>';
 		echo "</div>\n";
 		if ($view==2) {
-			echo "<div class=\"blockitems hidden\">";
+			echo "<div class=\"blockitems hidden\" id=\"pb$child\">";
 		} else {
-			echo "<div class=\"blockitems\" style=\"clear:all\">";
+			echo "<div class=\"blockitems\" style=\"clear:all\" id=\"pb$child\">";
 		}
 		if(isset($files[$child]) && $files[$child]!='') {
 			$fl = explode('@@',$files[$child]);
@@ -691,7 +700,7 @@ function printchildren($base,$restricttoowner=false) {
 		if ($haspoints) {
 			if ($caneditscore && $isstu[$child]) {
 				echo '<hr/>';
-				echo "Score: <input class=scorebox type=text size=2 name=\"score[$child]\" id=\"scorebox$child\" value=\"";
+				echo "<label for=\"scorebox$child\">"._('Score')."</label>: <input class=scorebox type=text size=2 name=\"score[$child]\" id=\"scorebox$child\" value=\"";
 				if ($points[$child]!==null) {
 					echo $points[$child];
 				}
@@ -699,7 +708,7 @@ function printchildren($base,$restricttoowner=false) {
 				if ($rubric != 0) {
 					echo printrubriclink($rubric,$pointsposs,"scorebox$child", "feedback$child");
 				}
-				echo " Private Feedback: ";
+				echo '<label for="feedback'.$child.'">'._('Private Feedback').'</label>: ';
 				if ($_SESSION['useed']==0) {
 					echo "<textarea class=scorebox cols=\"50\" rows=\"2\" name=\"feedback$child\" id=\"feedback$child\">";
 					if ($feedback[$child]!==null) {
@@ -726,7 +735,7 @@ function printchildren($base,$restricttoowner=false) {
 
 
 		echo "<div class=\"clear\"></div></div>\n";
-		echo '<div class="forumgrp'.(($view==1)?' hidden':'').'">';
+		echo '<div class="forumgrp'.(($view==1)?' hidden':'').'" id="childwrap'.$child.'">';
 		if (isset($children[$child])) { //if has children
 			printchildren($child, ($posttype[$child]==3 && !$isteacher));
 		}

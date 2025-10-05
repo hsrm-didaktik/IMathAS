@@ -27,6 +27,7 @@ if (isset($_GET['greybox'])) {
 	$gb = '&greybox=true';
 	$flexwidth = true;
 	$nologo = true;
+	$noskipnavlink = true;
 } else {
 	$gb = '';
 }
@@ -52,7 +53,7 @@ switch($_GET['action']) {
 		echo "<span class=\"form\"><label for=\"firstname\">",_('Enter First Name:'),"</label></span> <input class=\"form pii-first-name\" type=\"text\" size=20 id=firstname name=firstname autocomplete=\"given-name\"><BR class=\"form\">\n";
 		echo "<span class=\"form\"><label for=\"lastname\">",_('Enter Last Name:'),"</label></span> <input class=\"form pii-last-name\" type=\"text\" size=20 id=lastname name=lastname autocomplete=\"family-name\"><BR class=\"form\">\n";
 		echo "<span class=\"form\"><label for=\"email\">",_('Enter E-mail address:'),"</label></span>  <input class=\"form pii-email\" type=\"text\" size=60 id=email name=email autocomplete=\"email\"><BR class=\"form\">\n";
-		echo "<span class=form><label for=\"msgnot\">",_('Notify me by email when I receive a new message:'),"</label></span><span class=formright><input type=checkbox id=msgnot name=msgnot checked=\"checked\" /></span><BR class=form>\n";
+		echo "<span class=form>",_('Notifications:'),"</span><span class=formright><label><input type=checkbox id=msgnot name=msgnot checked=\"checked\" /> ",_('Notify me by email when I receive a new message:'),"</label></span><BR class=form>\n";
         if (isset($CFG['GEN']['COPPA'])) {
 			echo "<span class=form><label for=\"over13\">",_('I am 13 years old or older'),"</label></span><span class=formright><input type=checkbox name=over13 id=over13 onchange=\"toggleOver13()\"></span><br class=form />\n";
         }
@@ -248,8 +249,8 @@ switch($_GET['action']) {
 			$r = $stm->fetch(PDO::FETCH_NUM);
 			echo '<span class="form">'._('Group').':</span><span class="formright">'.Sanitize::encodeStringForDisplay($r[0]).'</span><br class="form"/>';
 		}
-		echo '<span class="form"><label for="dochgpw">',_('Change Password?'),'</label></span> ';
-        echo '<span class="formright"><input type="checkbox" name="dochgpw" id="dochgpw" onclick="togglechgpw(this)" aria-controls="pwinfo" aria-expanded="false"/></span><br class="form" />';
+		echo '<span class="form">',_('Password'),'</span> ';
+        echo '<span class="formright"><label><input type="checkbox" name="dochgpw" id="dochgpw" onclick="togglechgpw(this)" aria-controls="pwinfo" aria-expanded="false"/> ',_('Change Password?'),'</span><br class="form" />';
 		echo '<div style="display:none" id="pwinfo" tabindex="-1">';
 		echo "<span class=form><label for=\"pw1\">",_('Enter new password:'),"</label></span>  <input class=form type=password id=pw1 name=pw1 size=40> <BR class=form>\n";
 		echo "<span class=form><label for=\"pw2\">",_('Verify new password:'),"</label></span>  <input class=form type=password id=pw2 name=pw2 size=40> <BR class=form>\n";
@@ -301,12 +302,23 @@ switch($_GET['action']) {
         }
         echo '</div>';
 
-        echo "<span class=form><label for=\"msgnot\">",_('Notify me by email when I receive a new message:'),"</label></span><span class=formright><input type=checkbox id=msgnot name=msgnot ";
+		echo "<span class=form>",_('Notifications:'),"</span><span class=formright><label><input type=checkbox id=msgnot name=msgnot ";
+
+        //echo "<span class=form><label for=\"msgnot\">",_('Notify me by email when I receive a new message:'),"</label></span><span class=formright><input type=checkbox id=msgnot name=msgnot ";
 		if ($line['msgnotify']==1) {echo "checked=1";}
-		echo " /></span><BR class=form>\n";
-		if (isset($CFG['FCM']) && isset($CFG['FCM']['webApiKey']) && strpos($_SERVER['HTTP_USER_AGENT'], 'Chrome') !== false) {
+		echo " /> ",_('Notify me by email when I receive a new message:'),"</label></span><BR class=form>\n";
+
+
+		if (isset($CFG['FCM']) && isset($CFG['FCM']['webApiKey'])) {
+			echo '<div id=fcmwrap style="display:none">';
 			echo '<span class=form>'._('Push notifications:').'</span><span class=formright>';
 			echo '<a href="'.$imasroot.'/admin/FCMsetup.php">'.('Setup push notifications on this device').'</a></span><br class=form>';
+			echo '</div>';
+			echo '<script>$(function() {
+					if ("serviceWorker" in navigator && "PushManager" in window && "Notification" in window) {
+						$("#fcmwrap").show();
+					}
+				});</script>';
 		}
 
 		echo "<span class=form><label for=\"stupic\">",_('Picture:'),"</label></span>";
@@ -415,23 +427,23 @@ switch($_GET['action']) {
 			echo "<script type=\"text/javascript\">";
 			echo "var curlibs = '{$line['deflib']}';";
 			echo "function libselect() {";
-			echo "  window.open('$imasroot/course/libtree2.php?libtree=popup&type=radio&libs='+curlibs,'libtree','width=400,height='+(.7*screen.height)+',scrollbars=1,resizable=1,status=1,top=20,left='+(screen.width-420));";
-			echo " }";
+			echo ' GB_show("'. _('Library Select') .'","'.$imasroot.'/course/libtree3.php?libtree=popup&mode=single&selectrights=1&libs="+curlibs,500);';
+			echo "}";
 			echo "function setlib(libs) {";
 			echo "  document.getElementById(\"libs\").value = libs;";
 			echo "  curlibs = libs;";
 			echo "}";
 			echo "function setlibnames(libn) {";
-			echo "  document.getElementById(\"libnames\").innerHTML = libn;";
+			echo "  document.getElementById(\"libnames\").textContent = libn;";
 			echo "}";
 			echo "</script>";
 			echo "<span class=form>"._('Default question library').":</span><span class=formright> <span id=\"libnames\">".Sanitize::encodeStringForDisplay($lname)."</span><input type=hidden name=\"libs\" id=\"libs\"  value=\"".Sanitize::encodeStringForDisplay($line['deflib'])."\">\n";
 			echo " <input type=button value=\"",_('Select Library'),"\" onClick=\"libselect()\"></span><br class=form> ";
 
-			echo "<span class=form><label for=usedeflib>",_('Use default question library for all templated questions?'),"</label></span>";
-			echo "<span class=formright><input type=checkbox name=\"usedeflib\" id=\"usedeflib\"";
+			echo "<span class=form>",_('Use on template'),"</span>";
+			echo "<span class=formright><label><input type=checkbox name=\"usedeflib\" id=\"usedeflib\"";
 			if ($line['usedeflib']==1) {echo "checked=1";}
-			echo "> ";
+			echo "> ",_('Use default question library for all templated questions'),'</label>';
 			echo "</span><br class=form><p>",_("Default question library is used for all local (assessment-only) copies of questions created when you edit a question (that's not yours) in an assessment.  You can elect to have all templated questions be assigned to this library."),"</p>";
 			echo '</fieldset>';
 

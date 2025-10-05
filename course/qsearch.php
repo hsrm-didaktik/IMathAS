@@ -10,6 +10,9 @@ if (!isset($teacherid) && !($_GET['cid'] == 'admin' && $myrights>74)) {
 if (isset($_GET['aid'])) {
     $searchcontext = '';
     $aid = intval($_GET['aid']);
+} else if (isset($_GET['did'])) {
+    $searchcontext = 'd';
+    $aid = intval($_GET['did']);
 } else {
     $searchcontext = 'c';
     $aid = Sanitize::courseId($_GET['cid']);
@@ -77,9 +80,10 @@ if (!empty($search['unused']) && $searchcontext!='c') {
     // populate existing if unused is set
     $query = 'SELECT iqs.id FROM imas_questionset AS iqs
         JOIN imas_questions AS iq ON iq.questionsetid=iqs.id
-        WHERE iq.assessmentid=?';
+        JOIN imas_assessments AS ia ON iq.assessmentid=ia.id
+        WHERE iq.assessmentid=? AND ia.courseid=?';
     $stm = $DBH->prepare($query);
-    $stm->execute(array($aid));
+    $stm->execute(array($aid, $cid));
     $options['existing'] = $stm->fetchAll(PDO::FETCH_COLUMN, 0);
 }
 if ($searchcontext=='c') {

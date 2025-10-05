@@ -22,6 +22,12 @@ function ltrimzero($v,$k) {
 }
 function checkreqtimes($tocheck,$rtimes) {
 	global $mathfuncs, $myrights;
+	if (!is_string($rtimes)) {
+		if ($myrights > 10 && !empty($GLOBALS['inQuestionTesting'])) {
+			echo "Invalid requiretimes; should be a string";
+		}
+		return 1;
+	}
     if ($rtimes=='') {return 1;}
 	if ($tocheck=='DNE' || $tocheck=='oo' || $tocheck=='+oo' || $tocheck=='-oo') {
 		return 1;
@@ -999,10 +1005,27 @@ function numfuncPrepShowanswer($string, $variables) {
                 if ($chg) {
                     $string = str_replace($matches[0], $matches[1] . '_' . $matches[2], $string);
                 }
-            } else if (!$isgreek) {
+            } else if (!$isgreek && preg_match('/^(hat|bar|vec)\(([^\(]*?)\)$/', $variables[$i], $matches)) {
+				$chg = false;
+				if (strlen($matches[2]) > 1 && ctype_alnum($matches[2]) && !in_array(strtolower($matches[2]), $greekletters)) {
+                    $matches[2] = '"' . $matches[2] . '"';
+					$chg = true;
+                }
+				if ($chg) {
+                    $string = str_replace($matches[0], $matches[1] . '(' . $matches[2] . ')', $string);
+                }
+			} else if (!$isgreek) {
                 $string = str_replace($variables[$i], '"' . $variables[$i] . '"', $string);
             }
         }
     }
     return $string;
+}
+
+function sizeToCSS($size) {
+	if (is_numeric($size)) {
+		return (1.2*$size + 1) . 'ch';
+	} else {
+		return $size;
+	}
 }

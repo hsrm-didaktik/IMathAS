@@ -18,19 +18,32 @@ $fromstr = '';
 
 $curBreadcrumb = "$breadcrumbbase <a href=\"course.php?cid=$cid\">".Sanitize::encodeStringForDisplay($coursename)."</a> ";
 if ($from=='modq' && !empty($_GET['qid'])) {
-	$fromstr = '&amp;' . Sanitize::generateQueryStringFromMap(array('from' => 'modq', 'aid' => $_GET['aid'],
-			'qid' => $_GET['qid']));
-	$returnstr = 'modquestion.php?' . Sanitize::generateQueryStringFromMap(array('cid' => $cid,
-			'aid' => $_GET['aid'], 'id' => $_GET['qid']));
+	$fromstr = '&amp;' . Sanitize::encodeStringforDisplay(
+		Sanitize::generateQueryStringFromMap(array(
+		'from' => 'modq', 
+		'aid' => Sanitize::onlyInt($_GET['aid']),
+		'qid' => Sanitize::onlyInt($_GET['qid']))));
+	$returnstr = 'modquestion.php?' . Sanitize::encodeStringforDisplay(Sanitize::generateQueryStringFromMap(array(
+		'cid' => $cid,
+		'aid' => Sanitize::onlyInt($_GET['aid']), 
+		'id' => Sanitize::onlyInt($_GET['qid']))));
 	$curBreadcrumb .= "&gt; <a href=\"$returnstr\">Modify Question Settings</a> ";
 } else if ($from=='addg') {
-	$fromstr = '&amp;' . Sanitize::generateQueryStringFromMap(array('from' => 'addg', 'gbitem' => $_GET['gbitem']));
-	$returnstr = 'addgrades.php?'. Sanitize::generateQueryStringFromMap(array('cid' => $cid,
-			'gbitem' => $_GET['gbitem'], 'grades' => 'all'));
+	$fromstr = '&amp;' . Sanitize::encodeStringforDisplay(Sanitize::generateQueryStringFromMap(array(
+		'from' => 'addg', 
+		'gbitem' => Sanitize::onlyInt($_GET['gbitem']))));
+	$returnstr = 'addgrades.php?'. Sanitize::encodeStringforDisplay(Sanitize::generateQueryStringFromMap(array(
+		'cid' => $cid,
+		'gbitem' => Sanitize::onlyInt($_GET['gbitem']), 
+		'grades' => 'all')));
 	$curBreadcrumb .= "&gt; <a href=\"$returnstr\">Offline Grades</a> ";
 } else if ($from=='addf') {
-	$fromstr = '&amp;' . Sanitize::generateQueryStringFromMap(array('from' => 'addf', 'fid' => $_GET['fid']));
-	$returnstr = 'addforum.php?' . Sanitize::generateQueryStringFromMap(array('cid' => $cid, 'id' => $_GET['fid']));
+	$fromstr = '&amp;' . Sanitize::encodeStringforDisplay(Sanitize::generateQueryStringFromMap(array(
+		'from' => 'addf', 
+		'fid' => Sanitize::onlyInt($_GET['fid']))));
+	$returnstr = 'addforum.php?' . Sanitize::encodeStringforDisplay(Sanitize::generateQueryStringFromMap(array(
+		'cid' => $cid, 
+		'id' => Sanitize::onlyInt($_GET['fid']))));
 	$curBreadcrumb .= "&gt; <a href=\"$returnstr\">Modify Forum</a> ";
 }
 
@@ -70,15 +83,15 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
 			$query .= "ON iq.assessmentid=ia.id JOIN imas_courses AS ic ";
 			$query .= "ON ia.courseid=ic.id AND ic.ownerid=? SET rubric=0 WHERE rubric=?";
 			$stm = $DBH->prepare($query);
-			$stm->execute($userid, $rubid);
+			$stm->execute([$userid, $rubid]);
 			$query = "UPDATE imas_gbitems AS ig JOIN imas_courses AS ic ";
 			$query .= "ON ig.courseid=ic.id AND ic.ownerid=? SET rubric=0 WHERE rubric=?";
 			$stm = $DBH->prepare($query);
-			$stm->execute($userid, $rubid);
+			$stm->execute([$userid, $rubid]);
 			$query = "UPDATE imas_forums AS if JOIN imas_courses AS ic ";
 			$query .= "ON if.courseid=ic.id AND ic.ownerid=? SET rubric=0 WHERE rubric=?";
 			$stm = $DBH->prepare($query);
-			$stm->execute($userid, $rubid);
+			$stm->execute([$userid, $rubid]);
 			// This is too inefficient to run
 			/*$stm = $DBH->prepare("UPDATE imas_questions SET rubric=0 WHERE rubric=?");
 			$stm->execute(array($rubid));
@@ -104,6 +117,15 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
 		}
 		$rubricstring = serialize($rubric);
 		if ($_GET['id']!='new') { //MODIFY
+			$stm = $DBH->prepare("SELECT groupid,ownerid FROM imas_rubrics WHERE id=:id");
+			$stm->execute(array(':id'=>intval($_GET['id'])));
+			list($origgroupid,$origownerid) = $stm->fetch(PDO::FETCH_NUM);
+			if ($origownerid !== $userid && $origgroupid !== $groupid) {
+				echo 'No rights';
+				exit;
+			} else if ($origownerid !== $userid) {
+				$rubgrp = $origgroupid; // don't allow changing by group members
+			}
 			$stm = $DBH->prepare("UPDATE imas_rubrics SET name=:name,rubrictype=:rubrictype,groupid=:groupid,rubric=:rubric WHERE id=:id");
 			$stm->execute(array(':name'=>$_POST['rubname'], ':rubrictype'=>$_POST['rubtype'], ':groupid'=>$rubgrp, ':rubric'=>$rubricstring, ':id'=>$_GET['id']));
 		} else {
@@ -119,9 +141,13 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
 		if (isset($_GET['id'])) { //MODIFY
 			if ($_GET['id']=='new') {//NEW
 				if (isset($_GET['copy'])) {
-					$stm = $DBH->prepare("SELECT name,groupid,rubrictype,rubric FROM imas_rubrics WHERE id=:id");
+					$stm = $DBH->prepare("SELECT name,groupid,rubrictype,rubric,ownerid FROM imas_rubrics WHERE id=:id");
 					$stm->execute(array(':id'=>intval($_GET['copy'])));
-					list($rubname,$rubgrp,$rubtype,$rubric) = $stm->fetch(PDO::FETCH_NUM);
+					list($rubname,$rubgrp,$rubtype,$rubric,$origownerid) = $stm->fetch(PDO::FETCH_NUM);
+					if ($origownerid !== $userid && $rubgrp !== $groupid) {
+						echo 'No rights';
+						exit;
+					}
 					$rubric = unserialize($rubric);
 					$rubname = 'Copy of: '.$rubname;
 				} else {
@@ -133,9 +159,13 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
 				$savetitle = _('Create Rubric');
 			} else {
 				$rubid = Sanitize::onlyInt($_GET['id']);
-				$stm = $DBH->prepare("SELECT name,groupid,rubrictype,rubric FROM imas_rubrics WHERE id=:id");
+				$stm = $DBH->prepare("SELECT name,groupid,rubrictype,rubric,ownerid FROM imas_rubrics WHERE id=:id");
 				$stm->execute(array(':id'=>$rubid));
-				list($rubname,$rubgrp,$rubtype,$rubric) = $stm->fetch(PDO::FETCH_NUM);
+				list($rubname,$rubgrp,$rubtype,$rubric,$ownerid) = $stm->fetch(PDO::FETCH_NUM);
+				if ($ownerid !== $userid && $rubgrp !== $groupid) {
+					echo 'No rights';
+					exit;
+				}
 				$rubric = unserialize($rubric);
 				$savetitle = _('Save Changes');
 			}
@@ -146,7 +176,7 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
 //BEGIN DISPLAY BLOCK
 
 /******* begin html output ********/
-$placeinhead = '<script type="text/javascript" src="'.$staticroot.'/javascript/rubric.js?v=011823"></script>';
+$placeinhead = '<script type="text/javascript" src="'.$staticroot.'/javascript/rubric.js?v=090725"></script>';
 $placeinhead .= '<script type="text/javascript">$(function() {
   var html = \'<span class="dropdown"><a role="button" tabindex=0 class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="'.$staticroot.'/img/gears.png" alt="Options"/></a>\';
   html += \'<ul role="menu" class="dropdown-menu">\';
@@ -206,9 +236,9 @@ if (!isset($_GET['id'])) {//displaying "Manage Rubrics" page
 	$rubtypeval = array(1,0,3,4,2);
 	$rubtypelabel = array('Score breakdown, record score and feedback','Score breakdown, record score only','Score total, record score and feedback','Score total, record score only','Feedback only');
 	echo "<form method=\"post\" action=\"addrubric.php?cid=$cid&amp;id=" . Sanitize::encodeUrlParam($_GET['id']) . $fromstr . "\">";
-	echo '<p>Name:  <input type="text" size="70" name="rubname" value="'.Sanitize::encodeStringForDisplay($rubname).'"/></p>';
+	echo '<p><label>Name:  <input type="text" size="70" name="rubname" value="'.Sanitize::encodeStringForDisplay($rubname).'"/></label></p>';
 
-	echo '<p>Rubric Type: ';
+	echo '<p><label for=rubtype>Rubric Type</label>: ';
 	writeHtmlSelect('rubtype',$rubtypeval,$rubtypelabel,$rubtype,null,null,'onchange="imasrubric_chgtype()"');
 	echo '</p>';
 	if ($rubtype==0 || $rubtype==1) {
@@ -228,29 +258,27 @@ if (!isset($_GET['id'])) {//displaying "Manage Rubrics" page
 		total final score for the question.  Make sure one item is 100(%) or the expected point total for the question.';
 	echo '</p>';
 
-	echo '<p>Share with Group: <input type="checkbox" name="rubisgroup" '.getHtmlChecked($rubgrp,-1,1).' /></p>';
-	echo '<table><thead><tr><th>Rubric Item<br/>Shows in feedback</th><th>Instructor Note<br/>Not in feedback</th><th><span id="pointsheader" ';
-	if ($rubtype==2) {echo 'style="display:none;" ';}
-	echo '>Portion of Score</span>';
-
-	echo '</th></tr></thead><tbody>';
+	echo '<p><label><input type="checkbox" name="rubisgroup" '.getHtmlChecked($rubgrp,-1,1).' /> '._('Share with Group').'</label></p>';
+	echo '<table><thead><tr>';
+	echo '<th>Rubric Item<span class="hfeedback"><br/>Shows in feedback</span></th><th>Instructor Note<span class="hfeedback"><br/>Not in feedback</span></th>';
+	echo '<th class="rubricpoints"><span id="pointsheader">'. _('Portion of Score');
+	echo '</span></th></tr></thead><tbody>';
 	for ($i=0;$i<15; $i++) {
-		echo '<tr><td><input type="text" size="40" name="rubitem'.$i.'" value="';
-		if (isset($rubric[$i]) && isset($rubric[$i][0])) { echo str_replace('"','&quot;',$rubric[$i][0]);}
-		echo '"/></td>';
+		echo '<tr><td><span class="sr-only" id="l'.$i.'">Item '.($i+1).'</span>';
+		echo '<input type="text" size="40" name="rubitem'.$i.'" value="';
+		if (isset($rubric[$i]) && isset($rubric[$i][0])) { echo Sanitize::encodeStringForDisplay($rubric[$i][0]);}
+		echo '" aria-labelledby="l'.$i.'"/></td>';
 		echo '<td><input type="text" size="40" name="rubnote'.$i.'" value="';
-		if (isset($rubric[$i]) && isset($rubric[$i][1])) { echo str_replace('"','&quot;',$rubric[$i][1]);}
-		echo '"/></td>';
-		echo '<td><input type="text" size="4" class="rubricpoints" ';
-		if ($rubtype==2) {echo 'style="display:none;" ';}
-		echo 'name="rubscore'.$i.'" value="';
-		if (isset($rubric[$i]) && isset($rubric[$i][2])) { echo str_replace('"','&quot;',$rubric[$i][2]);} else {echo 0;}
-		echo '"/></td></tr>';
+		if (isset($rubric[$i]) && isset($rubric[$i][1])) { echo Sanitize::encodeStringForDisplay($rubric[$i][1]);}
+		echo '" aria-labelledby="l'.$i.'"/></td>';
+		echo '<td class="rubricpoints"><input type="text" size="4" name="rubscore'.$i.'" value="';
+		if (isset($rubric[$i]) && isset($rubric[$i][2])) { echo Sanitize::encodeStringForDisplay($rubric[$i][2]);} else {echo 0;}
+		echo '" aria-labelledby="l'.$i.'"/></td></tr>';
 	}
 	echo '</table>';
 	echo '<input type="submit" value="'.$savetitle.'"/>';
 	echo '</form>';
-
+	echo '<script>$(imasrubric_chgtype);</script>';
 
 }
 }

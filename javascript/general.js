@@ -1,46 +1,7 @@
-//dropdown menu
-var closetimer	= 0;
-var ddmenuitem	= 0;
-var homemenuloaded = 0;
-
-// open hidden layer
-function mopen(id,cid) {
-	if (id=='homemenu' && homemenuloaded==0) {
-		basicahah(imasroot+'/gethomemenu.php?cid='+cid,'homemenu');
-		homemenuloaded = 1;
-	}
-	mcancelclosetime();
-	if(ddmenuitem) {
-		ddmenuitem.style.visibility = 'hidden';
-		ddmenuitem = null;
-	}else {
-		ddmenuitem = document.getElementById(id);
-		ddmenuitem.style.visibility = 'visible';
-	}
-}
-// close showed layer
-function mclose() {
-	if(ddmenuitem) {
-		ddmenuitem.style.visibility = 'hidden';
-		ddmenuitem = null;
-	}
-}
-// go close timer
-function mclosetime() {
-	closetimer = window.setTimeout(mclose, 250);
-}
-// cancel close timer
-function mcancelclosetime() {
-	if(closetimer)
-	{
-		window.clearTimeout(closetimer);
-		closetimer = null;
-	}
-}
 
 function basicahah(url, target, def) {
   if (def==null) { def =  ' Fetching data... ';}
-  document.getElementById(target).innerHTML = def;
+  document.getElementById(target).textContent = def;
   var hasreq = false;
   if (window.XMLHttpRequest) {
     req = new XMLHttpRequest();
@@ -61,7 +22,7 @@ function basicahahDone(url, target) {
     if (req.status == 200) { // only if "OK"
       document.getElementById(target).innerHTML = req.responseText;
     } else {
-      document.getElementById(target).innerHTML=" AHAH Error:\n"+ req.status + "\n" +req.statusText;
+      document.getElementById(target).textContent=" AHAH Error: "+ req.status + ", " +req.statusText;
     }
   }
 }
@@ -197,6 +158,13 @@ function popupwindow(id,content,width,height,scroll) {
 	}
 }
 
+var inIframe = function() {
+	try {
+		return window.self !== window.top;
+	} catch (e) {
+		return true;
+	}
+}  
 
 function findPos(obj) { //from quirksmode.org
 	var curleft = curtop = 0;
@@ -218,6 +186,9 @@ function findPos(obj) { //from quirksmode.org
 	return [curleft,curtop];
 }
 function togglepic(el) {
+	if (el.tagName === 'BUTTON') {
+		el = el.firstChild;
+	}
 	if (el.getAttribute("src").match("userimg_sm")) {
 		el.setAttribute("src",el.getAttribute("src").replace("_sm","_"));
 	} else {
@@ -297,10 +268,12 @@ function GB_resize(e) {
 		Y = e.pageY;
 	}
 	X = Math.max(0, Math.min(X, document.documentElement.clientWidth-5));
-	Y = Math.max(0, Math.min(Y, document.documentElement.clientHeight-5));
+	Y = window.scrollY + Math.max(0, Math.min(Y-window.scrollY, document.documentElement.clientHeight-5));
+
 	var gbwin = jQuery("#GB_window");
 	var dx = (X - gbwin.data("original_mouse_x"));
 	var dy = (Y - gbwin.data("original_mouse_y"));
+
 	if (gbwin[0].hasAttribute("data-lockratio")) {
 		var ratio = gbwin.data("original_h")/gbwin.data("original_w");
 		if ((gbwin.data("original_h") + dy)/(gbwin.data("original_w") + dx) > ratio) { //too tall
@@ -435,7 +408,7 @@ function GB_show(caption,url,width,height,overlay,posstyle,showbelow,callback) {
 			var h = height;
 		}
     }
-
+	
 	document.getElementById("GB_window").style.display = "block";
     if (overlay !== false) {
         document.getElementById("GB_overlay").style.display = "block";
@@ -484,8 +457,13 @@ function GB_show(caption,url,width,height,overlay,posstyle,showbelow,callback) {
         } else {
             document.getElementById("GB_window").style.width = width + "px";
         }
-        
-	document.getElementById("GB_window").style.height = h + "px";
+    
+	if (height == 'content') {
+		document.getElementById("GB_window").style.height = "auto";
+		document.getElementById("GB_frameholder").style.marginBottom = "30px";
+	} else {
+		document.getElementById("GB_window").style.height = h + "px";
+	}
 	//document.getElementById("GB_window").style.left = ((w - width)/2)+"px";
 	if (url.charAt(0)!='<') {
         var capheight = $("#GB_caption").outerHeight();
@@ -552,10 +530,10 @@ function chkAllNone(frmid, arr, mark, skip) {
   return false;
 }
 
-var tinyMCEPreInit = {base: staticroot+"/tinymce4"};
+//var tinyMCEPreInit = {base: staticroot+"/tinymce8"};
 function initeditor(edmode,edids,css,inline,setupfunction,extendsetup){
-	var cssmode = css || 0;
-	var inlinemode = inline || 0;
+	var cssmode = css || false;
+	var inlinemode = inline || false;
 	var selectorstr = '';
 	if (edmode=="exact") { //list of IDs
 		selectorstr = '#'+edids.split(/,/).join(",#");
@@ -569,17 +547,11 @@ function initeditor(edmode,edids,css,inline,setupfunction,extendsetup){
 	var edsetup = {
 		selector: selectorstr,
 		inline: inlinemode,
-		plugins: [
-			"lists advlist autolink attach image charmap anchor",
-			"searchreplace code link textcolor snippet",
-			"media table paste rollups colorpicker"
-		],
-        external_plugins: {
-            "asciimath": imasroot+'/tinymce4/plugins/asciimath/plugin.min.js',
-            "asciisvg": imasroot+'/tinymce4/plugins/asciisvg/plugin.min.js'
-        },
-		menubar: false,//"edit insert format table tools ",
-		toolbar1: "myEdit myInsert styleselect | bold italic underline subscript superscript | forecolor backcolor | snippet code | saveclose",
+		license_key: 'gpl',
+		cache_suffix: '?v=082725',
+		plugins: "lists advlist autolink image charmap anchor searchreplace code link media table rollups asciimath asciisvg attach snippet emoticons accordion",
+		menubar: false,
+		toolbar1: "myEdit myInsert styles | bold italic underline subscript superscript | forecolor backcolor | snippet code | saveclose",
 		toolbar2: " alignleft aligncenter alignright | bullist numlist outdent indent  | attach link unlink image | table | asciimath asciimathcharmap asciisvg",
 		extended_valid_elements : 'iframe[src|width|height|name|align|allowfullscreen|frameborder|style|class],param[name|value],@[sscr]',
         content_css : staticroot+(cssmode==1?'/assessment/mathtest.css,':'/imascore.css,')+staticroot+'/themes/'+coursetheme,
@@ -587,13 +559,14 @@ function initeditor(edmode,edids,css,inline,setupfunction,extendsetup){
 		convert_urls: false,
 		file_picker_callback: filePickerCallBackFunc,
 		file_picker_types: 'file image',
-		//imagetools_cors_hosts: ['s3.amazonaws.com'],
-		images_upload_url: imasroot+'/tinymce4/upload_handler.php',
-		//images_upload_credentials: true,
+		images_upload_handler: image_upload_handler,
 		paste_data_images: true,
 		default_link_target: "_blank",
 		browser_spellcheck: true,
+		contextmenu: false,
 		branding: false,
+		promotion: false,
+		sandbox_iframes: false,
 		resize: "both",
 		width: '100%',
 		content_style: "body {background-color: " + (coursetheme.match(/_dark/) ? "#000" : "#fff") + " !important;}",
@@ -601,8 +574,28 @@ function initeditor(edmode,edids,css,inline,setupfunction,extendsetup){
 			{title:"Gridded", value:"gridded"},
 			{title:"Gridded Centered", value:"gridded centered"}],
 		style_formats_merge: true,
-		snippets: (tinymceUseSnippets==1)?imasroot+'/tinymce4/getsnippets.php':false,
+		snippet_list: (tinymceUseSnippets==1)?imasroot+'/tinymce8/getsnippets.php':false,
         autolink_pattern: /^(https?:\/\/|www\.)(.+)$/i,
+		mobile: {
+			toolbar_mode: 'sliding'
+		},
+		init_instance_callback: function(editor) {
+			if (inIframe()) {
+				sendLTIresizemsg();
+				editor.on('OpenWindow', (e) => {
+					let editordim = editor.editorContainer.getBoundingClientRect();
+					let dialogel = document.querySelector(".tox-dialog");
+					let dialogdim = dialogel.getBoundingClientRect();
+					let ytop = Math.min(
+						Math.max(editordim.y + .5*editordim.height - .5*dialogdim.height, 0),
+						document.documentElement.clientHeight - dialogdim.height);
+					dialogel.style.position = "absolute";
+					dialogel.style.top = ytop + "px";
+					dialogel.style.width = '';
+					dialogel.focus();
+				});
+			}
+        },
 		style_formats: [{
 			title: "Font Family",
 			items: [
@@ -621,29 +614,46 @@ function initeditor(edmode,edids,css,inline,setupfunction,extendsetup){
 			    {title: 'Verdana', inline: 'span', styles: { 'font-family':'Verdana'}}
 			]
 			},
-			{title: "Font Size", items: [
-                                {title: 'x-small', inline:'span', styles: { fontSize: 'x-small', 'font-size': 'x-small' } },
-                                {title: 'small', inline:'span', styles: { fontSize: 'small', 'font-size': 'small' } },
-                                {title: 'medium', inline:'span', styles: { fontSize: 'medium', 'font-size': 'medium' } },
-                                {title: 'large', inline:'span', styles: { fontSize: 'large', 'font-size': 'large' } },
-                                {title: 'x-large', inline:'span', styles: { fontSize: 'x-large', 'font-size': 'x-large' } },
-                                {title: 'xx-large', inline:'span', styles: { fontSize: 'xx-large', 'font-size': 'xx-large' } }
-                        ]
-                }]
+			{title: "Font Size", 
+			items: [
+				{title: 'x-small', inline:'span', styles: { fontSize: 'x-small', 'font-size': 'x-small' } },
+				{title: 'small', inline:'span', styles: { fontSize: 'small', 'font-size': 'small' } },
+				{title: 'medium', inline:'span', styles: { fontSize: 'medium', 'font-size': 'medium' } },
+				{title: 'large', inline:'span', styles: { fontSize: 'large', 'font-size': 'large' } },
+				{title: 'x-large', inline:'span', styles: { fontSize: 'x-large', 'font-size': 'x-large' } },
+				{title: 'xx-large', inline:'span', styles: { fontSize: 'xx-large', 'font-size': 'xx-large' } }
+			]
+			}]
         }
+		
 	if (document.documentElement.clientWidth<385) {
-		edsetup.toolbar1 = "myEdit myInsert styleselect | bold italic underline | saveclose";
-		edsetup.toolbar2 = "bullist numlist outdent indent  | link image | asciimath asciisvg";
+		edsetup.toolbar1 = "myEdit myInsert styles saveclose";
+		edsetup.toolbar2 = "bullist numlist outdent indent bold italic asciimath asciisvg";
 	} else if (document.documentElement.clientWidth<465) {
-		edsetup.toolbar1 = "myEdit myInsert styleselect | bold italic underline forecolor | saveclose";
-		edsetup.toolbar2 = "bullist numlist outdent indent  | link unlink image | asciimath asciisvg";
+		edsetup.toolbar1 = "myEdit myInsert styles forecolor saveclose";
+		edsetup.toolbar2 = "bullist numlist outdent indent bold italic asciimath asciisvg";
 	} else if (document.documentElement.clientWidth<575) {
-		edsetup.toolbar1 = "myEdit myInsert styleselect | bold italic underline subscript superscript | forecolor | saveclose";
-		edsetup.toolbar2 = " alignleft aligncenter | bullist numlist outdent indent  | link unlink image | asciimath asciimathcharmap asciisvg";
+		edsetup.toolbar1 = "myEdit myInsert styles bold italic underline forecolor saveclose";
+		edsetup.toolbar2 = " alignleft aligncenter | bullist numlist outdent indent  | link image | asciimath asciimathcharmap asciisvg";
+	}  else if (document.documentElement.clientWidth<665) {
+		edsetup.toolbar1 = "myEdit myInsert styles bold italic underline subscript superscript forecolor snippet saveclose";
+		edsetup.toolbar2 = " alignleft aligncenter alignright | bullist numlist outdent indent  | attach link image | asciimath asciimathcharmap asciisvg";
 	}
+	if (location.href.match(/usealted/)) {
+		delete edsetup.toolbar1;
+		delete edsetup.toolbar2;
+		edsetup.menu = {
+			altinsert: { title: 'Insert', items: 'media link image attach snippet inserttable | asciimath asciimathcharmap asciisvg | charmap emoticons anchor hr' }
+		};
+		edsetup.menubar = "edit altinsert format tools table";
+		edsetup.toolbar = "alignleft aligncenter | bullist numlist outdent indent | bold italic",
+		edsetup.mobile.menubar = "edit altinsert format tools table";
+	}
+		
 	if (setupfunction) {
 		edsetup.setup = setupfunction;
 	}
+	
     if (extendsetup) {
         edsetup = Object.assign(edsetup, extendsetup);
     }
@@ -656,7 +666,7 @@ function initeditor(edmode,edids,css,inline,setupfunction,extendsetup){
 };
 
 function filePickerCallBack(callback, value, meta) {
-	var connector = imasroot+"/tinymce4/file_manager.php";
+	var connector = imasroot+"/tinymce8/file_manager.php";
 
 	switch (meta.filetype) {
 		case "image":
@@ -666,20 +676,74 @@ function filePickerCallBack(callback, value, meta) {
 			connector += "?type=files";
 			break;
 	}
-	tinyMCE.activeEditor.windowManager.open({
-		file : connector,
+	tinyMCE.activeEditor.windowManager.openUrl({
+		url : connector,
 		title : 'File Manager',
 		width : 350,
 		height : 450,
 		resizable : "yes",
 		inline : "yes",
-		close_previous : "no"
-	    }, {
-		oninsert: function(url, objVal) {
-			callback(url);
-		}
-	    });
+		close_previous : "no",
+		onMessage: function(api, data) {
+            if (data.data.filename) {
+				callback(data.data.filename);
+			}
+        }
+	});
 }
+const image_upload_handler = (blobInfo, progress, isattach) => new Promise((resolve, reject) => {
+  const xhr = new XMLHttpRequest();
+
+  xhr.withCredentials = false;
+  xhr.open('POST', imasroot+'/tinymce8/upload_handler.php');
+
+  xhr.upload.onprogress = (e) => {
+	if (progress) {
+    	progress(e.loaded / e.total * 100);
+	}
+  };
+
+  xhr.onload = () => {
+    if (xhr.status === 403) {
+      reject({ message: 'HTTP Error: ' + xhr.status, remove: true });
+      return;
+    }
+
+    if (xhr.status < 200 || xhr.status >= 300) {
+      reject({message:'HTTP Error: ' + xhr.status, remove: true});
+      return;
+    }
+
+    const json = JSON.parse(xhr.responseText);
+
+    if (!json || typeof json.location != 'string') {
+      reject({message:'Invalid JSON: ' + xhr.responseText, remove: true});
+      return;
+    }
+
+    resolve(json.location);
+  };
+
+  xhr.onerror = () => {
+    reject({message:'Image upload failed due to a XHR Transport error. Code: ' + xhr.status, remove:true});
+  };
+
+  const formData = new FormData();
+  let fileblob = blobInfo.blob();
+  doImageUploadResize(fileblob, function (res, isresized) {
+	let filename = blobInfo.filename();
+	if (isresized) {
+		filename = filename.replace(/\.\w+$/,'.jpg');
+	}
+	formData.append('file', res, filename);
+	if (isattach === true) {
+		formData.append('type', 'attach');
+	}
+  	xhr.send(formData);
+  });
+  
+});
+
 function imascleanup(type, value) {
 	if (type=="get_from_editor") {
 		//value = value.replace(/[\x84\x93\x94]/g,'"');
@@ -718,7 +782,7 @@ function selectByDivID(el) {
 	}
 	var exdate=new Date();
 	exdate.setDate(exdate.getDate() + 365);
-	document.cookie = c+"store"+"="+escape(v) + ";expires="+exdate.toGMTString();
+	setCookie(c+"store", v, exdate.toGMTString());
 }
 function setselectbycookie() {
 	var els = document.getElementsByTagName("select");
@@ -1142,6 +1206,10 @@ function rotateimg(el) {
 }
 
 function sendLTIresizemsg() {
+	if (typeof sendresizemsg === 'function') {
+    	sendresizemsg();
+		return;
+   	}
 	var default_height = Math.max(
 		document.body.scrollHeight, document.body.offsetHeight)+100;
 		//document.documentElement.clientHeight, document.documentElement.scrollHeight,
@@ -1265,9 +1333,7 @@ jQuery(function($) {
 			}).done(function(msg) {
 				$("#ltimenudiv").html(msg);
                 btn.attr("data-loaded",1);
-                document.cookie = "fromltimenu=1;" 
-                    + 'path=' + ((imasroot=='') ? '/' : imasroot) + ';'
-                    + ((window.location.protocol=='https:') ? "secure; samesite=none" : "");
+				setCookie("fromltimenu", 1);
 				sendLTIresizemsg();
 			});
 		}
@@ -1353,14 +1419,22 @@ function setupToggler(base) {
 			if (e.type=="click" || e.which==13) {
 				var targ = $("#"+$(this).attr("aria-controls"));
 				if ($(this).attr("aria-expanded") == "true") {
-					$(this).attr("aria-expanded", false).text(showtext);
+					$(this).attr("aria-expanded", false);
+					if (showtext != hidetext) {
+						$(this).text(showtext);
+						rendermathnode(this);
+					}
 					if (doslide) {
 						targ.slideUp(300);
 					} else {
 						targ.hide();
 					}
 				} else {
-					$(this).attr("aria-expanded", true).text(hidetext);
+					$(this).attr("aria-expanded", true);
+					if (showtext != hidetext) {
+						$(this).text(hidetext);
+						rendermathnode(this);
+					}
 					if (doslide) {
 						targ.slideDown(300);
 					} else {
@@ -1431,6 +1505,7 @@ jQuery(document).ready(function($) {
 		blockitem.attr("id", "bi"+id);
 
 		$(this).attr("id", id).attr("aria-controls", "bi"+id)
+			.attr("role","button")
 			.attr("aria-expanded", !initclosed)
 			.attr("tabindex", 0)
 			.css("cursor", "pointer")
@@ -1529,7 +1604,7 @@ function setAltSelectors(group,val) {
 
 	var exdate=new Date();
 	exdate.setDate(exdate.getDate() + 365);
-	document.cookie = 'alt_store_'+group+"="+escape(val) + ";expires="+exdate.toGMTString()+ ";path=/";
+	setCookie('alt_store_'+group, val, exdate.toGMTString());
 }
 jQuery(document).ready(function($) {
 	$(".alts").on('change', function() {
@@ -1554,6 +1629,8 @@ jQuery(document).ready(function($) {
 	$("div.cpmid,div.cp").attr("role","group").attr("aria-label",_("Control link group"));
 	if ($("#centercontent").length) {
 		$("#centercontent").attr("role","main");
+		$(".midwrapper").removeAttr("role");
+	} else if ($("div[role=main]").length > 1) {
 		$(".midwrapper").removeAttr("role");
 	}
 });
@@ -1659,9 +1736,28 @@ function setActiveTab(el) {
 	jQuery(el).closest(".tablist").find("a[role=tab]").attr("aria-selected",false);
 	jQuery(el).attr("aria-selected",true);
 	jQuery(el).parent().addClass("active");
+	if (el.getAttribute('tabindex') == -1) {
+		jQuery(el).closest(".tablist").find("a[role=tab]").attr("tabindex", -1);
+		el.setAttribute("tabindex", 0);
+	}
 	jQuery(el).closest(".tabwrap").find(".tabpanel").hide().attr("aria-hidden",true);
 	var tabpanelid = el.getAttribute('aria-controls');
 	jQuery(el).closest(".tabwrap").find("#"+tabpanelid).show().attr("aria-hidden",false);
+}
+
+function setCookie(name, value, expires) {
+	expires = expires || 0;
+	let cookiestr = encodeURIComponent(name) + '=' + encodeURIComponent(value);
+	cookiestr += ';path=' + (imasroot == '' ? '/' : imasroot);
+	if (location.protocol !== 'http:') {
+		cookiestr += '; Secure';
+		cookiestr += '; samesite=none';
+	}
+	if (expires > 0) {
+		cookiestr += '; expires=' + expires;
+	}
+	// so cookie is accessible in LTI iframes
+	document.cookie = cookiestr;
 }
 
 /* ========================================================================
@@ -1682,7 +1778,7 @@ function setActiveTab(el) {
   var backdrop = '.dropdown-backdrop'
   var toggle   = '[data-toggle="dropdown"]'
   var Dropdown = function (element) {
-    $(element).on('click.bs.dropdown', this.toggle);
+    //$(element).on('click.bs.dropdown', this.toggle);
     $(element).next('.dropdown-menu').children("li").attr("role","menuitem");
   }
 
@@ -1760,8 +1856,12 @@ function setActiveTab(el) {
   }
 
   Dropdown.prototype.keydown = function (e) {
-    if (!/(38|40|27|32|39|37)/.test(e.which) || /input|textarea/i.test(e.target.tagName)) return
+    if (!/(38|40|27|32|39|37|9)/.test(e.which) || /input|textarea/i.test(e.target.tagName)) return
 
+	if (e.which == 9 && $(e.target).hasClass("dropdown-toggle")) {
+		//hit tab from control button - let default happen;
+		return;
+	}
     var $this = $(this)
 
     e.preventDefault()
@@ -1792,8 +1892,8 @@ function setActiveTab(el) {
 
     var index = $items.index(e.target)
 
-    if (e.which == 38 && index > 0)                 index--         // up
-    if (e.which == 40 && index < $items.length - 1) index++         // down
+    if ((e.which == 38 || (e.which == 9 && e.shiftKey)) && index > 0)                 index--         // up
+    if ((e.which == 40 || (e.which == 9 && !e.shiftKey)) && index < $items.length - 1) index++         // down
     if (!~index)                                    index = 0
 
     $items.eq(index).trigger('focus')
@@ -1850,15 +1950,26 @@ function setActiveTab(el) {
     .on('keydown.bs.dropdown.data-api', '.dropdown-menu', Dropdown.prototype.keydown)
     .on('click.bs.dropdown keydown.bs.dropdown', '.dropdown-submenu > a', Dropdown.prototype.submenu)
 }(jQuery);
-
+$(function() {
+	$(".dropdown-toggle").dropdown();
+});
 // from https://gist.github.com/dragermrb/6d4b7fda5f183524d0ebe4b0a7d8635c#file-jquery-image-upload-resizer-js
 
 function doImageUploadResize(el, callback) {
-    const that = el; // input node
-    const originalFile = el.files[0];
+	let inputtype;
+	let originalFile;
+	let that;
+	if (el instanceof HTMLElement) {
+		that = el; // input node
+    	originalFile = el.files[0];
+		inputtype = 'file';
+	} else if (el instanceof Blob) {
+		originalFile = el;
+		inputtype = 'blob';
+	}
 
     if (!originalFile || !originalFile.type.startsWith('image')) {
-        callback(el);
+        callback(el, false);
         return;
     }
 
@@ -1890,22 +2001,40 @@ function doImageUploadResize(el, callback) {
             ctx.drawImage(img, 0, 0, width, height);
 
             canvas.toBlob(function (blob) {
-                var resizedFile = new File([blob], prefix+originalFile.name.replace(/\.\w+$/,'.jpg'), originalFile);
+				if (inputtype === 'blob') {
+					if (typeof callback === 'function') {
+						callback(blob, true);
+					}
+				} else {
+					var resizedFile = new File([blob], prefix+originalFile.name.replace(/\.\w+$/,'.jpg'), originalFile);
 
-                var dataTransfer = new DataTransfer();
-                dataTransfer.items.add(resizedFile);
+					var dataTransfer = new DataTransfer();
+					dataTransfer.items.add(resizedFile);
 
-                // temporary remove event listener, change and restore
-                var currentOnChange = that.onchange;
+					// temporary remove event listener, change and restore
+					var currentOnChange = that.onchange;
 
-                that.onchange = null;
-                that.files = dataTransfer.files;
-                that.onchange = currentOnChange;
-                if (typeof callback === 'function') {
-                    callback(that);
-                }
+					that.onchange = null;
+					that.files = dataTransfer.files;
+					that.onchange = currentOnChange;
+					if (typeof callback === 'function') {
+						callback(that, true);
+					}
+				}
             }, 'image/jpeg', .95);
         }
     }
     reader.readAsDataURL(originalFile);
 }
+
+$(function() {
+	$("#pageskipnav").on('click', function (e) {
+		e.preventDefault();
+		var targ;
+		if ($("div.scrollpane[tabindex=-1]").length > 0) {
+			$("div.scrollpane[tabindex=-1]").first().focus();
+		} else if ($("div.pagetitle").length > 0) {
+			$("div.pagetitle").attr("tabindex","-1").focus();
+		}
+	});
+});

@@ -7,6 +7,7 @@ require_once "sanitize.php";
 //$labelList is an array of strings that are displayed as the select list
 //$selectVal is optional, if passed the item in $valList that matches will be output as selected
 function writeHtmlSelect ($name,$valList,$labelList,$selectedVal=null,$defaultLabel=null,$defaultVal=null,$actions=null) {
+	$name = Sanitize::encodeStringForDisplay($name);
 	echo "<select name=\"$name\" id=\"$name\" ";
 	echo (isset($actions)) ? $actions : "" ;
 	echo ">\n";
@@ -16,7 +17,10 @@ function writeHtmlSelect ($name,$valList,$labelList,$selectedVal=null,$defaultLa
 	if (is_array($valList)) {
 		for ($i=0;$i<count($valList);$i++) {
             if (!isset($valList[$i]) || !isset($labelList[$i])) { continue; }
-			if (isset($selectedVal) && (strcmp($valList[$i],$selectedVal)==0)) {
+			if (isset($selectedVal) && (
+				(is_array($selectedVal) && in_array($valList[$i], $selectedVal)) || 
+				(!is_array($selectedVal) && strcmp($valList[$i], $selectedVal)==0)
+			)) {
 				echo "		<option value=\"".Sanitize::encodeStringForDisplay($valList[$i])."\" selected>".Sanitize::encodeStringForDisplay($labelList[$i])."</option>\n";
 			} else {
 				echo "		<option value=\"".Sanitize::encodeStringForDisplay($valList[$i])."\">".Sanitize::encodeStringForDisplay($labelList[$i])."</option>\n";
@@ -27,6 +31,7 @@ function writeHtmlSelect ($name,$valList,$labelList,$selectedVal=null,$defaultLa
 }
 
 function writeHtmlMultiSelect($name,$valList,$labelList,$selectedVals=array(),$defaultLabel=null) {
+	$name = Sanitize::encodeStringForDisplay($name);
 	echo "<div class=\"multisel\"><select name=\"{$name}[]\" id=\"$name\">";
 	if (isset($defaultLabel)) {
 		echo " <option value=\"null\" selected=\"selected\">".Sanitize::encodeStringForDisplay($defaultLabel)."</option>\n";
@@ -42,6 +47,7 @@ function writeHtmlMultiSelect($name,$valList,$labelList,$selectedVals=array(),$d
 				$ingrp = true;
 			} else {
                 if ($ingrp && $oc[1]==0) { echo '</optgroup>';}
+				if (!isset($labelList[$oc[0]])) { continue; }
 				echo '<option value="'.Sanitize::encodeStringForDisplay($oc[0]).'">'.Sanitize::encodeStringForDisplay($labelList[$oc[0]]).'</option>';
 			}
 		}

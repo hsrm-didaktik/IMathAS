@@ -167,7 +167,7 @@ row[1][4][4] = timelimitmult if requested through $includetimelimit
 cats[i]:  0: name, 1: scale, 2: scaletype, 3: chop, 4: dropn, 5: weight, 6: hidden, 7: calctype
 
 ****/
-function flattenitems($items,&$addto,&$itemidsection,$sec='') {
+function flattenitems($items,&$addto,&$itemidsection,$sec=[]) {
 	global $canviewall,$secfilter,$studentinfo;
 	$now = time();
 	foreach ($items as $item) {
@@ -175,22 +175,25 @@ function flattenitems($items,&$addto,&$itemidsection,$sec='') {
 			if (!isset($item['avail'])) { //backwards compat
 				$item['avail'] = 1;
             }
-            $thissec = $sec;
+			if (!isset($item['SH'])) { //backwards compat
+                $item['SH'] = 'HO';
+            }
+            $thissections = $sec;
             $ishidden = ($item['avail']==0 || (!$canviewall && $item['avail']==1 && $item['SH'][0]=='H' && $item['startdate']>$now));
             if (!empty($item['grouplimit'])) {
-                $thissec = substr($item['grouplimit'][0],2); // trim off s-
-                if ((!$canviewall && $studentinfo['section'] != $thissec) ||
-                    ($canviewall && $secfilter != -1 && $secfilter != $thissec)
+                $thissections = array_map(function ($v) {return strtolower(substr($v, 2));}, $item['grouplimit']);
+                if ((!$canviewall && !in_array(strtolower($studentinfo['section'] ?? ''), $thissections)) ||
+                    ($canviewall && $secfilter != -1 && !in_array(strtolower($secfilter), $thissections))
                 ) {
                     // if a section limited block, and not in/showing that sec, hide
                     $ishidden = true;
                 }
             } 
 			if (!$ishidden && !empty($item['items'])) {
-				flattenitems($item['items'], $addto, $itemidsection, $thissec);
+				flattenitems($item['items'], $addto, $itemidsection, $thissections);
 			}
-		} else {
-            if ($sec != '') {
+		} else if ($item !== null) {
+            if (!empty($sec)) {
                 $itemidsection[$item] = $sec;
             }
 			$addto[] = $item;
@@ -626,6 +629,9 @@ function gbtable() {
 	$stm->execute(array(':courseid'=>$cid));
 	while ($row = $stm->fetch(PDO::FETCH_NUM)) {
 		if (in_array($row[0],$category)) { //define category if used
+			if ($row[1] == '') {
+				$row[1] = '(Unnamed category)';
+			}
 			if ($row[1][0]>='1' && $row[1][0]<='9') {
 				$row[1] = substr($row[1],1);
 			}
@@ -988,8 +994,10 @@ function gbtable() {
 			$gb[$ln][0][] = ($line['section']==null)?'':$line['section'];
         }
         if ($line['section'] !== null) {
-            $stusection[$line['id']] = $line['section'];
-        }
+            $stusection[$line['id']] = strtolower($line['section'] ?? '');
+        } else {
+			$stusection[$line['id']] = '';
+		}
 		if ($hascode) {
 			$gb[$ln][0][] = $line['code'];
 		}
@@ -1021,9 +1029,9 @@ function gbtable() {
 	$exceptions = array();
 	$canuseexception = array();
 	$forumexceptions = array();
-	$query = "SELECT ie.assessmentid as typeid,ie.userid,ie.startdate AS exceptionstartdate,ie.enddate AS exceptionenddate,ie.islatepass,ie.itemtype,imas_assessments.enddate,imas_assessments.startdate,imas_assessments.LPcutoff,ie.timeext FROM imas_exceptions AS ie,imas_assessments WHERE ";
+	$query = "SELECT ie.assessmentid as typeid,ie.userid,ie.startdate AS exceptionstartdate,ie.enddate AS exceptionenddate,ie.islatepass,ie.is_lti,ie.itemtype,imas_assessments.enddate,imas_assessments.startdate,imas_assessments.LPcutoff,ie.timeext,ie.waivereqscore FROM imas_exceptions AS ie,imas_assessments WHERE ";
 	$query .= "ie.itemtype='A' AND ie.assessmentid=imas_assessments.id AND imas_assessments.courseid=:courseid ";
-	$query .= "UNION SELECT ie.assessmentid as typeid,ie.userid,ie.startdate AS exceptionstartdate,ie.enddate AS exceptionenddate,ie.islatepass,ie.itemtype,imas_forums.enddate,imas_forums.startdate,0 AS LPcutoff,ie.timeext FROM imas_exceptions AS ie,imas_forums WHERE ";
+	$query .= "UNION ALL SELECT ie.assessmentid as typeid,ie.userid,ie.startdate AS exceptionstartdate,ie.enddate AS exceptionenddate,ie.islatepass,ie.is_lti,ie.itemtype,imas_forums.enddate,imas_forums.startdate,0 AS LPcutoff,ie.timeext,ie.waivereqscore FROM imas_exceptions AS ie,imas_forums WHERE ";
 	$query .= "(ie.itemtype='F' OR ie.itemtype='R' OR ie.itemtype='P') AND ie.assessmentid=imas_forums.id AND imas_forums.courseid=:courseid2";
 	$stm2 = $DBH->prepare($query);
 	$stm2->execute(array(':courseid'=>$cid, ':courseid2'=>$cid));
@@ -1036,7 +1044,14 @@ function gbtable() {
 			if ($r['exceptionenddate'] > $courseenddate && ($now > $courseenddate || $r['islatepass'] > 0)) { //for grading purposes, cutoff exceptions at courseenddate
 				$r['exceptionenddate'] = $courseenddate;
 			}
-			$exceptions[$r['typeid']][$r['userid']] = array($r['exceptionstartdate'],$r['exceptionenddate'],$r['islatepass'],$r['timeext']);
+			$exceptions[$r['typeid']][$r['userid']] = array(
+				'startdate' => $r['exceptionstartdate'],
+				'enddate' => $r['exceptionenddate'],
+				'islatepass' => $r['islatepass'],
+				'is_lti' => $r['is_lti'],
+				'timeext' => $r['timeext'],
+				'waivereqscore' => $r['waivereqscore']
+			);
 			if ($limuser>0) {
 				$useexception = $exceptionfuncs->getCanUseAssessException($exceptions[$r['typeid']][$r['userid']], $r, true);
 				if ($useexception) {
@@ -1072,7 +1087,11 @@ function gbtable() {
 			if (!isset($discusscol[$r['typeid']])) {
 				continue; //assessment is hidden
 			}
-			$forumexceptions[$r['typeid']][$r['userid']] = array($r['exceptionstartdate'],$r['exceptionenddate'],$r['islatepass']);
+			$forumexceptions[$r['typeid']][$r['userid']] = array(
+				'postby' => $r['exceptionstartdate'],
+				'replyby' => $r['exceptionenddate'],
+				'islatepass' => $r['islatepass']
+			);
 			if ($limuser>0) {
 				$gb[0][1][$discusscol[$r['typeid']]][11] = max($r['exceptionstartdate'],$r['exceptionenddate']);
 			}
@@ -1081,7 +1100,7 @@ function gbtable() {
 		}
     }
 
-	//Get assessment scores
+	//Get old-format assessment scores
 	$query = "SELECT ias.id,ias.assessmentid,ias.bestscores,ias.starttime,ias.endtime,ias.timeontask,ias.feedback,ias.userid FROM imas_assessment_sessions AS ias,imas_assessments AS ia ";
 	$query .= "WHERE ia.id=ias.assessmentid AND ia.courseid=:courseid ";
 	if ($limuser>0) {
@@ -1120,8 +1139,11 @@ function gbtable() {
 		} else {
 			$gb[$row][1][$col][7] = round($timeused/60);
 		}
-
-		$timeontask = array_sum(explode(',',str_replace('~',',',$l['timeontask'])));
+		if ($l['timeontask'] == '') {
+			$timeontask = 0;
+		} else {
+			$timeontask = array_sum(array_map('floatval', explode(',',str_replace('~',',',$l['timeontask']))));
+		}
 		if ($timeontask==0) {
 			$gb[$row][1][$col][8] = "N/A";
 		} else {
@@ -1147,11 +1169,11 @@ function gbtable() {
 
 		if ($useexception) {
 			//TODO:  Does not change due date display in individual user gradebook view when no asid
-			if ($enddate[$i]>$exceptions[$l['assessmentid']][$l['userid']][1] && $assessmenttype[$i]=="NoScores") {
+			if ($enddate[$i]>$exceptions[$l['assessmentid']][$l['userid']]['enddate'] && $assessmenttype[$i]=="NoScores") {
 				//if exception set for earlier, and NoScores is set, use later date to hide score until later
 				$thised = $enddate[$i];
 			} else {
-				$thised = $exceptions[$l['assessmentid']][$l['userid']][1];
+				$thised = $exceptions[$l['assessmentid']][$l['userid']]['enddate'];
 				if ($limuser>0) {  //change $avail past/cur/future
 					if ($now<$thised) {
 						$avail[$assessidx[$l['assessmentid']]] = 1;
@@ -1236,7 +1258,7 @@ function gbtable() {
 			$gb[$row][1][$col][3] += 10;
         }
         if (!empty($sectionlimit[$col]) && 
-            (empty($stusection[$l['userid']]) || $stusection[$l['userid']] != $sectionlimit[$col])
+            !in_array($stusection[$l['userid']], $sectionlimit[$col])
         ) {
             // assess is not in this stu's section, so we won't count it, 
             $countthisone = false;
@@ -1355,7 +1377,7 @@ function gbtable() {
 		$useexception = false; $canuselatepass = false; $hastimeext = false;
 		if (isset($exceptions[$l['assessmentid']][$l['userid']])) {
             list($useexception, $canundolatepass, $canuselatepass) = $exceptionfuncs->getCanUseAssessException($exceptions[$l['assessmentid']][$l['userid']], array('startdate'=>$startdate[$i], 'enddate'=>$enddate[$i], 'allowlate'=>$allowlate[$i], 'id'=>$l['assessmentid'], 'LPcutoff'=>$LPcutoff[$i]));
-            $hastimeext = ($exceptions[$l['assessmentid']][$l['userid']][3] > 0);
+            $hastimeext = ($exceptions[$l['assessmentid']][$l['userid']]['timeext'] > 0);
 		} else {
 			$canuselatepass = $exceptionfuncs->getCanUseAssessLatePass(array('startdate'=>$startdate[$i], 'enddate'=>$enddate[$i], 'allowlate'=>$allowlate[$i], 'id'=>$l['assessmentid'], 'LPcutoff'=>$LPcutoff[$i]));
 		}
@@ -1366,11 +1388,11 @@ function gbtable() {
 
 		if ($useexception) {
 			//TODO:  Does not change due date display in individual user gradebook view when no asid
-			if ($enddate[$i]>$exceptions[$l['assessmentid']][$l['userid']][1] && $assessmenttype[$i]=="never") { //TODO
+			if ($enddate[$i]>$exceptions[$l['assessmentid']][$l['userid']]['enddate'] && $assessmenttype[$i]=="never") { //TODO
 				//if exception set for earlier, and NoScores is set, use later date to hide score until later
 				$thised = $enddate[$i];
 			} else {
-				$thised = $exceptions[$l['assessmentid']][$l['userid']][1];
+				$thised = $exceptions[$l['assessmentid']][$l['userid']]['enddate'];
 				if ($limuser>0) {  //change $avail past/cur/future
 					if ($now<$thised) {
 						$avail[$assessidx[$l['assessmentid']]] = 1;
@@ -1484,7 +1506,7 @@ function gbtable() {
 			$gb[$row][1][$col][3] += 10;
         }
         if (!empty($sectionlimit[$col]) && 
-            (empty($stusection[$l['userid']]) || $stusection[$l['userid']] != $sectionlimit[$col])
+            !in_array($stusection[$l['userid']], $sectionlimit[$col])
         ) {
             // assess is not in this stu's section, so we won't count it, 
             $countthisone = false;
@@ -1530,7 +1552,9 @@ function gbtable() {
 		}
 
 		if (($l['status']&128)>0 && 
-          ($workcutoff[$i] == 0 || $now < $l['lastchange'] + $workcutoff[$i])
+          ($workcutoff[$i] == 0 ||
+		  (isset($exceptions[$l['assessmentid']][$l['userid']]) && ($exceptions[$l['assessmentid']][$l['userid']]['waivereqscore']&2) == 2) ||
+		  $now < $l['lastchange'] + $workcutoff[$i])
         ) { // accepting showwork after assess and within cutoff
 			$gb[$row][1][$col][16] = 1;
 		} else {
@@ -1556,15 +1580,15 @@ function gbtable() {
 	$exttoolidx = array_flip($exttools);
 	$gradetypeselects = array();
 	if (count($grades)>0) {
-		$gradeidlist = implode(',',$grades); //values from DB
+		$gradeidlist = implode(',', array_map('intval', $grades)); //values from DB
 		$gradetypeselects[] = "(gradetype='offline' AND gradetypeid IN ($gradeidlist))";
 	}
 	if (count($discuss)>0) {
-		$forumidlist = implode(',',$discuss); //values from DB
+		$forumidlist = implode(',', array_map('intval', $discuss)); //values from DB
 		$gradetypeselects[] = "(gradetype='forum' AND gradetypeid IN ($forumidlist))";
 	}
 	if (count($exttools)>0) {
-		$linkedlist = implode(',',$exttools); //values from DB
+		$linkedlist = implode(',', array_map('intval', $exttools)); //values from DB
 		$gradetypeselects[] = "(gradetype='exttool' AND gradetypeid IN ($linkedlist))";
 	}
 	if (count($gradetypeselects)>0) {
@@ -1624,7 +1648,7 @@ function gbtable() {
 				$col = $discusscol[$l['gradetypeid']];
 
 				if (isset($forumexceptions[$l['gradetypeid']][$l['userid']])) {
-					$thised = max($forumexceptions[$l['gradetypeid']][$l['userid']][0], $forumexceptions[$l['gradetypeid']][$l['userid']][1]);
+					$thised = max($forumexceptions[$l['gradetypeid']][$l['userid']]['postby'], $forumexceptions[$l['gradetypeid']][$l['userid']]['replyby']);
 					if ($limuser>0 && $gb[0][1][$col][3]==2) {  //change $avail past/cur/future
 						if ($now<$thised) {
 							$gb[0][1][$col][3] = 1;
@@ -1661,7 +1685,7 @@ function gbtable() {
                 $gb[$row][1][$col][3] = 0; //is counted
                 
                 if (!empty($sectionlimit[$col]) && 
-                    (empty($stusection[$l['userid']]) || $stusection[$l['userid']] != $sectionlimit[$col])
+               		!in_array($stusection[$l['userid']], $sectionlimit[$col])
                 ) {
                     // is not in this stu's section, so we won't count it, 
                     $gb[$row][1][$col][0] = ' ';
@@ -1778,7 +1802,7 @@ function gbtable() {
 				unset($cattotfuture[$ln][$category[$i]][$col]);
 			} else if (!isset($gb[$ln][1][$col][0]) || $gb[$ln][1][$col][3]%10==1) { // no score or no credit
 				if (!empty($sectionlimit[$col]) && 
-					(empty($stusection[$gb[$ln][4][0]]) || $stusection[$gb[$ln][4][0]] != $sectionlimit[$col])
+					!in_array($stusection[$gb[$ln][4][0]], $sectionlimit[$col])
 				) {
                     continue; // don't zero out section limited
                 }
@@ -1879,7 +1903,7 @@ function gbtable() {
 				unset($cattotfuture[$ln][$category[$i]][$col]);
 			} else if (!isset($gb[$ln][1][$col][0])) {
                 if (!empty($sectionlimit[$col]) && 
-					(empty($stusection[$gb[$ln][4][0]]) || $stusection[$gb[$ln][4][0]] != $sectionlimit[$col])
+					!in_array($stusection[$gb[$ln][4][0]], $sectionlimit[$col])
 				) {
                     continue; // don't zero out section limited
                 }
@@ -2077,7 +2101,7 @@ function gbtable() {
             if (!isset($assesscol[$aid])) { continue; }
             $col = $assesscol[$aid];
             if (!empty($sectionlimit[$col]) && 
-                (empty($stusection[$gb[$ln][4][0]]) || $stusection[$gb[$ln][4][0]] != $sectionlimit[$col])
+               !in_array($stusection[$gb[$ln][4][0]], $sectionlimit[$col])
             ) {
                 // assess is for diff sec; remove as avail
                 $availstu[$ln][$aid] = 4;
@@ -2168,7 +2192,7 @@ function gbtable() {
             if (!isset($discusscol[$aid])) { continue; }
             $col = $discusscol[$aid];
             if (!empty($sectionlimit[$col]) && 
-                (empty($stusection[$gb[$ln][4][0]]) || $stusection[$gb[$ln][4][0]] != $sectionlimit[$col])
+                !in_array($stusection[$gb[$ln][4][0]], $sectionlimit[$col])
             ) {
                 // assess is for diff sec; remove from poss
                 for ($j=0;$j<4;$j++) {
@@ -2540,7 +2564,11 @@ function gbtable() {
 			if ($gbitem[6]==0) {
 				$k = $assessidx[$gbitem[7]];
 				$gb[1][1][$col][13] = 1;
-				if (isset($reqscores[$k]) && $reqscores[$k]['aid']>0 && isset($assesscol[$reqscores[$k]['aid']])) {
+				if (isset($reqscores[$k]) && 
+				    $reqscores[$k]['aid']>0 && 
+				    isset($assesscol[$reqscores[$k]['aid']]) && 
+					(!isset($exceptions[$gbitem[7]][$limuser]) || ($exceptions[$gbitem[7]][$limuser]['waivereqscore']&1) == 0)
+				) {
                     $colofprereq = $assesscol[$reqscores[$k]['aid']];
                     if (empty($gb[1][1][$colofprereq][14])) {
                         if (!isset($gb[1][1][$colofprereq][0]) || is_numeric($gb[1][1][$colofprereq][0]) && (

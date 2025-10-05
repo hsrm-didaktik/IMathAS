@@ -65,6 +65,7 @@
     "extension": "Ihnen wurde eine Verlängerung gewährt.",
     "penalty": "Ein Punktabzug von {p}% wird angewendet.",
     "penalty_after": "Ein Punktabzug von {p}% erfolgt nach {date}.",
+    "earlybonus": "Ein Bonus von {p}% wird bis {date} gewährt",
     "take": "Sie können diesen Test einmal machen. | Sie können diesen Test {n} mal machen.",
     "take_more": "Sie können diesen Test noch einmal machen. | Sie können diesen Test noch {n} mal machen.",
     "attempt_inprogress": "Der Test ist in Bearbeitung.",
@@ -145,10 +146,12 @@
     "details": "Details",
     "warn_unattempted": "Es scheint eine unbeantwortete Frage zu geben. Sind Sie sicher, dass Sie jetzt einreichen wollen?",
     "withdrawn": "Frage zurückgezogen",
+    "use_mq": "Verwende den Mathe-Editor",
     "enable_mq": "Formeleditor einschalten",
     "disable_mq": "Formeleditor ausschalten",
     "work_save": "Arbeit speichern",
     "work_saved": "Arbeit gespeichert",
+    "work_save_avail": "Speichern des aktuellen Standes möglich",
     "work_saving": "Speichere...",
     "confirm_assess_submit": "Nach dem Einreichen können Sie Ihre Antworten in dieser Version des Tests nicht mehr ändern. Wollen Sie einreichen?",
     "confirm_assess_unattempted_submit": "Es scheint, Sie haben noch nicht alle Fragen versucht. Nach Abgabe des Tests können Sie Ihre Antworten in dieser Version des Tests nicht mehr ändern. Wollen Sie jetzt wirklich einreichen?",
@@ -210,7 +213,11 @@
     "scorelast": "Punkte beim letzten Versuch:",
     "submitted": "Frage eingereicht.",
     "see_details": "Mehr unter Details.",
-    "manual_grade": "Die Frage enthält Teile, die Ihr Dozent bewerten muss. Bis sie bewertet wurden werden 0 Punkte angezeigt."
+    "manual_grade": "Die Frage enthält Teile, die Ihr Dozent bewerten muss. Bis sie bewertet wurden werden 0 Punkte angezeigt.",
+    "jumptoincorrect": "Gehe zum ersten Teil, der nicht korrekt ist und korrigiert werden kann",
+    "jumptolast": "Gehe zum zuletzt eingereichten Teil",
+    "allpartscorrect": "Alle eingereichten Teile sind korrekt",
+    "onepartincorrect": "Wenigstens ein bewerteter Teil ist nicht korrekt."
   },
   "summary": {
     "no_total": "Ihr Test wurde eingereicht.",
@@ -256,6 +263,7 @@
     "regen": "Abzug für erneute Durchführung des Tests",
     "trysimilar": "Abzug für den Versuch einer ähnlichen Frage",
     "late": "Abzug für verspätete Arbeit",
+    "early": "Bonus für vorzeitiges Einreichen",
     "overtime": "Abzug für Zeitüberschreitung"
   },
   "qdetails": {
@@ -479,7 +487,11 @@
     "floating_scoreboxes": "Bewegliche Punktanzeige",
     "sidebyside": "Nebeneinander",
     "no_edit": "Sie sind in der Notenübersicht. Hier können Sie keine Fragen beantworten.",
-    "activitylog": "Aktivität"
+    "activitylog": "Aktivität",
+    "nextq": "Nächste Frage",
+    "prevq": "Vorherige Frage",
+    "oneatatime": "Einzeln",
+    "a11yalt": "Barrierefreie Alternative"
   },
   "work": {
     "add": "Lösung hinzufügen",

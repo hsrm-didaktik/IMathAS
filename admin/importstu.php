@@ -86,7 +86,10 @@ $isadmin = false;
 //data manipulation here
 
 	//CHECK PERMISSIONS AND SET FLAGS
-if (!(isset($teacherid)) && $myrights<100) {
+if ($myrights < 100 && empty($CFG['GEN']['allowinstraddstus'])) {
+	$overwriteBody = 1;
+	$body = "You do not have access to this page";
+} elseif (!(isset($teacherid)) && $myrights<100) {
  	$overwriteBody = 1;
 	$body = "You need to log in as a teacher to access this page";
 } elseif (isset($_GET['cid']) && $_GET['cid']=="admin" && $myrights <100) {
@@ -107,9 +110,7 @@ if (!(isset($teacherid)) && $myrights<100) {
 
 	//FORM HAS BEEN POSTED, STEP 3 DATA MANIPULATION
 	if (isset($_POST['process'])) {
-		if (isset($CFG['GEN']['newpasswords'])) {
-			require_once "../includes/password.php";
-        }
+		require_once "../includes/password.php";
         require_once '../includes/setSectionGroups.php';
 		if ($isadmin) {
 			$ncid = Sanitize::onlyInt($_POST['enrollcid']);
@@ -124,10 +125,10 @@ if (!(isset($teacherid)) && $myrights<100) {
     $uploadfile = getimportfilepath($filekey);
     $handle = fopen_utf8($uploadfile,'r');
 		if ($_POST['hdr']==1) {
-			$data = fgetcsv($handle,2096);
+			$data = fgetcsv($handle,2096, ',', '"', '');
 		}
         
-		while (($data = fgetcsv($handle,2096))!==false) {
+		while (($data = fgetcsv($handle,2096, ',', '"', ''))!==false) {
 			$arr = parsecsv($data);
 			for ($i=0;$i<count($arr);$i++) {
 				$arr[$i] = trim($arr[$i]);
@@ -163,11 +164,8 @@ if (!(isset($teacherid)) && $myrights<100) {
 				$id = $stm->fetchColumn(0);
 				echo "Username <span class='pii-username'>".Sanitize::encodeStringForDisplay($arr[0])."</span> already existed in system; using existing<br/>\n";
 			} else {
-				if (isset($CFG['GEN']['newpasswords'])) {
-					$pw = password_hash($arr[6], PASSWORD_DEFAULT);
-				} else {
-					$pw = md5($arr[6]);
-				}
+				$pw = password_hash($arr[6], PASSWORD_DEFAULT);
+				
 				$stm = $DBH->prepare("INSERT INTO imas_users (SID,FirstName,LastName,email,rights,password,forcepwreset) VALUES (:SID, :FirstName, :LastName, :email, :rights, :password, 1)");
 				$stm->execute(array(':SID'=>Sanitize::stripHtmlTags($arr[0]), ':FirstName'=>Sanitize::stripHtmlTags($arr[1]), ':LastName'=>Sanitize::stripHtmlTags($arr[2]), ':email'=>Sanitize::emailAddress($arr[3]), ':rights'=>10, ':password'=>$pw));
 				$id = $DBH->lastInsertId();
@@ -214,7 +212,7 @@ if (!(isset($teacherid)) && $myrights<100) {
 
 		$handle = fopen_utf8($uploadfile,'r');
 		if ($_POST['hdr']==1) {
-			$data = fgetcsv($handle,2096);
+			$data = fgetcsv($handle,2096, ',', '"', '');
 		}
 
 		if ($_POST['codetype']==1) {
@@ -226,7 +224,7 @@ if (!(isset($teacherid)) && $myrights<100) {
 
 		$page_sampleImport = array();
 		for ($i=0; $i<5; $i++) {
-			$data = fgetcsv($handle,2096);
+			$data = fgetcsv($handle,2096, ',', '"', '');
 			if ($data!=FALSE) {
 				$arr = parsecsv($data);
 				$page_sampleImport[$i]['col1'] = $arr[0];

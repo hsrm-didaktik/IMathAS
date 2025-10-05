@@ -36,6 +36,7 @@ if (!empty($_GET['from']) && $_GET['from'] == 'addq2') {
     $addq = 'addquestions';
     $from = 'addq';
 }
+$origmathdisp = $_SESSION['mathdisp'];
 if (isset($_POST['mathdisp']) && $_POST['mathdisp']=='text') {
 	$_SESSION['mathdisp'] = 0;
 } else {
@@ -100,9 +101,13 @@ if ($overwriteBody==1) {
 } else {
     $useeqnhelper = 0;
 	require_once "../assessment/header.php";
-	$stm = $DBH->prepare("SELECT itemorder,shuffle,defpoints,name,intro FROM imas_assessments WHERE id=:id");
-	$stm->execute(array(':id'=>$aid));
+	$stm = $DBH->prepare("SELECT itemorder,shuffle,defpoints,name,intro FROM imas_assessments WHERE id=:id AND courseid=:cid");
+	$stm->execute(array(':id'=>$aid, ':cid'=>$cid));
 	$line = $stm->fetch(PDO::FETCH_ASSOC);
+	if ($line === false) {
+		echo 'Invalid aid';
+		exit;
+	}
 	if (($introjson=json_decode($line['intro']))!==null) { //is json intro
 		$line['intro'] = $introjson[0];
 	}
@@ -360,6 +365,7 @@ if ($overwriteBody==1) {
 
 }
 $_SESSION['graphdisp'] = $origgraphdisp;
+$_SESSION['mathdisp'] = $origmathdisp;
 require_once "../footer.php";
 
 function printq2($qn,$qsetid,$seed,$pts,$showpts) {

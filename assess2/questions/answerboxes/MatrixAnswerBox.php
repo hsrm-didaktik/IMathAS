@@ -89,9 +89,9 @@ class MatrixAnswerBox implements AnswerBox
                 (!empty($readerlabel) ? ' ' . Sanitize::encodeStringForDisplay($readerlabel) : '');
             $out .= '<table role="group" aria-label="' . $arialabel . '">';
             if (in_array('det', $dispformats)) {
-                $out .= '<tr><td class="matrixdetleft">&nbsp;</td><td>';
+                $out .= '<tr><td class="matrixdetleft">&nbsp;</td><td style="padding:0px">';
             } else {
-                $out .= '<tr><td class="matrixleft">&nbsp;</td><td>';
+                $out .= '<tr><td class="matrixleft">&nbsp;</td><td style="padding:0px">';
             }
             if (isset($GLOBALS['capturechoices'])) {
                 $GLOBALS['answersize'][$qn] = $answersize;
@@ -100,13 +100,21 @@ class MatrixAnswerBox implements AnswerBox
             $count = 0;
             $las = explode("|", $la);
             $cellcnt = $answersize[0] * $answersize[1];
+            $augcolumn = -1;
+            if (in_array('augmented', $dispformats)) {
+                $augcolumn = $answersize[1] - 1;
+            }
             for ($row = 0; $row < $answersize[0]; $row++) {
                 $out .= "<tr>";
                 for ($col = 0; $col < $answersize[1]; $col++) {
-                    $out .= '<td>';
+                    if ($col == $augcolumn) {
+                        $out .= '<td style="border-left: 1px solid #000">';
+                    } else {
+                        $out .= '<td>';
+                    }
                     $attributes = [
                         'type' => 'text',
-                        'size' => $answerboxsize,
+                        'style' => 'width:'.sizeToCSS($answerboxsize),
                         'name' => "qn$qn-$count",
                         'id' => "qn$qn-$count",
                         'value' => ($las[$count] ?? ''),
@@ -128,8 +136,8 @@ class MatrixAnswerBox implements AnswerBox
             } else {
                 $out .= '</td><td class="matrixright">&nbsp;</td></tr></table>';
             }
-            $out .= "<span id=p$qn></span>";
             $out .= "</div>\n";
+            $preview .= "<span id=p$qn></span>";
             $params['matrixsize'] = $answersize;
             $params['calcformat'] = $answerformat . ($answerformat == '' ? '' : ',') . 'decimal';
             $params['tip'] = $shorttip;
@@ -163,7 +171,7 @@ class MatrixAnswerBox implements AnswerBox
             }
             $attributes = [
                 'type' => 'text',
-                'size' => $answerboxsize,
+                'style' => 'width:'.sizeToCSS($answerboxsize),
                 'name' => "qn$qn",
                 'id' => "qn$qn",
                 'value' => $la,
@@ -193,12 +201,17 @@ class MatrixAnswerBox implements AnswerBox
             $preview .= "<span id=p$qn></span> ";
         }
 
+        $nosolntype = 0;
         if (in_array('nosoln', $ansformats) || in_array('nosolninf', $ansformats)) {
             list($out, $answer, $nosolntype) = setupnosolninf($qn, $out, $answer, $ansformats, $la, $ansprompt, $colorbox);
         }
 
         if ($answer !== '' && !is_array($answer) && !$isConditional) {
-            $sa = '`' . $answer . '`';
+            if ($nosolntype > 0) {
+                $sa = $answer;
+            } else {
+                $sa = '`' . $answer . '`';
+            }
         }
 
         // Done!

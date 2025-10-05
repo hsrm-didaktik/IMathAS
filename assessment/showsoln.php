@@ -6,7 +6,7 @@ if (!isset($_GET['cid']) || $_GET['cid']==="embedq") {
 	require_once "../init_without_validate.php";
 
 	$cid = "embedq";
-	$_SESSION['secsalt'] = "12345";
+	$_SESSION['secsalt'] = $CFG['GEN']['embedsecret'] ?? "12345";
 	$_SESSION['graphdisp'] = 1;
 	$_SESSION['mathdisp'] = 1;
     $_SESSION['useed'] = 0;
@@ -18,6 +18,9 @@ if (!isset($_GET['cid']) || $_GET['cid']==="embedq") {
 	require_once "../init.php";
 }
 
+if (!isset($_GET['id'])) {
+	exit;
+}
 $id = Sanitize::onlyInt($_GET['id']);
 $sig = $_GET['sig'] ?? '';
 //$t = Sanitize::onlyInt($_GET['t']);
@@ -48,10 +51,10 @@ function toggleinlinebtn(n,p){
 	btn.innerHTML = k.match(/\[\+\]/)?k.replace(/\[\+\]/,"[-]"):k.replace(/\[\-\]/,"[+]");
 }
 </script>';
-
+$pagetitle = _('Written Example');
 require_once "../header.php";
 echo '<p><b style="font-size:110%">'._('Written Example').'</b> '._('of a similar problem').'</p>';
-if ($sig != md5($id.$_SESSION['secsalt'])) {
+if (!hash_equals(hash_hmac('sha256', $id, $_SESSION['secsalt']), $sig)) {
 	echo "invalid signature - not authorized to view the solution for this problem";
 	exit;
 }

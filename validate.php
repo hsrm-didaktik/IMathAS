@@ -157,7 +157,7 @@ if ($haslogin && !$hasusername) {
             $i = 0;
             while ($row = $stm->fetch(PDO::FETCH_NUM)) {
                 if ($i > 0) {$query .= ',';}
-                $query .= "($userid,{$row[0]})"; //INT's from DB - safe
+                $query .= '('.intval($userid).','.intval($row[0]).')';
                 $i++;
             }
             $DBH->query($query);
@@ -168,12 +168,9 @@ if ($haslogin && !$hasusername) {
         $line['groupid'] = 0;
         $line['jsondata'] = '';
         $_POST['password'] = 'temp';
-        if (isset($CFG['GEN']['newpasswords'])) {
-            require_once "includes/password.php";
-            $line['password'] = password_hash('temp', PASSWORD_DEFAULT);
-        } else {
-            $line['password'] = md5('temp');
-        }
+        require_once "includes/password.php";
+        $line['password'] = password_hash('temp', PASSWORD_DEFAULT);
+
         $_POST['usedetected'] = true;
     } else {
         $query = "SELECT id,password,rights,groupid";
@@ -192,9 +189,8 @@ if ($haslogin && !$hasusername) {
             }
         }
     }
-    if (isset($CFG['GEN']['newpasswords'])) {
-        require_once "includes/password.php";
-    }
+    require_once "includes/password.php";
+
     if (!empty($line['mfa'])) {
         require_once __DIR__.'/includes/mfa.php';
         $mfadata = json_decode($line['mfa'], true);
@@ -206,11 +202,8 @@ if ($haslogin && !$hasusername) {
         $formAction = $GLOBALS['basesiteurl'] . substr($_SERVER['SCRIPT_NAME'], strlen($imasroot)) . Sanitize::encodeStringForDisplay($querys);    
     }
 
-    if (($line != false) && (
-        ((!isset($CFG['GEN']['newpasswords']) || $CFG['GEN']['newpasswords'] != 'only') && ((md5($line['password'] . $_SESSION['challenge']) == $_POST['password']) || ($line['password'] == md5($_POST['password']))))
-        || (isset($CFG['GEN']['newpasswords']) && password_verify($_POST['password'], $line['password']))
-    )) {
-        if (empty($_POST['tzname']) && $_POST['tzoffset'] == '' && strpos(basename($_SERVER['PHP_SELF']), 'upgrade.php') === false) {
+    if ($line != false && password_verify($_POST['password'], $line['password'])) {
+        if (empty($_POST['tzname']) && (!isset($_POST['tzoffset']) || $_POST['tzoffset'] == '') && strpos(basename($_SERVER['PHP_SELF']), 'upgrade.php') === false) {
             echo _('Uh oh, something went wrong.  Please go back and try again');
             exit;
         }
@@ -239,7 +232,7 @@ if ($haslogin && !$hasusername) {
                 $_POST['tzoffset'] = 0;
             }
             if (isset($_POST['tzname'])) {
-                $_SESSION['logintzname'] = $_POST['tzname'];
+                $_SESSION['logintzname'] = Sanitize::simpleASCII($_POST['tzname']);
             }
             if (isset($CFG['static_server']) && !empty($_POST['static_check'])) {
                 $_SESSION['static_ok'] = 1;
@@ -247,9 +240,9 @@ if ($haslogin && !$hasusername) {
             require_once "$curdir/includes/userprefs.php";
             generateuserprefs($userid);
 
-            $_SESSION['tzoffset'] = $_POST['tzoffset'];
+            $_SESSION['tzoffset'] = floatval($_POST['tzoffset']);
             if (!empty($_POST['tzname']) && strpos(basename($_SERVER['PHP_SELF']), 'upgrade.php') === false) {
-                $_SESSION['tzname'] = $_POST['tzname'];
+                $_SESSION['tzname'] = Sanitize::simpleASCII($_POST['tzname']);
             }
 
             if (isset($json_data['login_errors'])) {
@@ -258,14 +251,8 @@ if ($haslogin && !$hasusername) {
                 $line['jsondata'] = json_encode($json_data);
             }
 
-            if (isset($CFG['GEN']['newpasswords']) && strlen($line['password']) == 32) { //old password - rehash it
-                $hashpw = password_hash($_POST['password'], PASSWORD_DEFAULT);
-                $stm = $DBH->prepare("UPDATE imas_users SET lastaccess=:lastaccess,password=:password,jsondata=:jsondata WHERE id=:id");
-                $stm->execute(array(':lastaccess' => $now, ':password' => $hashpw, ':jsondata' => $line['jsondata'], ':id' => $userid));
-            } else {
-                $stm = $DBH->prepare("UPDATE imas_users SET lastaccess=:lastaccess,jsondata=:jsondata WHERE id=:id");
-                $stm->execute(array(':lastaccess' => $now, ':jsondata' => $line['jsondata'], ':id' => $userid));
-            }
+            $stm = $DBH->prepare("UPDATE imas_users SET lastaccess=:lastaccess,jsondata=:jsondata WHERE id=:id");
+            $stm->execute(array(':lastaccess' => $now, ':jsondata' => $line['jsondata'], ':id' => $userid));
         }
 
         // check for MFA before actual login
@@ -392,6 +379,10 @@ if ($hasusername) {
     $stm = $DBH->prepare($query);
     $stm->execute(array(':id' => $userid));
     $line = $stm->fetch(PDO::FETCH_ASSOC);
+    if ($line === false) {
+        echo "Error. Please log in again";
+        exit;
+    }
     if (!isset($_SESSION['started'])) {
         $_SESSION['started'] = time();
     }
@@ -486,7 +477,7 @@ if ($hasusername) {
         $_SESSION['useflash'] = true;
     }
     if (isset($_GET['graphdisp'])) {
-        $_SESSION['graphdisp'] = $_GET['graphdisp'];
+        $_SESSION['graphdisp'] = intval($_GET['graphdisp']);
     }
     if (!isset($_SESSION['secsalt'])) { // if it was lost somehow
         $_SESSION['secsalt'] = generaterandstring();
@@ -526,7 +517,7 @@ if ($hasusername) {
                     unset($_SESSION[$k]);
                 }
             }
-            setcookie('fromltimenu', '', time() - 3600);
+            setsecurecookie('fromltimenu', '', time() - 3600, false);
         } else if ($_SESSION['ltiitemtype'] == 0 && $_SESSION['ltirole'] == 'learner') {
             require_once __DIR__ . '/includes/userutils.php';
             user_logout();
@@ -731,18 +722,22 @@ if ($hasusername) {
                     ($courseUIver > 1 && (strpos($_SERVER['PHP_SELF'], 'assess2/') === false ||
                         strpos($_SERVER['QUERY_STRING'], '&aid=' . $lockaid) === false))
                     ) && strpos(basename($_SERVER['PHP_SELF']), 'ltiuserprefs.php') === false
+                    && strpos(basename($_SERVER['PHP_SELF']), 'rectrack.php') === false
                 ) {
                     $stm = $DBH->prepare('SELECT name,msgtoinstr,posttoforum FROM imas_assessments WHERE id=?');
                     $stm->execute([$lockaid]);
                     $lockaiddata = $stm->fetch(PDO::FETCH_ASSOC);
-                    $lockaidname =  $lockaiddata['name'];
                     $showlockmsg = true;
-                    if ($lockaiddata['msgtoinstr'] > 0 && strpos($_SERVER['PHP_SELF'], '/msgs/') !== false) {
+                    if ($lockaiddata === false) { 
+                        // assessment deleted
+                        $showlockmsg = false;
+                    } else if ($lockaiddata['msgtoinstr'] > 0 && strpos($_SERVER['PHP_SELF'], '/msgs/') !== false) {
                         $showlockmsg = false;
                     } else if ($lockaiddata['posttoforum'] > 0 && strpos($_SERVER['PHP_SELF'], '/forums/') !== false) {
                         $showlockmsg = false;
                     } 
                     if ($showlockmsg) {
+                        $lockaidname =  $lockaiddata['name'];
                         require_once __DIR__."/header.php";
                         echo '<p>', sprintf(_('This course is currently locked for an assessment, <b>%s</b>'),
                             Sanitize::encodeStringForDisplay($lockaidname)), '</p>';
@@ -757,7 +752,7 @@ if ($hasusername) {
                                     Sanitize::encodeStringForDisplay($lockaidname)), '</p>';
                                 echo '<p><form method=post action="'.$imasroot.'/assess2/endassess.php?cid='.$cid.'&aid='.Sanitize::encodeUrlParam($lockaid).'" ';
                                 echo 'onsubmit="return confirm(\''._('Are you SURE you want to submit the assessment for scoring now? If you do, you will not be able to continue working on the assessment later.').'\')">';
-                                echo '<input type=hidden name=redirect value="'.Sanitize::encodeStringForDisplay($_GET['aid']).'"/>';
+                                echo '<input type=hidden name=redirect value="'.Sanitize::encodeStringForDisplay($_GET['aid'] ?? $studentinfo['lockaid']).'"/>';
                                 echo '<button type=submit>';
                                 echo sprintf(_('Submit <em>%s</em> Now'), Sanitize::encodeStringForDisplay($lockaidname)) . '</button>';
                                 echo '</form>';
@@ -774,11 +769,11 @@ if ($hasusername) {
                 }
             }
             unset($lockaid);
-            if ($myrights == 75 && !isset($teacherid) && !isset($studentid) && $crow['groupid'] == $groupid) {
+            if ($myrights == 75 && !isset($teacherid) && !isset($tutorid) && !isset($studentid) && $crow['groupid'] == $groupid) {
                 //group admin access
                 $teacherid = $userid;
                 $adminasteacher = true;
-            } else if ($myrights > 19 && !isset($teacherid) && !isset($studentid) && !isset($tutorid) && !$inInstrStuView) {
+            } else if ($myrights > 19 && !isset($teacherid) && !isset($tutorid) && !isset($studentid) && !isset($tutorid) && !$inInstrStuView) {
                 if ($crow['copyrights'] == 2) {
                     $instrPreviewId = $userid;
                 } else if ($crow['copyrights'] == 1 && $crow['groupid'] == $groupid) {
@@ -827,7 +822,7 @@ function tzdate($string, $time)
     if ($tzname != '') {
         return date($string, $time);
     } else {
-        $serveroffset = date('Z') + $tzoffset * 60;
+        $serveroffset = date('Z') + floor($tzoffset * 60);
         return date($string, $time - $serveroffset);
     }
     //return gmdate($string, $time-60*$tzoffset);
@@ -872,7 +867,7 @@ function generaterandstring()
 function user_logout() {
 	$_SESSION = array();
 	if (isset($_COOKIE[session_name()])) {
-		setcookie(session_name(), '', time()-42000, '/', '', false, true);
+        setsecurecookie(session_name(), '', time()-42000, true);
 	}
 	session_destroy();
 }
