@@ -49,10 +49,10 @@ $allowedmacros[] = "jsxUnsuspendUpdate";
 $allowedmacros[] = "jsxSetChild";
 
 function jsx_getlibrarylink() {
-	return "https://cdn.jsdelivr.net/npm/jsxgraph@1.9.2/distrib/jsxgraphcore.js";
+	return "https://cdn.jsdelivr.net/npm/jsxgraph@1.11.1/distrib/jsxgraphcore.js";
 }
 function jsx_getcsslink() {
-	return "https://cdn.jsdelivr.net/npm/jsxgraph@1.9.2/distrib/jsxgraph.min.css";
+	return "https://cdn.jsdelivr.net/npm/jsxgraph@1.11.1/distrib/jsxgraph.min.css";
 }
 
 function jsx_idlen() {
@@ -104,7 +104,7 @@ function jsxObject (&$board, $param, $ops=array()) {
 			$out .= ";";
 		}
 		
-		$out .= jsx_setlabel($id, $label);
+		//$out .= jsx_setlabel($id, $label);
 		
 		// Append new output string to the board string
 		$board = substr_replace($board, $out, strpos($board, "/*INSERTHERE*/"), 0);
@@ -157,6 +157,8 @@ function jsxSlider (&$board, $param, $ops=array()) {
 		$max = is_numeric($param[1]) ? $param[1] : 10;
 		$step = is_numeric($param[2]) ? $param[2] : 1;
 		$defaultval = isset($param[3]) ? $param[3] : ($min + $max) / 2;
+
+		$fixedout = max(jsx_getdecimalplaces($min), jsx_getdecimalplaces($max), jsx_getdecimalplaces($step));
 		
 		// Parameters:
 		//  label, color, default value, showLabel, LabelSize, decimals, position,
@@ -169,7 +171,7 @@ function jsxSlider (&$board, $param, $ops=array()) {
 		$fontsize = !empty($ops['fontsize']) ? $ops['fontsize'] : 16;
 		$fontcolor = !empty($ops['fontcolor']) ? $ops['fontcolor'] : $color;
 		$name = !empty($ops['name']) ? $ops['name'] : '';
-		$decimals = !empty($ops['decimals']) ? $ops['decimals'] : 0;
+		$decimals = !empty($ops['decimals']) ? $ops['decimals'] : $fixedout;
 		
 		if (!isset($ops['position'])) {
 			
@@ -212,7 +214,8 @@ function jsxSlider (&$board, $param, $ops=array()) {
 				highline: { highlight: false, strokeColor: '{$color}' },
 				strokeColor: '{$color}',
 				name: '{$name}',
-				label: { color:'{$fontcolor}', fontSize: {$fontsize}, useMathJax: true, highlight: false }
+				label: { color:'{$fontcolor}', fontSize: {$fontsize}, useMathJax: true, highlight: false },
+				tabindex: 0
 			})";
 			
 		// Set any remaining paramenters specified by user
@@ -229,7 +232,7 @@ function jsxSlider (&$board, $param, $ops=array()) {
 			
 			// Add event listener
 			$out .= ';';
-			$out .= "board_{$boardID}.on('update', function () { if (this.initSetupDone){ $('#qn{$box}, #tc{$box}').val($id.Value().toFixed(8)).trigger('change'); }});";
+			$out .= "board_{$boardID}.on('update', function () { if (this.initSetupDone){ $('#qn{$box}, #tc{$box}').val($id.Value().toFixed($fixedout)).trigger('change'); }});";
 			
 			$out .= jsx_getcolorinterval($boardID, $box, $id, "slider", [$min, $max]); 
 	
@@ -272,12 +275,16 @@ function jsxPoint(&$board, $param, $ops=array()) {
 		$snapSizeX = isset($ops['xsnapsize']) ? $ops['xsnapsize'] : 1;
 		$snapSizeY = isset($ops['ysnapsize']) ? $ops['ysnapsize'] : 1;
 		$trace = isset($ops['trace']) ? jsx_getbool($ops['trace']) : 'false';
-		
+		$tabindex = ($fixed === 'false') ? 0 : -1;
+
 		if ((isset($ops['xsnapsize'])) || (isset($ops['ysnapsize']))) {
 			$snapToGrid = 'true';
 		} else {
 			$snapToGrid = 'false';
 		}
+
+		$fixedx = isset($ops['xsnapsize']) ? jsx_getdecimalplaces($snapSizeX) : 4;
+		$fixedy = isset($ops['ysnapsize']) ? jsx_getdecimalplaces($snapSizeY) : 4;
 			
 		// Start making the point
 		$out = "window.{$id} = board_{$boardID}.create('point', ".jsx_pointToJS($param).",";
@@ -297,7 +304,8 @@ function jsxPoint(&$board, $param, $ops=array()) {
 			visible: {$visible},
 			snapSizeX: {$snapSizeX},
 			snapSizeY: {$snapSizeY},
-			snapToGrid: {$snapToGrid}
+			snapToGrid: {$snapToGrid},
+			tabindex: {$tabindex}
 		})";
 		
 		// Set any remaining paramenters specified by user
@@ -313,7 +321,7 @@ function jsxPoint(&$board, $param, $ops=array()) {
 			}
 			
 			$out .= ';';
-			$answerfill = "'(' + $id.X().toFixed(4) + ',' + $id.Y().toFixed(4) + ')'";
+			$answerfill = "'(' + $id.X().toFixed($fixedx) + ',' + $id.Y().toFixed($fixedy) + ')'";
 			$out .= "board_{$boardID}.on('update', function () { if (this.initSetupDone){ $('#qn{$box}, #tc{$box}').val($answerfill).trigger('change'); }});";
 
 			$out .= jsx_getcolorinterval($boardID, $box, $id, "point");
@@ -365,12 +373,16 @@ function jsxGlider (&$board, $param, $ops=array()) {
 		$snapSizeX = isset($ops['xsnapsize']) ? $ops['xsnapsize'] : 1;
 		$snapSizeY = isset($ops['ysnapsize']) ? $ops['ysnapsize'] : 1;
 		$trace = isset($ops['trace']) ? jsx_getbool($ops['trace']) : 'false';
-		
+		$tabindex = ($fixed === 'false') ? 0 : -1;
+
 		if ((isset($ops['xsnapsize'])) || (isset($ops['ysnapsize']))) {
 			$snapToGrid = 'true';
 		} else {
 			$snapToGrid = 'false';
 		}
+
+		$fixedx = isset($ops['xsnapsize']) ? jsx_getdecimalplaces($snapSizeX) : 4;
+		$fixedy = isset($ops['ysnapsize']) ? jsx_getdecimalplaces($snapSizeY) : 4;
 
 		// Begin object creation
 		$out = "window.{$id} = board_{$boardID}.create('glider', [";
@@ -391,7 +403,8 @@ function jsxGlider (&$board, $param, $ops=array()) {
             label: { color: '{$fontcolor}', fontSize: {$fontsize}, useMathJax: true, highlight: false },
 			snapSizeX: {$snapSizeX},
 			snapSizeY: {$snapSizeY},
-			snapToGrid: {$snapToGrid}
+			snapToGrid: {$snapToGrid},
+			tabindex: {$tabindex}
         })";
 		
 		if (isset($ops['attributes'])) { 
@@ -408,7 +421,7 @@ function jsxGlider (&$board, $param, $ops=array()) {
 			}
 
 			$out .= ';';
-			$answerfill = "'(' + $id.X().toFixed(4) + ',' + $id.Y().toFixed(4) + ')'";
+			$answerfill = "'(' + $id.X().toFixed($fixedx) + ',' + $id.Y().toFixed($fixedy) + ')'";
 			$out .= "board_{$boardID}.on('update', function () { if (this.initSetupDone){ $('#qn{$box}, #tc{$box}').val($answerfill).trigger('change'); }});";
 					
 			$out .= jsx_getcolorinterval($boardID, $box, $id, "point"); 
@@ -1726,7 +1739,7 @@ function jsxBoard($type, $ops=array()) {
 				if ($('#qn' + box)[0] && $('#qn' + box).val() !== '') {
 					if (type == 'point') {
 						let coords = $('#qn'+box).val();
-						coords = coords.substring(1, coords.length - 2);
+						coords = coords.substring(1, coords.length - 1);
 						coords = coords.split(',');
 						window[obj].setPosition(JXG.COORDS_BY_USER, [parseFloat(coords[0]),parseFloat(coords[1])]);
 					} else if (type == 'slider') {
@@ -2626,5 +2639,18 @@ function jsx_setlabel($id, $label) {
 function jsx_getcolorinterval($boardID, $box, $obj, $type, $param = array()) {
 	$out = "board_{$boardID}.colorinit.push(['$box','$obj','$type',".json_encode($param)."]);";
 	return $out;
+}
+
+// get number of decimal places
+function jsx_getdecimalplaces($n) {
+  $n = (string) $n;
+  $n = trim($n);
+  $n = rtrim($n, '0');
+  $dp = strpos($n, '.');
+  if ($dp === false) { 
+    return 0;
+  } else {
+    return (strlen($n) - $dp - 1);
+  }
 }
 ?>

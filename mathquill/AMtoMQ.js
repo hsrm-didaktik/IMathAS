@@ -725,11 +725,10 @@ AMQinitSymbols();
 
 return function(str,elid,nomatrices) {
  AMQnestingDepth = 0;
- if (nomatrices === true) { 
-    AMQTallowmatrices = false;
- }
+ AMQTallowmatrices = (nomatrices !== true);
+ 
   str = str.replace(/(&nbsp;|\u00a0|&#160;|{::})/g,"");
-  if (document.getElementById(elid) && 
+  if (typeof elid !== 'undefined' && document.getElementById(elid) && 
     document.getElementById(elid).getAttribute("data-mq").match(/(ntuple|string)/)
   ) {
     str = str.replace(/<([^<].*?,.*?[^>])>/g,"<<$1>>");
@@ -740,7 +739,7 @@ return function(str,elid,nomatrices) {
   str = str.replace(/all\s+real\s+numbers/g,'"all real numbers"');
   str = str.replace(/(\)|\])\s*u\s*(\(|\[)/g,"$1U$2");
   str = str.replace(/\bDNE\b/gi,'"DNE"');
-  if (document.getElementById(elid) && 
+  if (typeof elid !== 'undefined' && document.getElementById(elid) && 
     document.getElementById(elid).getAttribute("data-mq").match(/interval/)
   ) {
       str = str.replace(/\bU\b/g,'cup');
@@ -750,6 +749,7 @@ return function(str,elid,nomatrices) {
 	  return "";
   }
   var out = AMQTparseExpr(str.replace(/^\s+/g,""),false)[0];
+  out = out.replace(/{(\d+)}(?={\d+})/g, '{$1}\\ ');
   return out;
 }
 }();
@@ -834,7 +834,7 @@ function MQtoAM(tex,display) {
 			tex = tex.substring(0,i) + tex.substring(i+4);
 		}
     }
-    
+
     //separate un-braced subscripts using latex rules
     tex = tex.replace(/_(\w)(\w)/g, '_$1 $2');
     tex = tex.replace(/(\^|_)([+\-])([^\^])/g, '$1$2 $3');  
@@ -849,7 +849,7 @@ function MQtoAM(tex,display) {
 	tex = tex.replace(/\/\(([\d\.]+)\)/g,'/$1');  //change /(3) to /3
 	tex = tex.replace(/\(([\d\.]+)\)\//g,'$1/');  //change (3)/ to 3/
 	tex = tex.replace(/\/\(([a-zA-Z])\)/g,'/$1');  //change /(x) to /x
-	tex = tex.replace(/\(([a-zA-Z])\)\//g,'$1/');  //change (x)/ to x/
+	tex = tex.replace(/(^|[^a-zA-Z])\(([a-zA-Z])\)\//g,'$1$2/');  //change (x)/ to x/
   tex = tex.replace(/\^\((-?[\d\.]+)\)(\d)/g,'^$1 $2');
   tex = tex.replace(/\^\(-1\)/g,'^-1');
   tex = tex.replace(/\^\((-?[\d\.]+)\)/g,'^$1');

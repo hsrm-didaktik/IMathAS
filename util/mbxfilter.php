@@ -69,7 +69,7 @@ function mbxfilter($str) {
 	}
 
 	//enforce stuff
-	$C = array('elements'=>'a,b,br,canvas,em,h1,h2,h3,h4,h5,h6,i,img,input,li,ol,option,p,pre,select,strong,sub,sup,table,tbody,td,textarea,th,thead,tr,u,ul,statement,solution,hint');
+	$C = array('elements'=>'a,b,br,canvas,em,h1,h2,h3,h4,h5,h6,i,img,input,li,ol,option,p,pre,select,strong,sub,sup,table,tbody,td,textarea,th,thead,tr,u,ul,statement,answer,solution,hint');
 	$str = htmLawed($str, $C);
 	$str = str_replace("\n\n","\n",$str);
 
@@ -93,6 +93,12 @@ function mbxfilter($str) {
 		$varcnt++;
 		//return '<var name="qn'.$varcnt.'" width="'.$m[1].'" />';
 		return '<fillin characters="'.$m[1].'" />';
+	  },$str);
+	$str = preg_replace_callback('#<input[^>]*width:(\d+)[^>]*>#',function($m) {
+		global $varcnt;
+		$varcnt++;
+		//return '<var name="qn'.$varcnt.'" width="'.$m[1].'" />';
+		return '<fillin characters="'.ceil(($m[1] - 1)/1.2).'" />';
 	  },$str);
 
 	//replace any textareas

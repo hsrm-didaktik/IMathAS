@@ -56,6 +56,7 @@
       <div v-show="getwork === 2 || showWorkInput">
         <showwork-input
           :id="'sw' + qn"
+          :qn="qn"
           :value = "questionData.work"
           rows = "3"
           :active = "getwork === 2 || showWorkInput"
@@ -299,7 +300,9 @@ export default {
           let changed = false;
           if (this.type === 'radio' || this.type === 'checkbox') {
             changed = true;
-          } else if (val !== window.$(this).attr('data-lastval') && val !== '') {
+          } else if (val !== window.$(this).attr('data-lastval') &&
+            (val !== '' || window.$(this).attr('data-lastval').trim() !== '')
+          ) {
             changed = true;
           }
           if (changed) {
@@ -356,9 +359,9 @@ export default {
         return;
       }
       setTimeout(window.drawPics, 100);
+      window.initlinkmarkup(this.$refs.thisqwrap);
       window.rendermathnode(this.$refs.thisqwrap);
       window.initSageCell(this.$refs.thisqwrap);
-      window.initlinkmarkup(this.$refs.thisqwrap);
       window.setupSeqPartToggles(this.$refs.thisqwrap);
       this.updateTime(true);
       this.setInitValues();

@@ -114,7 +114,12 @@
 		if (isset($_POST['helpurl']) && $_POST['helpurl']!='') {
 			$vidid = getvideoid($_POST['helpurl']);
 			if ($vidid=='') {
-				$captioned = 0;
+				if (strpos($_POST['helpurl'],'ableplayer.php')!==false &&
+					strpos($_POST['helpurl'],'vtt')!==false) {
+						$captioned = 1;
+				} else {
+					$captioned = 0;
+				}
 			} else if (isset($CFG['YouTubeAPIKey'])) {
                 $captioned = getCaptionDataByVidId($vidid);
 				if ($captioned === false || $captioned === '404') {
@@ -242,6 +247,15 @@
 					$outputmsg .= _("Library Assignments Updated.")." ";
 				}
 
+				if (!empty($_POST['cleara11yreviews'])) {
+					// delete reviews
+					$stm = $DBH->prepare("DELETE FROM imas_a11yreviews WHERE qsetid=?");
+					$stm->execute([$_GET['id']]);
+					// disable bad review flag in a11ystatus
+					$stm = $DBH->prepare("UPDATE imas_questionset SET a11ystatus=a11ystatus&~2 WHERE id=?");
+					$stm->execute([$_GET['id']]);
+				}
+
 				$stm = $DBH->prepare("SELECT id,filename,var,alttext FROM imas_qimages WHERE qsetid=:qsetid");
 				$stm->execute(array(':qsetid'=>$_GET['id']));
 				$imgcnt = $stm->rowCount();
@@ -360,7 +374,7 @@
 
 		if ($isok) {
 			//upload image files if attached
-			if ($_FILES['imgfile']['name']!='') {
+			if (!empty($_FILES['imgfile']['name'])) {
 				$disallowedvar = array('link','qidx','qnidx','seed','qdata','toevalqtxt','la','GLOBALS','laparts','anstype','kidx','iidx','tips','options','partla','partnum','score');
 				$_POST['newimgvar'] = preg_replace('/[^\w\[\]]/','', $_POST['newimgvar']);
 				if (!is_uploaded_file($_FILES['imgfile']['tmp_name'])) {
@@ -698,6 +712,10 @@
 			}
 
 			$line['qtext'] = preg_replace('/<span class="AM">(.*?)<\/span>/','$1',$line['qtext']);
+
+			$stm = $DBH->prepare("SELECT count(userid) FROM imas_a11yreviews WHERE qsetid=? AND review=0");
+			$stm->execute([$_GET['id']]);
+			$bada11yreviews = $stm->fetchColumn(0);
 	} else {
 			$myq = true;
             $line = array();
@@ -733,6 +751,7 @@
 			$images = array();
 			$extref = array();
 			$author = $myname;
+			$bada11yreviews = 0;
 			$inlibssafe = implode(',', array_map('intval', explode(',',$inlibs)));
 			if (!isset($_GET['id']) || isset($_GET['template'])) {
 				$oklibs = array();
@@ -858,29 +877,34 @@
 	     	}
 	        qtextbox.rows += 3;
 	        qtextbox.value = qtextbox.value.replace(/<span\s+class="AM"[^>]*>(.*?)<\\/span>/g,"$1");
-	        qtextbox.value = qtextbox.value.replace(/`(.*?)`/g,\'<span class="AM" title="$1">`$1`</span>\');
+	        qtextbox.value = qtextbox.value.replace(/`(.*?)`/g, function(match,p1,offset,string) {
+				let before = string.substring(0, offset);
+				let lastOpenTag = before.lastIndexOf("<");
+				let lastCloseTag = before.lastIndexOf(">");
+				if (lastOpenTag > lastCloseTag) {
+					return match; // in tag; do not replace
+				} else {
+					return "<span class=\"AM\" title=\"" + p1 + "\">`" + p1 + "`</span>";
+				}
+			});
 	        qtextbox.value = qtextbox.value.replace(/\n\n/g,"<br/><br/>");
 
-	        var toinit = [];
-	        if ((el=="qtext" && editoron==0) || (el!="qtext" && editoron==1)) {
-	        	toinit.push("qtext");
-	        }
-	        if ((el=="solution" && seditoron==0) || (el!="solution" && seditoron==1)) {
-	        	toinit.push("solution");
-	        }
-	        initeditor("exact",toinit.join(","),1);
-	     } else {
+			initeditor("exact",el);
+			if (el=="qtext") {
+				editoron = 1;
+			} else if (el=="solution") {
+				seditoron = 1;
+			}
+	     } else if ((el=="qtext" && editoron==1) || (el=="solution" && seditoron==1)) {
 	     	tinymce.remove("#"+el);
 	     	qtextbox.rows -= 3;
-	     	qtextbox.value = qtextbox.value.replace(/<span\s+class="AM"[^>]*>(.*?)<\\/span>/g,"$1");
+	     	qtextbox.value = qtextbox.value.replace(/<span\s+class="AM"[^>]*>(.*?)<\\/span>/g,"$1").replace(/&#96;/g,"`");
 	     	setupQtextEditor(el);
-	     }
-	     if (el.match(/qtext/)) {
-	     	editoron = 1 - editoron;
-	     	//document.cookie = "qeditoron="+editoron;
-	     } else if (el.match(/solution/)) {
-	     	seditoron = 1 - seditoron;
-	     	//document.cookie = "seditoron="+seditoron;
+			if (el=="qtext") {
+				editoron = 0;
+			} else if (el=="solution") {
+				seditoron = 0;
+			}
 	     }
 	   }
 	   function initsolneditor() {
@@ -894,6 +918,14 @@
 	   }
 
 	   addLoadEvent(function(){setupQtextEditor("qtext");setupQtextEditor("solution");});
+	   $(function() {
+		$("#mainform").on("submit", function(e) {
+			e.preventDefault();
+			if (saveEditors()) {
+				e.target.submit();
+			}
+		});
+	   });
 	   /*
 	   if (document.cookie.match(/qeditoron=1/)) {
 	   	var val = document.getElementById("qtext").value;
@@ -1074,8 +1106,11 @@
 	} else if ($viewonly) {
 		echo "<p class=noticetext>"._("This view will not allow you to modify the code.  You can only view the code and make additional library assignments")."</p>";
     } 
+	if ($canedit && $bada11yreviews>0) {
+		echo '<p class="noticetext a11ynegrev">'.sprintf(_('This question has received %d "needs work" accessibility reviews.'), $bada11yreviews).'</p>';
+	}
 ?>
-<form enctype="multipart/form-data" method=post action="<?php echo $formAction; // Sanitized near line 806 ?>">
+<form id=mainform enctype="multipart/form-data" method=post action="<?php echo $formAction; // Sanitized near line 806 ?>">
 <?php
 if ($viewonly) {
     echo '<input type=hidden name=viewonly value=1 />';
@@ -1384,6 +1419,12 @@ echo '<span class=noticetext><br>'._('It is likely you should not be using this 
 echo '<a href="../help.php?section=a11yalt" target="_blank">'._('Help').'</a>';
 echo '</p>';
 
+if ($canedit && $bada11yreviews>0) {	
+	echo '<p class="a11ynegrev">'.sprintf(_('This question has received %d "needs work" accessibility reviews.'), $bada11yreviews).' ';
+	echo _('If you have fixed the issues, you can clear the accessibility reviews.');
+	echo '<br/><label><input type=checkbox name=cleara11yreviews value=1 /> '._('Clear all accessiblity reviews').'</label></p>';
+}
+
 if ($myrights==100) {
 	echo '<p><label>'._('Mark question as deprecated and suggest alternative?').' <input type="checkbox" name="doreplaceby" ';
 	if ($line['replaceby']!=0) {
@@ -1417,30 +1458,40 @@ $("input[name=imgfile]").on("change", function(event) {
 	}
 });
 
+function saveEditors() {
+	try {
+		if (controlEditor) controlEditor.save();
+		if (window.tinymce) {
+			if (editoron) {
+				tinymce.get("qtext").save();
+			} else {
+				qEditor["qtext"].save();
+			}
+			if (seditoron) {
+				tinymce.get("solution").save();
+			} else {
+				qEditor["solution"].save();
+			}
+		} else {
+			for (i in qEditor) { qEditor[i].save(); }
+		}
+		return true;
+	} catch (err){
+		quickSaveQuestion.errorFunc();
+		return false;
+		
+	}
+}
 if (FormData){ // Only allow quicksave if FormData object exists
 	var quickSaveQuestion = function(){
 		// Add text to notice areas
 		$(".quickSaveNotice").html("Saving...");
-		// Save codemirror and tinyMCE data
-		try {
-			if (controlEditor) controlEditor.save();
-			if (window.tinyMCE) {
-				if (editoron) {
-					tinyMCE.get("qtext").save();
-				} else {
-					qEditor["qtext"].save();
-				}
-				if (seditoron) {
-					tinyMCE.get("solution").save();
-				} else {
-					qEditor["solution"].save();
-				}
-			} else {
-				for (i in qEditor) { qEditor[i].save(); }
-			}
-		} catch (err){
-			quickSaveQuestion.errorFunc();
+
+		// Save codemirror and tinymce data
+		if (!saveEditors()) {
+			return;
 		}
+
 		// Get form data
 		var data = new FormData($("form")[0]);
 
@@ -1514,6 +1565,9 @@ if (FormData){ // Only allow quicksave if FormData object exists
 
 				// Empty notices
 				$(".quickSaveNotice").empty();
+				if (data.get('cleara11yreviews') == 1) {
+					$(".a11ynegrev").hide();
+				}
 				// Load preview page
 				let leftpos = screen.left ?? screen.availLeft ?? 0;
     			let toppos = screen.top ?? screen.availTop ?? 0;
@@ -1544,7 +1598,7 @@ if (FormData){ // Only allow quicksave if FormData object exists
 	}
 	// Bind key event
 	$(document).on("keydown", quickSaveQuestion.keyBind);
-	// A little trickier for tinyMCE due to race conditions
+	// A little trickier for tinymce due to race conditions
 	var mceTry = setInterval(function(){
 		try {
 			tinymce.get('qtext').on('keydown', quickSaveQuestion.keyBind);

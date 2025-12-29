@@ -25,10 +25,6 @@ require_once "./AssessInfo.php";
 require_once "./AssessRecord.php";
 require_once './AssessUtils.php';
 
-//error_reporting(E_ALL);
-
-header('Content-Type: application/json; charset=utf-8');
-
 // validate inputs
 check_for_required('GET', array('aid', 'cid'));
 if (empty($_POST['endattempt'])) { // skip check for endattempt, as may be no questions changed
@@ -171,6 +167,8 @@ if ($assessInfoOut['has_active_attempt'] && $assessInfoOut['timelimit'] > 0) {
   $assessInfoOut['timelimit_gracein'] = max($assess_record->getTimeLimitGrace() - $now, 0);
 }
 
+$submission = false;
+
 if (count($qns) > 0) {
   // get current question version ids
   list($qids, $toloadqids) = $assess_record->getQuestionIds($qns);
@@ -291,7 +289,7 @@ if (!empty($_POST['autosave-tosaveqn'])) {
 
 
 if ($end_attempt) {
-  $assess_record->scoreAutosaves();
+  $assess_record->scoreAutosaves($submission);
   // sets assessment attempt as submitted and updates status
   $assess_record->setStatus(false, true);
   // Recalculate scores based on submitted assessment.

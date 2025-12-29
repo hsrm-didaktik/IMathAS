@@ -391,9 +391,9 @@ require_once __DIR__."/../includes/checkdata.php";
 		}
 		echo "</h1>";
 	}
-	$query = "(SELECT ie.id AS eid,iu.LastName,iu.FirstName,ia.name as itemname,iu.id AS userid,ia.id AS itemid,ie.startdate,ie.enddate,ie.waivereqscore,ie.timeext,ie.attemptext,ie.islatepass,ie.itemtype,ie.is_lti,ia.tutoredit FROM imas_exceptions AS ie,imas_users AS iu,imas_assessments AS ia ";
+	$query = "(SELECT ie.id AS eid,iu.LastName,iu.FirstName,ia.name as itemname,iu.id AS userid,ia.id AS itemid,ie.startdate,ie.enddate,ie.waivereqscore,ie.exceptionpenalty,ie.timeext,ie.attemptext,ie.islatepass,ie.itemtype,ie.is_lti,ia.tutoredit FROM imas_exceptions AS ie,imas_users AS iu,imas_assessments AS ia ";
 	$query .= "WHERE ie.itemtype='A' AND ie.assessmentid=ia.id AND ie.userid=iu.id AND ia.courseid=:courseid AND iu.id IN ($tolist) ) ";
-	$query .= "UNION ALL (SELECT ie.id AS eid,iu.LastName,iu.FirstName,i_f.name as itemname,iu.id AS userid,i_f.id AS itemid,ie.startdate,ie.enddate,ie.waivereqscore,ie.timeext,ie.attemptext,ie.islatepass,ie.itemtype,ie.is_lti,2 AS tutoredit FROM imas_exceptions AS ie,imas_users AS iu,imas_forums AS i_f ";
+	$query .= "UNION ALL (SELECT ie.id AS eid,iu.LastName,iu.FirstName,i_f.name as itemname,iu.id AS userid,i_f.id AS itemid,ie.startdate,ie.enddate,ie.waivereqscore,ie.exceptionpenalty,ie.timeext,ie.attemptext,ie.islatepass,ie.itemtype,ie.is_lti,2 AS tutoredit FROM imas_exceptions AS ie,imas_users AS iu,imas_forums AS i_f ";
 	$query .= "WHERE (ie.itemtype='F' OR ie.itemtype='P' OR ie.itemtype='R') AND ie.assessmentid=i_f.id AND ie.userid=iu.id AND i_f.courseid=:courseid2 AND iu.id IN ($tolist) )";
 	if ($isall) {
 		$query .= "ORDER BY itemname,LastName,FirstName";
@@ -428,7 +428,11 @@ require_once __DIR__."/../includes/checkdata.php";
 					Sanitize::encodeStringForDisplay($row['eid']), Sanitize::encodeStringForDisplay($row['LastName']),
 					Sanitize::encodeStringForDisplay($row['FirstName']));
 				if ($row['itemtype']=='A') {
-					echo Sanitize::encodeStringForDisplay("($sdate - $edate)");
+					if ($row['startdate'] == $row['enddate']) {
+						echo _('(no date override)');
+					} else {
+						echo Sanitize::encodeStringForDisplay("($sdate - $edate)");
+					}
 				} else if ($row['itemtype']=='F') {
 					echo Sanitize::encodeStringForDisplay("(PostBy: $sdate, ReplyBy: $edate)");
 				} else if ($row['itemtype']=='P') {
@@ -442,6 +446,9 @@ require_once __DIR__."/../includes/checkdata.php";
 				if (($row['waivereqscore']&2)==2) {
 					echo ' <i>('._('waives add work cutoff').')</i>';
                 }
+				if ($row['exceptionpenalty'] !== null) {
+					echo ' <i>('.sprintf(_('%d%% late penalty'), $row['exceptionpenalty']).')</i>';
+				}
                 if ($row['timeext'] != 0) {
                     echo ' <i>('.sprintf(_('%d min time extension'), abs($row['timeext']));
                     if ($row['timeext'] < 0) {
@@ -490,7 +497,11 @@ require_once __DIR__."/../includes/checkdata.php";
 				}
 				$assessarr[$row['eid']] = "{$row['itemname']} ";
 				if ($row['itemtype']=='A') {
-					$assessarr[$row['eid']] .= "($sdate - $edate)";
+					if ($row['startdate'] == $row['enddate']) {
+						$assessarr[$row['eid']] .= _('(no date override)');
+					} else {
+						$assessarr[$row['eid']] .= "($sdate - $edate)";
+					}
 				} else if ($row['itemtype']=='F') {
 					$assessarr[$row['eid']] .= "(PostBy: $sdate, ReplyBy: $edate)";
 				} else if ($row['itemtype']=='P') {
@@ -505,6 +516,9 @@ require_once __DIR__."/../includes/checkdata.php";
 				if (($row['waivereqscore']&2)==2) {
 					$notesarr[$row['eid']] .= ' ('._('waives add work cutoff').')';
                 }
+				if ($row['exceptionpenalty'] !== null) {
+					$notesarr[$row['eid']] .= ' ('.sprintf(_('%d%% late penalty'), $row['exceptionpenalty']).')';
+				}
                 if ($row['timeext'] != 0) {
                     $notesarr[$row['eid']] .= ' ('.sprintf(_('%d min time extension'), abs($row['timeext']));
                     if ($row['timeext'] < 0) {

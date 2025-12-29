@@ -106,33 +106,45 @@ if (isset($_POST['setupfcm'])) {
 	exit;
 }
 if (isset($_POST['updatecaption'])) {
-	$vidid = trim($_POST['updatecaption']);
-	if (strlen($vidid)!=11 || preg_match('/[^A-Za-z0-9_\-]/',$vidid)) {
-		echo 'Invalid video ID';
-		exit;
-	}
-    $vidid = Sanitize::simpleASCII($vidid);
-
-	$captioned = getCaptionDataByVidId($vidid);
-
-	if ($captioned==1) {
-		$upd = $DBH->prepare("UPDATE imas_questionset SET extref=? WHERE id=?");
-		$stm = $DBH->prepare("SELECT id,extref FROM imas_questionset WHERE extref REGEXP ?");
-		$stm->execute(array(MYSQL_LEFT_WRDBND.$vidid.MYSQL_RIGHT_WRDBND));
-		$chg = 0;
-		while ($row = $stm->fetch(PDO::FETCH_NUM)) {
-			$parts = explode('~~', $row[1]);
-			foreach ($parts as $k=>$v) {
-				if (preg_match('/\b'.$vidid.'\b/', $v)) {
-					$parts[$k] = preg_replace('/!!0$/', '!!1', $v);
+	$vids = array_map('trim', explode(',', $_POST['updatecaption']));
+	$chg = 0;
+	foreach ($vids as $vidid) {
+		if (strlen($vidid)!=11 || preg_match('/[^A-Za-z0-9_\-]/',$vidid)) {
+			echo '<p>Invalid video ID</p>';
+			continue;
+		}
+		$vidid = Sanitize::simpleASCII($vidid);
+		if (!empty($_POST['forcecaptioned'])) {
+			$captioned = 1;
+			$query = "INSERT INTO imas_captiondata (vidid, captioned, status, lastchg) VALUES (?,1,2,?) ";
+			$query .= "ON DUPLICATE KEY UPDATE status=IF(VALUES(captioned)!=captioned OR status=0 OR status=3,VALUES(status),status),";
+			$query .= "lastchg=IF(VALUES(captioned)!=captioned OR status=0 OR status=3,VALUES(lastchg),lastchg),";
+			$query .= "captioned=IF(VALUES(captioned)!=captioned OR status=0 OR status=3,VALUES(captioned),captioned)";
+			$stm = $DBH->prepare($query);
+			$stm->execute([$vidid, time()]);
+		} else {
+			$captioned = getCaptionDataByVidId($vidid);
+		}
+		
+		if ($captioned==1 && empty($_POST['skipquestionupdate'])) {
+			$upd = $DBH->prepare("UPDATE imas_questionset SET extref=? WHERE id=?");
+			$stm = $DBH->prepare("SELECT id,extref FROM imas_questionset WHERE extref REGEXP ?");
+			$stm->execute(array(MYSQL_LEFT_WRDBND.$vidid.MYSQL_RIGHT_WRDBND));
+			
+			while ($row = $stm->fetch(PDO::FETCH_NUM)) {
+				$parts = explode('~~', $row[1]);
+				foreach ($parts as $k=>$v) {
+					if (preg_match('/\b'.$vidid.'\b/', $v)) {
+						$parts[$k] = preg_replace('/!!0$/', '!!1', $v);
+					}
 				}
+				$newextref = implode('~~', $parts);
+				$upd->execute(array($newextref, $row[0]));
+				$chg += $upd->rowCount();
 			}
-			$newextref = implode('~~', $parts);
-			$upd->execute(array($newextref, $row[0]));
-			$chg += $upd->rowCount();
 		}
 	}
-	echo '<p>Updated '.$chg.' records.</p><p><a href="utils.php">Utils</a></p>';
+	echo '<p>Updated '.$chg.' question records.</p><p><a href="utils.php">Utils</a></p>';
 	exit;
 }
 if (isset($_POST['updatecaptionbyqids'])) {
@@ -313,8 +325,10 @@ if (isset($_GET['form'])) {
 		require_once "../header.php";
 		echo '<div class="breadcrumb">'.$curBreadcrumb.' &gt; Update Caption Data</div>';
 		echo '<form method="post" action="'.$imasroot.'/util/utils.php">';
-		echo 'YouTube video ID: <input type="text" size="11" name="updatecaption"/>';
-		echo '<input type="submit" value="Go"/>';
+		echo '<label>YouTube video ID: <input type="text" size="11" name="updatecaption"/></label>';
+		echo '<br/><label><input type=checkbox name="forcecaptioned" value="1"> Skip scan and mark as captioned (manually verified)</label>';
+		echo '<br/><label><input type=checkbox name="skipquestionupdate" value="1"> Skip question updating</label>';
+		echo '<br/><input type="submit" value="Go"/>';
 		echo '</form>';
 		require_once "../footer.php";
 	} else if ($_GET['form']=='updatecaptionbyqids') {

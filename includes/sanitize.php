@@ -8,6 +8,7 @@ class Sanitize
 	private static $blacklistedFilenames = array(
 		'/^\./',
 		'/\.php\d?$/',
+		'/\.phar$/',
 		'/\.bat$/',
 		'/\.com$/',
 		'/\.exe$/',
@@ -17,6 +18,14 @@ class Sanitize
 		'/\.sh$/',
 		'/\.asp$/',
 		'/\.p$/'
+	);
+
+	private static $localBlacklistedFilenames = array(
+		'/\.htm$/',
+		'/\.html\d?$/',
+		'/\.js$/',
+		'/\.xhtml$/',
+		'/\.xml$/'
 	);
 
 	/**
@@ -78,6 +87,16 @@ class Sanitize
 		foreach (self::$blacklistedFilenames as $blacklistedFilename) {
 			if (preg_match($blacklistedFilename, $filenameToCheck)) {
 				return true;
+			}
+		}
+		// not using S3 for coursefiles, check local blacklist
+		// even though file might get uploaded to S3 if not coursefile
+		// this is easier than trying to keep track of what kind of upload it is
+		if (empty($GLOBALS['CFG']['GEN']['AWSforcoursefiles'])) {
+			foreach (self::$localBlacklistedFilenames as $blacklistedFilename) {
+				if (preg_match($blacklistedFilename, $filenameToCheck)) {
+					return true;
+				}
 			}
 		}
 

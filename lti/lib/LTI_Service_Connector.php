@@ -65,6 +65,7 @@ class LTI_Service_Connector {
         // Make request to get auth token
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $this->registration->get_auth_token_url());
+        curl_setopt($ch, CURLOPT_USERAGENT, \Sanitize::simpleASCII($GLOBALS['installname'] ?? 'IMathAS'));
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($auth_request));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -111,6 +112,7 @@ class LTI_Service_Connector {
             'Accept:' . $accept,
         ];
         curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_USERAGENT, \Sanitize::simpleASCII($GLOBALS['installname'] ?? 'IMathAS'));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HEADER, 1);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);

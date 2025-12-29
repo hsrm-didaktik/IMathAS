@@ -20,8 +20,6 @@ require_once "./AssessInfo.php";
 require_once "./AssessRecord.php";
 require_once './AssessUtils.php';
 
-header('Content-Type: application/json; charset=utf-8');
-
 //validate inputs
 check_for_required('GET', array('aid', 'cid'));
 $cid = Sanitize::onlyInt($_GET['cid']);
@@ -73,7 +71,7 @@ $include_from_assess_info = array(
   'can_use_latepass', 'allowed_attempts', 'retake_penalty', 'exceptionpenalty', 'earlybonus',
   'timelimit_multiplier', 'latepasses_avail', 'latepass_extendto', 'keepscore',
   'noprint', 'overtime_penalty', 'overtime_grace', 'reqscorename', 'reqscorevalue', 
-  'attemptext', 'showworktype', 'latepass_enddate', 'latepass_after'
+  'attemptext', 'showworktype', 'latepass_enddate', 'latepass_after', 'latepass_reason'
 );
 $assessInfoOut = $assess_info->extractSettings($include_from_assess_info);
 

@@ -82,7 +82,10 @@ class AssessRecord
       $this->hasRecord = true;
       if (($this->assessRecord['status']&32)==32) {
         //out of attempts, so disable can_use_latepass
-        $this->assess_info->overrideSetting('can_use_latepass', 0);
+        if ($this->assess_info->getSetting('can_use_latepass') > 0) {
+          $this->assess_info->overrideSetting('can_use_latepass', 0);
+          $this->assess_info->overrideSetting('latepass_reason', 9);
+        }
       }
     }
     $this->tmpdata = null;
@@ -170,7 +173,7 @@ class AssessRecord
 
     $qarr = array();
     $fields = array('lti_sourcedid', 'timeontask', 'starttime', 'lastchange',
-                    'score', 'status', 'timelimitexp');
+                    'score', 'status', 'status2', 'timelimitexp');
     foreach ($fields as $field) {
       $qarr[':'.$field] = $this->assessRecord[$field];
     }
@@ -243,6 +246,12 @@ class AssessRecord
    * @param  boolean $isstu     true if student initiated
    */
   public function updateLTIscore($sendnow = true, $isstu = true) {
+    if ($this->assess_info->getSetting('scoresingb') === 'manual' &&
+      ($this->assessRecord['status2']&1) == 0
+    ) {
+      // manual release, not released yet - don't sent LTI update
+      return;
+    }
     $lti_sourcedid = $this->getLTIsourcedId();
     if (strlen($lti_sourcedid) > 1) {
         require_once __DIR__ . '/../includes/ltioutcomes.php';
@@ -299,6 +308,7 @@ class AssessRecord
       'lastchange' => 0,
       'score' => 0,
       'status' => 0,  // overridden later
+      'status2' => 0,
       'scoreddata' => '',
       'practicedata' => ''
     );
@@ -328,7 +338,7 @@ class AssessRecord
     $qarr = array();
     $vals = array();
     foreach ($users as $uid) {
-      $vals[] = '(?,?,?,?,?,?,?,?,?)';
+      $vals[] = '(?,?,?,?,?,?,?,?,?,?)';
       $this_lti_sourcedid = '';
       if (isset($lti_sourcedidarr[$uid])) {
         $this_lti_sourcedid = $lti_sourcedidarr[$uid];
@@ -343,12 +353,13 @@ class AssessRecord
         $recordStart ? $this->now : 0,
         2,
         $this->assessRecord['status'],
+        $this->assessRecord['status2'],
         $scoredtosave,
         $practicetosave
       );
     }
     $query = 'INSERT INTO imas_assessment_records (userid, assessmentid,
-      agroupid, lti_sourcedid, starttime, ver, status, scoreddata, practicedata)
+      agroupid, lti_sourcedid, starttime, ver, status, status2, scoreddata, practicedata)
       VALUES '.implode(',', $vals);
     $stm = $this->DBH->prepare($query);
     $stm->execute($qarr);
@@ -507,6 +518,14 @@ class AssessRecord
   }
 
   /**
+   * Gets the assessment status
+   * @return [type] [description]
+   */
+  public function getStatus2() {
+    return $this->assessRecord['status2'];
+  }
+
+  /**
    * Get whether previous/cur attempt accepts work after
    * @return boolean
    */
@@ -567,6 +586,18 @@ class AssessRecord
       );
     }
     return $out;
+  }
+
+  /**
+   * Swap assess version to last
+   */
+  public function setAssessVerAsLast($aver) {
+    $this->parseData();
+    $vertomove = $this->data['assess_versions'][$aver];
+    array_splice($this->data['assess_versions'], $aver, 1);
+    array_push($this->data['assess_versions'], $vertomove);
+    // recalculate score; don't need to rescore individual questions
+    $this->reTotalAssess([]);
   }
 
   /**
@@ -773,6 +804,26 @@ class AssessRecord
     $this->need_to_record = true;
   }
 
+  /** 
+   * Update the manually released flag
+   * @param bool $release  Boolean whether to release
+   * @return bool changed
+   */
+  public function setManuallyReleased($release) {
+    $this->parseData();
+    // only update if it's actually a change
+    if ((($this->assessRecord['status2']&1)==1) !== $release) {
+      if ($release) {
+        $this->assessRecord['status2'] |= 1;
+      } else {
+        $this->assessRecord['status2'] &= ~1;
+      }
+      $this->need_to_record = true;
+      return true;
+    }
+    return false;
+  }
+
   /**
    * Updates the lastchange for the current assessment version
    * @param int $time   Timestamp to set as last change
@@ -955,30 +1006,35 @@ class AssessRecord
    * Score any autosave data.  Records it as a single submission with a date
    * based on the last autosave time
    *
+   * @param  int|bool  $submission      Submission number, to use an existing one
    * @return void
    */
-  public function scoreAutosaves() {
+  public function scoreAutosaves($submission=false) {
     $this->parseData();
 
     $autosaves = $this->data['autosaves'];
     if (count($autosaves) === 0) {
       return; // nothing to do
     }
-    $maxtime = 0;
-    foreach ($autosaves as $qn=>$qdata) {
-      if ($qdata['time'] > $maxtime) {
-        $maxtime = $qdata['time'];
+    $submission_time = 0;
+    if ($submission === false) {
+      $maxtime = 0;
+      foreach ($autosaves as $qn=>$qdata) {
+        if ($qdata['time'] > $maxtime) {
+          $maxtime = $qdata['time'];
+        }
       }
+      $submission_time = $maxtime + $this->assessRecord['starttime'];
+      // add a submission
+      $submission = $this->addSubmission($submission_time);
     }
-    $submission_time = $maxtime + $this->assessRecord['starttime'];
 
     // Load the question code
     $qns = array_keys($autosaves);
     list($qids, $toloadqids) = $this->getQuestionIds($qns);
     $this->assess_info->loadQuestionSettings($toloadqids, true, false);
 
-    // add a submission
-    $submission = $this->addSubmission($submission_time);
+    
 
     // score the questions
     foreach ($autosaves as $qn=>$qdata) {
@@ -2690,7 +2746,7 @@ class AssessRecord
         $curAver['questions'][$qn]['score'] = round($maxQscore + 1e-8,2);
         $curAver['questions'][$qn]['rawscore'] = round($maxQrawscore + 1e-8,4);
         $curAver['questions'][$qn]['time'] = $totalQtime;
-        $aVerScore += $maxQscore;
+        $aVerScore += $curAver['questions'][$qn]['score'];
         $verTime += $totalQtime;
       } // end loop over questions
       $curAver['score'] = round($aVerScore + 1e-8, 1);
@@ -3154,8 +3210,9 @@ class AssessRecord
 
     if (!$this->teacherInGb && (
       $scoresInGb == 'never' ||
-      ($scoresInGb =='after_due' && time() < $this->assess_info->getSetting('enddate')) ||
-      ($scoresInGb =='after_lp' && time() < $this->assess_info->getSetting('latepass_enddate')))
+      ($scoresInGb == 'after_due' && time() < $this->assess_info->getSetting('enddate')) ||
+      ($scoresInGb == 'after_lp' && time() < $this->assess_info->getSetting('latepass_enddate')) ||
+      ($scoresInGb == 'manual' && ($this->assessRecord['status2']&1) === 0))
     ) {
       // don't show overall score;
       $out['gbscore'] = "N/A";
@@ -3180,6 +3237,9 @@ class AssessRecord
           $stm->execute(array_values($this->data['excused']));
           $out['excused'] = $stm->fetchAll(PDO::FETCH_COLUMN, 0);
       }
+      if ($scoresInGb == 'manual') {
+        $out['manual_released'] = (($this->assessRecord['status2']&1) === 1) ? 1 : 0;
+      }
     }
     return $out;
   }
@@ -3199,8 +3259,9 @@ class AssessRecord
     $scoresInGb = $this->assess_info->getSetting('scoresingb');
     if (!$this->teacherInGb && (
       $scoresInGb == 'never' ||
-      ($scoresInGb =='after_due' && time() < $this->assess_info->getSetting('enddate')) ||
-      ($scoresInGb =='after_lp' && time() < $this->assess_info->getSetting('latepass_enddate')))
+      ($scoresInGb == 'after_due' && time() < $this->assess_info->getSetting('enddate')) ||
+      ($scoresInGb == 'after_lp' && time() < $this->assess_info->getSetting('latepass_enddate')) ||
+      ($scoresInGb == 'manual' && ($this->assessRecord['status2']&1) === 0))
     ) {
       $scored_aver = 0;
     }
@@ -3244,7 +3305,8 @@ class AssessRecord
       $scoresInGb == 'immediately' ||
       ($scoresInGb == 'after_take' && $aver['status'] == 1) ||
       ($scoresInGb == 'after_due' && time() > $this->assess_info->getSetting('enddate')) ||
-      ($scoresInGb == 'after_lp' && time() > $this->assess_info->getSetting('latepass_enddate'))
+      ($scoresInGb == 'after_lp' && time() > $this->assess_info->getSetting('latepass_enddate')) ||
+      ($scoresInGb == 'manual' && ($this->assessRecord['status2']&1) === 1)
     ) {
       $out['score'] = $aver['score'];
       $showScores = true;
@@ -3364,7 +3426,8 @@ class AssessRecord
       $scoresInGb == 'immediately' ||
       ($scoresInGb == 'after_take' && $this->data['assess_versions'][$aver]['status'] == 1) ||
       ($scoresInGb == 'after_due' && time() > $this->assess_info->getSetting('enddate')) ||
-      ($scoresInGb == 'after_lp' && time() > $this->assess_info->getSetting('latepass_enddate'))
+      ($scoresInGb == 'after_lp' && time() > $this->assess_info->getSetting('latepass_enddate')) ||
+      ($scoresInGb == 'manual' && ($this->assessRecord['status2']&1) === 1)
     ) {
       $showScores = true;
     } else {
@@ -3517,8 +3580,8 @@ class AssessRecord
       if ($scores['gen'] === '') {
         if (isset($this->data['scoreoverride'])) {
           $changes['gen'] = ['old'=>$this->data['scoreoverride'], 'new'=>''];
+          unset($this->data['scoreoverride']);
         }
-        unset($this->data['scoreoverride']);
         $doRetotal = true;
       } else {
         $changes['gen'] = ['old'=> ($this->data['scoreoverride'] ?? ''), 'new'=>$scores['gen']];
@@ -3552,8 +3615,8 @@ class AssessRecord
         if ($score === '') {
           if (isset($qdata['scoreoverride'])) {
             $changes[$chgkey] = ['old'=>$qdata['scoreoverride'], 'new'=>''];
+            unset($qdata['scoreoverride']);
           }
-          unset($qdata['scoreoverride']);
         } else {
           if (!isset($qdata['scoreoverride']) || floatval($score) != $qdata['scoreoverride']) {
             $changes[$chgkey] = ['old'=>$qdata['scoreoverride'] ?? '', 'new'=>$score];
@@ -3575,8 +3638,8 @@ class AssessRecord
         if ($score === '') {
           if (isset($qdata['scoreoverride'][$pn])) {
             $changes[$chgkey] = ['old'=>$qdata['scoreoverride'][$pn], 'new'=>''];
-          }
-          unset($qdata['scoreoverride'][$pn]);
+            unset($qdata['scoreoverride'][$pn]);
+          } 
         } else {
           if (!isset($qdata['scoreoverride'][$pn]) || floatval($score) != $qdata['scoreoverride'][$pn]) {
             $changes[$chgkey] = ['old'=>$qdata['scoreoverride'][$pn] ?? '', 'new'=>$score];
@@ -3877,7 +3940,9 @@ class AssessRecord
         $latestQver = count($curAver['questions'][$qn]['question_versions']) - 1;
         $curQver = $curAver['questions'][$qn]['question_versions'][$latestQver];
         // check if question is unattempted; may way to use scored_try instead?
-        if (!isset($curQver['tries']) || count($curQver['tries']) == 0) {
+        if ((!isset($curQver['tries']) || count($curQver['tries']) == 0) &&
+          empty($curAver['questions'][$qn]['withdrawn'])
+        ) {
           $allQattempted = false;
           break;
         }
@@ -3966,7 +4031,7 @@ class AssessRecord
           $pts = explode('|',$parttrydata[$tn]['stuans'] ?? '');
           $outstr = '';
           foreach ($pts as $ptval) {
-            $outstr .= ($ptval=="") ? "" : $GLOBALS['choicesdata'][$partref][$ptval].'<br/>';
+            $outstr .= ($ptval=="") ? "" : ($GLOBALS['choicesdata'][$partref][$ptval] ?? $ptval).'<br/>';
           }
           $out[$pn][] = $outstr;
         } else if ($qtype == 'matching') {
@@ -3974,7 +4039,7 @@ class AssessRecord
           $qrefarr = array_flip($GLOBALS['choicesdata'][$partref][0]);
           $outptarr = array();
           foreach ($pts as $k=>$ptval) {
-            $outptarr[$qrefarr[$k]] = ($ptval=="") ? "" : $GLOBALS['choicesdata'][$partref][1][$ptval];
+            $outptarr[$qrefarr[$k]] = ($ptval=="") ? "" : ($GLOBALS['choicesdata'][$partref][1][$ptval] ?? $ptval);
           }
           ksort($outptarr);
           $out[$pn][] = implode('<br/>',$outptarr);

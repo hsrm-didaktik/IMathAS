@@ -10,12 +10,10 @@ if (!empty($_POST['checked'])) {
     $data = array_map('intval', $_POST['checked']);
     $ph = Sanitize::generateQueryPlaceholders($data);
     
-    $query = "DELETE imas_questionerrors FROM imas_questionerrors 
-        JOIN imas_questionset ON imas_questionerrors.qsetid=imas_questionset.id
-        WHERE imas_questionerrors.qsetid IN ($ph)";
+    $query = "DELETE FROM imas_questionerrorlog WHERE qsetid IN ($ph)";
     if (!$isadmin) {
         $data[] = $userid;
-        $query .= " AND imas_questionset.ownerid=?";
+        $query .= " AND ownerid=?";
     }
     $stm = $DBH->prepare($query);
     $stm->execute($data);
@@ -30,24 +28,22 @@ if ($isadmin) {
         } else {
             $old = time() - 60*60*24*30;
         }
-        $query = 'SELECT iqe.*,count(iqe.seed) as errcnt FROM imas_questionerrors AS iqe
+        $query = 'SELECT iqe.* FROM imas_questionerrorlog AS iqe
             JOIN imas_questionset AS iqs ON iqe.qsetid=iqs.id
             JOIN imas_users AS iu ON iqs.ownerid=iu.id
             WHERE iqs.userights>0 AND iu.lastaccess<'.$old.'
-            GROUP BY iqe.qsetid,iqe.error ORDER BY iqe.qsetid';
+            ORDER BY iqe.qsetid';
     } else if (!empty($_GET['public'])) {
-        $query = 'SELECT iqe.*,count(iqe.seed) as errcnt FROM imas_questionerrors AS iqe
+        $query = 'SELECT iqe.* FROM imas_questionerrorlog AS iqe
             JOIN imas_questionset AS iqs ON iqe.qsetid=iqs.id
-            WHERE iqs.userights>0 GROUP BY iqe.qsetid,iqe.error ORDER BY iqe.qsetid';
+            WHERE iqs.userights>0 ORDER BY iqe.qsetid';
     } else {
-        $query = 'SELECT *,count(seed) AS errcnt FROM imas_questionerrors GROUP BY qsetid,error ORDER BY qsetid';
+        $query = 'SELECT * FROM imas_questionerrorlog ORDER BY qsetid';
     }
 
     $stm = $DBH->query($query);
 } else {
-    $query = 'SELECT iqe.*,count(iqe.seed) as errcnt FROM imas_questionerrors AS iqe
-        JOIN imas_questionset AS iqs ON iqe.qsetid=iqs.id
-        WHERE iqs.ownerid=? GROUP BY iqe.qsetid,iqe.error ORDER BY iqe.qsetid';
+    $query = 'SELECT * FROM imas_questionerrorlog WHERE ownerid=? ORDER BY qsetid';
 
     $stm = $DBH->prepare($query);
     $stm->execute([$userid]);
@@ -133,6 +129,7 @@ echo '<div class="fixedonscroll">';
 echo _('With selected:') . ' <button type="button" id="quicksavebtn" onclick="quicksave()">'._('Clear log').'</button> ';
 echo '<span class="noticetext" id="quicksavenotice" aria-live="polite" aria-atomic=true>&nbsp;</span>';
 echo '</div>';
+echo '<div class="fixedonscrollpad"></div>';
 echo '<ul class="nomark">';
 $lastqsetid = 0;
 foreach ($qorder as $qsetid) {
@@ -143,9 +140,6 @@ foreach ($qorder as $qsetid) {
     foreach ($allrows[$qsetid] as $row) {
         echo '<li><a target="_blank" href="../course/testquestion2.php?cid=0&qsetid='.$qsetid.'&seed='.intval($row['seed']).'">';
         echo 'Seed '.intval($row['seed']).'</a>';
-        if ($row['errcnt'] > 1) {
-            echo '<span class="small grey">(and '.($row['errcnt']-1).' other)</span>';
-        }
         echo ': ' . Sanitize::encodeStringForDisplay($row['error']).'</li>';
     }
     echo '</ul></li>';

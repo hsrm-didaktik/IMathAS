@@ -129,6 +129,7 @@
     "jump_to_answer": "Jump to Answer",
     "jump_warn": "This will use up your remaining tries at this version of the question.",
     "showwork": "Show work here by typing it or attaching a file or picture",
+    "showwork_n": "Work for question {n}",
     "uploadwork": "Show work here by attaching a file or picture",
     "uploading": "Uploading...",
     "intronext": "To begin, navigate to a question using the selector or > Next button above.",
@@ -463,6 +464,7 @@
     "no_versions": "No assessment attempts available to view yet",
     "minutes": "minutes",
     "avail_never": "Grade is currently hidden by the teacher.",
+    "avail_manual": "Grade is currently hidden by the teacher.",
     "avail_after_take": "Will show after you submit an assessment attempt.",
     "avail_after_due": "Will show after the due date.",
     "avail_after_lp": "Will show after the LatePass period.",
@@ -493,7 +495,14 @@
     "nextq": "Next Question",
     "prevq": "Previous Question",
     "oneatatime": "One at a time",
-    "a11yalt": "Accessible alternative"
+    "a11yalt": "Accessible alternative",
+    "set_as_last": "Move to Last",
+    "setaslast_warn": "This will move this attempt to be the last attempt, making it the scored attempt",
+    "manualstatus0": "Grade has not been released to the student",
+    "manualbutton0": "Release grade",
+    "manualstatus1": "Grade has been released to the student",
+    "manualbutton1": "Un-Release grade",
+    "release_on_save": "Release grade to student on Save"
   },
   "work": {
     "add": "Add Work",
@@ -516,5 +525,16 @@
   "links": {
       "settings": "Settings",
       "questions": "Questions"
+  },
+  "latepass": {
+    "reason0": "LatePasses are not enabled.",
+    "reason2": "LatePasses cannot be used because it is past the LatePass cutoff time.",
+    "reason3": "LatePasses cannot be used because it is past the course end date.",
+    "reason4": "LatePasses cannot be used because it is past assessment end date, and LatePasses must be used before that.",
+    "reason5": "LatePasses cannot be used because it is too far past the due date for the allowed number to LatePasses to reopen it.",
+    "reason6": "LatePasses cannot be used because you do not have enough LatePasses to reopen this assesssment.",
+    "reason7": "LatePasses cannot be used because you have opened this assessment in Practice Mode, and that blocks use of LatePasses.",
+    "reason8": "LatePasses cannot be used because you have reviewed this assessment in the Gradebook, and that blocks use of LatePasses.",
+    "reason9": "LatePasses cannot be used because you are out of attempts."
   }
 }

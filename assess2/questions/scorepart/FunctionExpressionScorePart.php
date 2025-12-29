@@ -213,8 +213,12 @@ class FunctionExpressionScorePart implements ScorePart
                     } else {
                         preg_match('/(.*?)(<=|>=|<|>|!=)(.*)/', $answer, $matches);
                     }
-                    $answer = $matches[3] . '-(' . $matches[1] . ')';
-                    $answerInequality = $matches[2];
+                    if (isset($matches[3])) {
+                        $answer = $matches[3] . '-(' . $matches[1] . ')';
+                        $answerInequality = $matches[2];
+                    } else {
+                        $answerInequality = '='; // prevent error on invalid $answer
+                    }
                 } else if (in_array('equation',$ansformats)) {
                     $answer = preg_replace('/(.*)=(.*)/','$1-($2)',$answer);
                 } 
@@ -410,8 +414,8 @@ class FunctionExpressionScorePart implements ScorePart
                         }
                     }
 
-                    if ($cntnan==20 && !empty($GLOBALS['inQuestionTesting'])) {
-                        echo _('Debug info: function evaled to Not-a-number at all test points.  Check $domain');
+                    if ($cntnan==20) {
+                        echo _('Debug info: $answer function evaled to Not-a-number at all test points.  Check $domain');
                     }
                     if ($stunan>1) { //if more than 1 student NaN response
                         $correct = false; continue;

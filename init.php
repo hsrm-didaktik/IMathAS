@@ -22,7 +22,7 @@ if (isset($CFG['hooks']['init'])) {
 	require_once $CFG['hooks']['init'];
 }
 
-$lastvueupdate = '20250922';
+$lastvueupdate = '20251227';
 
 // setup session stuff
 if (!function_exists('disallowsSameSiteNone')) {
@@ -106,6 +106,9 @@ function setsecurecookie($name, $value, $expires=0, $httponly=true) {
 if (!defined('JSON_INVALID_UTF8_IGNORE')) {
 	define('JSON_INVALID_UTF8_IGNORE', 0);
 }
+
+// set default user agent for file_get_contents
+ini_set('user_agent', Sanitize::simpleASCII($GLOBALS['installname'] ?? 'IMathAS'));
 
 // Store PHP sessions in the database.
 if (!isset($use_local_sessions)) {

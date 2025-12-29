@@ -425,7 +425,7 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
 
     //is updating, switching from nongroup to group, and not creating new groupset, check if groups and asids already exist
     //if so, cannot handle
-    $updategroupset='';
+    $updategroupset=false;
     if (isset($_GET['id']) && $toset['isgroup']>0 && $toset['groupsetid']>0) {
       $isok = true;
       $stm = $DBH->prepare("SELECT isgroup FROM imas_assessments WHERE id=:id");
@@ -442,7 +442,7 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
             exit;
         }
       }
-      $updategroupset = $toset['groupsetid'];
+      $updategroupset = true;
     }
 
     if ($toset['isgroup']>0 && isset($_POST['groupsetid']) && $toset['groupsetid']==0) {
@@ -450,8 +450,12 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
         $stm = $DBH->prepare("INSERT INTO imas_stugroupset (courseid,name) VALUES (:courseid, :name)");
         $stm->execute(array(':courseid'=>$cid, ':name'=>'Group set for '.$toset['name']));
       	$toset['groupsetid'] = $DBH->lastInsertId();
-        $updategroupset = $toset['groupsetid'];
+        $updategroupset = true;
     }
+	if ($toset['isgroup']==0) { 
+		// make sure groupset is updated if isgroup is set to 0
+		$updategroupset = true;
+	}
 
 		if (isset($_GET['id'])) {  //already have id; update
 			$stm = $DBH->prepare("SELECT * FROM imas_assessments WHERE id=:id");
@@ -471,7 +475,7 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
         $toset['intro'] = json_encode($introjson);
       }
 
-			if ($updategroupset == '') { // don't change group
+			if (!$updategroupset) { // don't change group
 				unset($toset['groupsetid']);
 			}
 			if ($dates_by_lti>0 || $toset['avail'] == 0) { // don't change dates
@@ -968,9 +972,19 @@ if ($overwriteBody==1) {
 
 	<?php
 	if (isset($_GET['id'])) {
-		printf('<div class="cp"><a href="addquestions2.php?aid=%d&amp;cid=%s" onclick="return confirm(\''
+		echo '<div class="cp"><span class="column">';
+		printf('<a href="addquestions2.php?aid=%d&amp;cid=%s" onclick="return confirm(\''
             . _('This will discard any changes you have made on this page').'\');">'
-            . _('Add/Remove Questions').'</a></div>', Sanitize::onlyInt($_GET['id']), $cid);
+            . _('Add/Remove Questions').'</a>', Sanitize::onlyInt($_GET['id']), $cid);
+		echo '</span>';
+		if ($line['password'] !== '') {
+			echo '<span class="column">';
+			printf('<a href="assessonetime.php?aid=%d&amp;cid=%s" onclick="return confirm(\''
+				. _('This will discard any changes you have made on this page').'\');">'
+				. _('One-time Passwords').'</a>', Sanitize::onlyInt($_GET['id']), $cid);
+			echo '</span>';
+		}
+		echo '<br class=clear /></div>';
 	}
 	?>
 	<?php echo $page_isTakenMsg ?>

@@ -478,7 +478,7 @@ switch($_GET['action']) {
             }
         }
 		if ($doselfenroll) {
-			echo '<p>',_('Select the course you\'d like to enroll in'),'</p>';
+			echo '<p><label for="courseselect">',_('Select the course you\'d like to enroll in'),'</label></p>';
 			echo '<p><select id="courseselect" name="courseselect" onchange="courseselectupdate(this);">';
 			echo '<option value="0" selected="selected">',_('My teacher gave me a course ID (enter below)').'</option>';
 			echo '<optgroup label="Self-study courses">';
@@ -544,6 +544,16 @@ switch($_GET['action']) {
 				echo '<p>',_('Please select a new password'),':</p>';
 				echo '<p>',_('Enter new password'),':  <input type="password" size="25" id=pw1 name="pw1"/><br/>';
 				echo '<p>',_('Verify new password'),':  <input type="password" size="25" id=pw2 name="pw2"/></p>';
+
+				if ($linkdata['recoverylink']) {
+					$stm = $DBH->prepare("SELECT email FROM imas_users WHERE id=?");
+					$stm->execute([$linkdata['uid']]);
+					$email = $stm->fetchColumn(0);
+
+					echo '<p>'._('Verify email, and fix if needed').': <input type=text size=40 id=email name=email value="' . 
+						Sanitize::encodeStringForDisplay($email) . '" /></p>';
+				}
+
 				echo "<p><input type=submit value=\"",_('Submit'),"\" /></p></form>";
 				showNewUserValidation("pageform");
 			} else {

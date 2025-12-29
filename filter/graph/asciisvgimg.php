@@ -546,7 +546,11 @@ function ASinitPicture($arg=array()) {
 		$this->ymax = -$this->ymin;
 	} else {
 		if (isset($arg[3])) {  // do have ymax too
-			$this->yunitlength = ($this->height - $this->border[1] - $this->border[3])/($this->ymax - $this->ymin);
+			if ($this->ymax == $this->ymin) {
+				$this->yunitlength = 1;
+			} else {
+				$this->yunitlength = ($this->height - $this->border[1] - $this->border[3])/($this->ymax - $this->ymin);
+			}
 			if ($this->yunitlength<=0) {
 				$this->yunitlength = 1;
 			}
@@ -1239,10 +1243,10 @@ function ASplot($function) {
 			if ($y <= $yymax && $y >= $yymin) { //coming in
 				if ($yymax-$y < .5*($yymax-$yymin)) { //closer to top
 					$iy = $yymax;
-					if ($py<$yymin) { $py = $yymax+.5*($ymax-$ymin);}
+					if ($py<$yymin) { $py = $yymax+.5*($yymax-$yymin);}
 				} else { //coming from bottom
 					$iy = $yymin;
-					if ($py>$yymax) { $py = $yymin-.5*($ymax-$ymin);}
+					if ($py>$yymax) { $py = $yymin-.5*($yymax-$yymin);}
 				}
 				$ix = ($x-$px)*($iy - $py)/($y-$py) + $px;
 				$this->ASline(array("[$ix,$iy]","[$x,$y]"));

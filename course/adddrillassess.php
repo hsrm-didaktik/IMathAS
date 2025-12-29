@@ -40,38 +40,39 @@ if (!isset($_GET['daid'])) {
 	$beentaken = false;
 } else {
 	$daid = Sanitize::onlyInt($_GET['daid']);
-    $stm = $DBH->prepare("SELECT * FROM imas_drillassess WHERE id=:id AND courseid=:courseid");
-    $stm->execute(array(':id'=>$daid, ':courseid'=>$cid));
-	if ($stm->rowCount()==0) {
-		echo 'Invalid ID';
-		exit;
-	}
+	if ($daid > 0) {
+		$stm = $DBH->prepare("SELECT * FROM imas_drillassess WHERE id=:id AND courseid=:courseid");
+		$stm->execute(array(':id'=>$daid, ':courseid'=>$cid));
+		$dadata = $stm->fetch(PDO::FETCH_ASSOC);
+		if ($dadata === false) {
+			echo 'Invalid ID';
+			exit;
+		}
+		$n = $dadata['n'];
+		$showtype = $dadata['showtype'];
+		$scoretype = $dadata['scoretype'];
+		$showtostu = $dadata['showtostu'];
+		$startdate= $dadata['startdate'];
+		$enddate= $dadata['enddate'];
+		$avail= $dadata['avail'];
+		$drillname= $dadata['name'];
+		$drillsummary= $dadata['summary'];
+		$caltag = $dadata['caltag'];
 
-	$dadata = $stm->fetch(PDO::FETCH_ASSOC);
-	$n = $dadata['n'];
-	$showtype = $dadata['showtype'];
-	$scoretype = $dadata['scoretype'];
-	$showtostu = $dadata['showtostu'];
-	$startdate= $dadata['startdate'];
-	$enddate= $dadata['enddate'];
-	$avail= $dadata['avail'];
-	$drillname= $dadata['name'];
-	$drillsummary= $dadata['summary'];
-	$caltag = $dadata['caltag'];
-
-	if ($dadata['itemids']=='') {
-		$itemids = array();
-	} else {
-		$itemids = explode(',',$dadata['itemids']);
-	}
-	if ($dadata['itemdescr']=='') {
-		$itemdescr = array();
-	} else {
-		$itemdescr = explode(',',$dadata['itemdescr']);
+		if ($dadata['itemids']=='') {
+			$itemids = array();
+		} else {
+			$itemids = explode(',',$dadata['itemids']);
+		}
+		if ($dadata['itemdescr']=='') {
+			$itemdescr = array();
+		} else {
+			$itemdescr = explode(',',$dadata['itemdescr']);
+		}
 	}
 
 	// handle POSTS
-	if (isset($_GET['clearatt'])) {
+	if (isset($_GET['clearatt']) && $daid>0) {
 		$stm = $DBH->prepare("DELETE FROM imas_drillassess_sessions WHERE drillassessid=:drillassessid");
 		$stm->execute(array(':drillassessid'=>$daid));
 		header(sprintf('Location: %s/course/adddrillassess.php?cid=%s&daid=%d&r=%s', $GLOBALS['basesiteurl'], $cid, $daid, Sanitize::randomQueryStringParam()));
@@ -235,6 +236,10 @@ if (!isset($_GET['daid'])) {
 		}
 		exit;
 	}
+	if ($daid == 0) {
+		echo 'Invalid ID';
+		exit;
+	}
 
 	$query = "SELECT ias.id FROM imas_drillassess_sessions AS ias,imas_students WHERE ";
 	$query .= "ias.drillassessid=:drillassessid AND ias.userid=imas_students.userid AND imas_students.courseid=:courseid LIMIT 1";
@@ -257,7 +262,7 @@ $placeinhead = "<script type=\"text/javascript\">
 $placeinhead .= "<script type=\"text/javascript\" src=\"$staticroot/javascript/addquestions.js\"></script>";
 $placeinhead .= '<script type="text/javascript" src="'.$staticroot.'/javascript/tablesorter.js"></script>';
 $placeinhead .= "<script type=\"text/javascript\" src=\"$staticroot/javascript/DatePicker.js\"></script>";
-$placeinhead .= "<script type=\"text/javascript\" src=\"$staticroot/javascript/qsearch.js?071125\"></script>";
+$placeinhead .= "<script type=\"text/javascript\" src=\"$staticroot/javascript/qsearch.js?111925\"></script>";
 $placeinhead .= "<link rel=\"stylesheet\" href=\"$staticroot/course/addquestions2.css?v=060823\" type=\"text/css\" />";
 require_once "../header.php";
 

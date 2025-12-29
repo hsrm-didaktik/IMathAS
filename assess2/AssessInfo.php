@@ -165,13 +165,9 @@ class AssessInfo
 
     $this->exceptionfunc = new ExceptionFuncs($uid, $this->cid, $isstu, $latepasses, $latepasshrs);
 
-    if ($latepasses > 0) {
-      list($useexception, $canundolatepass, $canuselatepass) =
-        $this->exceptionfunc->getCanUseAssessException($this->exception, $this->assessData);
-    } else {
-      $useexception = $this->exceptionfunc->getCanUseAssessException($this->exception, $this->assessData, true);
-      $canuselatepass = false;
-    }
+    list($useexception, $latepassreason) =
+        $this->exceptionfunc->getCanUseAssessException($this->exception, $this->assessData, false, true);
+    $canuselatepass = ($latepassreason == 1);
 
     // use time limit extension even if rest of exception isn't used
     if ($this->exception !== false && !empty($this->exception['timeext'])) {
@@ -221,6 +217,8 @@ class AssessInfo
       $this->setAvailable();
     }
 
+    $this->assessData['latepasses_avail'] = $latepasses;
+    $this->assessData['latepass_reason'] = $latepassreason;
     //determine if latepasses can be used, and how many are needed
     if ($canuselatepass) {
       if (time() > $this->assessData['enddate']) {
@@ -232,7 +230,6 @@ class AssessInfo
 
       $this->assessData['can_use_latepass'] = $LPneeded;
       $this->assessData['latepass_after'] = ($this->assessData['allowlate']>10);
-      $this->assessData['latepasses_avail'] = $latepasses;
 
       $LPcutoff = $this->assessData['LPcutoff'];
       if ($LPcutoff<$this->assessData['enddate']) {
@@ -247,7 +244,6 @@ class AssessInfo
       } else {
         $this->assessData['latepass_extendto'] = strtotime("+".($latepasshrs*$LPneeded)." hours", $this->assessData['enddate']);
       }
-
     } else {
       $this->assessData['can_use_latepass'] = 0;
     }
@@ -568,9 +564,26 @@ class AssessInfo
    * normalization, so those aren't checked here.
    */
   public function checkPassword($pw) {
-    return ($this->assessData['password'] == '' ||
-        $this->assessData['password'] == trim($pw)
-    );
+    $pw = trim($pw);
+    if ($this->assessData['password'] == '' ||
+        $this->assessData['password'] == $pw) {
+          return true;
+    }
+    if ($this->assessData['password'] != '') {
+      $pwpts = array_map('trim', explode(';', $this->assessData['password']));
+      foreach ($pwpts as $apw) {
+        if ($apw !== '' && $apw == $pw) {
+          return true;
+        }
+      }
+      // see if it's a one-time password. Try deleting it; if successful, was valid
+      $stm = $this->DBH->prepare("DELETE FROM imas_onetime_pw WHERE assessmentid=? AND code=?");
+      $stm->execute([$this->curAid, $pw]);
+      if ($stm->rowCount() > 0) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /*
@@ -1322,7 +1335,8 @@ class AssessInfo
     }
 
     //handle IP-form passwords
-    $userIP = $_SERVER['HTTP_X_FORWARDED_FOR']
+    $userIP = $_SERVER['HTTP_CF_CONNECTING_IP']
+        ?? $_SERVER['HTTP_X_FORWARDED_FOR']
         ?? $_SERVER['REMOTE_ADDR']
         ?? $_SERVER['HTTP_CLIENT_IP']
         ?? '';

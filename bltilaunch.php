@@ -1689,7 +1689,7 @@ $_SESSION['ltirole'] = $SESS['ltirole'];
 $_SESSION['lti_context_id']  = $SESS['lti_context_id'];
 $_SESSION['lti_resource_link_id']  = $SESS['lti_resource_link_id'];
 if ($linkparts[0]=='aid') {
-	$_SESSION['lti_lis_result_sourcedid'.$aid]  = $SESS['lti_lis_result_sourcedid'];
+	$_SESSION['lti_lis_result_sourcedid'.$aid]  = $SESS['lti_lis_result_sourcedid'] ?? '';
 }
 $_SESSION['lti_outcomeurl']  = $SESS['lti_outcomeurl'];
 $_SESSION['lti_context_label'] = $SESS['lti_context_label'];
@@ -1698,6 +1698,7 @@ if (isset($SESS['lti_launch_get'])) {
 }
 $_SESSION['lti_key'] = $SESS['lti_key'];
 $_SESSION['lti_keytype'] = $SESS['lti_keytype'];
+$_SESSION['lti_keyrights'] = $SESS['lti_keyrights'];
 $_SESSION['lti_keylookup'] = $SESS['lti_keylookup'];
 $_SESSION['lti_origkey'] = $SESS['lti_origkey'];
 if (isset($SESS['lti_duedate'])) {
@@ -2718,7 +2719,7 @@ if ($keyparts[0]=='cid' || $keyparts[0]=='placein' || $keyparts[0]=='LTIkey') {
 			require_once "./includes/exceptionfuncs.php";
 			$exceptionfuncs = new ExceptionFuncs($userid, $cid, true);
 			$useexception = $exceptionfuncs->getCanUseAssessException($exceptionrow, $line, true);
-		} else if ($line['date_by_lti']==3 && ($line['enddate']!=$_SESSION['lti_duedate'] || $now<$line['startdate'])) {
+		} else if ($line['date_by_lti']==3 && isset($_SESSION['lti_duedate']) && ($line['enddate']!=$_SESSION['lti_duedate'] || $now<$line['startdate'])) {
 			//default dates already set by LTI, and users's date doesn't match - create new exception
 			//also create if it's before the default assessment startdate - since they could access via LMS, it should be available.
 			$stm = $DBH->prepare("INSERT INTO imas_exceptions (startdate,enddate,islatepass,is_lti,userid,assessmentid,itemtype) VALUES (?,?,?,?,?,?,'A')");
@@ -2939,7 +2940,7 @@ $_SESSION['lti_context_id']  = $SESS['lti_context_id'];
 $_SESSION['lti_resource_link_id']  = $SESS['lti_resource_link_id'];
 // record it with aid for safety
 if ($keyparts[0]=='aid') {
-	$_SESSION['lti_lis_result_sourcedid'.$aid]  = $SESS['lti_lis_result_sourcedid'];
+	$_SESSION['lti_lis_result_sourcedid'.$aid]  = $SESS['lti_lis_result_sourcedid'] ?? '';
 }
 $_SESSION['lti_outcomeurl']  = $SESS['lti_outcomeurl'];
 $_SESSION['lti_context_label'] = $SESS['lti_context_label'];
@@ -2948,6 +2949,7 @@ if (isset($SESS['lti_launch_get'])) {
 }
 $_SESSION['lti_key'] = $SESS['lti_key'];
 $_SESSION['lti_keytype'] = $SESS['lti_keytype'];
+$_SESSION['lti_keyrights'] = $SESS['lti_keyrights'];
 $_SESSION['lti_keylookup'] = $SESS['lti_keylookup'];
 $_SESSION['lti_origkey'] = $SESS['lti_origkey'];
 if (isset($SESS['lti_duedate'])) {

@@ -20,8 +20,6 @@ require_once "./AssessInfo.php";
 require_once "./AssessRecord.php";
 require_once './AssessUtils.php';
 
-header('Content-Type: application/json; charset=utf-8');
-
 //validate inputs
 check_for_required('GET', array('aid', 'cid'));
 $cid = Sanitize::onlyInt($_GET['cid']);
@@ -133,6 +131,7 @@ if (!$assess_record->hasRecord()) {
             $lineitemparts = explode(':|:', $lineitemdata);
             $ph = Sanitize::generateQueryPlaceholders($current_members);
             $query = "SELECT userid,ltiuserid FROM imas_ltiusers WHERE org=? AND userid IN ($ph)";
+            $stm = $DBH->prepare($query);
             $stm->execute(array_merge([$ltiorg], $current_members));
             while ($row = $stm->fetch(PDO::FETCH_ASSOC)) {
                 $lineitemparts[1] = $row['ltiuserid'];

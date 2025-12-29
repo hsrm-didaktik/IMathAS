@@ -59,7 +59,8 @@ class QuestionHtmlGenerator
         'snaptogrid',
         'strflags',
         'variables',
-        'readerlabel'
+        'readerlabel',
+        'defaults'
     );
 
     // Variables that need to be packed up and passed to the answerbox generator.
@@ -297,18 +298,20 @@ class QuestionHtmlGenerator
                         (empty($matches[2]) ? $matches[3] : $matches[2]) . '</div></div>';
                 },$toevalqtxt);
         }
-        //                              1                 2            3       4
-        if (preg_match_all('~\[if\s+([\w_]*?)\s*(==|!=|>=|<=|>|<)\s*(\w+)\s*\](.*?)\[/if\]~ms', $toevalqtxt, $QHG_all_matches, PREG_SET_ORDER)) {
+        //                              1                 2                                 3            4
+        if (preg_match_all('~\[if\s+\$?([\w_]*?)\s*(==|!=|>=|&gt;=|<=|&lt;=|>|&gt;|<|&lt;)\s*(\w+)\s*\]\s*(.*?)\[/if\]\n?~ms', $toevalqtxt, $QHG_all_matches, PREG_SET_ORDER)) {
             foreach ($QHG_all_matches as $QHG_match) {
                 $keep = false;
                 if (isset(${$QHG_match[1]})) {
+                    if (in_array($QHG_match[1], $GLOBALS['disallowedvar'])) { continue; }
                     $val = ${$QHG_match[1]};
+
                     if (($QHG_match[2]=='==' && $val==$QHG_match[3]) ||
                         ($QHG_match[2]=='!=' && $val!=$QHG_match[3]) ||
-                        ($QHG_match[2]=='>=' && $val>=$QHG_match[3]) ||
-                        ($QHG_match[2]=='<=' && $val<=$QHG_match[3]) ||
-                        ($QHG_match[2]=='>' && $val>$QHG_match[3]) ||
-                        ($QHG_match[2]=='<' && $val<$QHG_match[3])
+                        (($QHG_match[2]=='>=' || $QHG_match[2]=='&gt;=') && $val>=$QHG_match[3]) ||
+                        (($QHG_match[2]=='<=' || $QHG_match[2]=='&lt;=') && $val<=$QHG_match[3]) ||
+                        (($QHG_match[2]=='>' || $QHG_match[2]=='&gt;') && $val>$QHG_match[3]) ||
+                        (($QHG_match[2]=='<' || $QHG_match[2]=='&lt;') && $val<$QHG_match[3])
                     ) {
                         $keep = true;
                     }
@@ -316,20 +319,22 @@ class QuestionHtmlGenerator
                 if ($keep) {
                     $toevalqtxt = str_replace($QHG_match[0], $QHG_match[4], $toevalqtxt);
                 } else {
-                    $toevalqtxt = str_replace($QHG_match[0], '', $toevalqtxt);
+                    $toevalqtxt = str_replace($QHG_match[0], '', $toevalqtxt);    
                 }
             }
         }
+        
         $toevalqtxt = str_replace('\\', '\\\\', $toevalqtxt);
-        $toevalqtxt = str_replace(array('\\\\n', '\\\\"', '\\\\$', '\\\\{'),
-            array('\\n', '\\"', '\\$', '\\{'), $toevalqtxt);
+        
+        $toevalqtxt = str_replace(array('\\\\"', '\\\\$', '\\\\{', '\\\\}'),
+            array('\\"', '\\$', '\\{', '\\}'), $toevalqtxt);
 
         $toevalsoln = interpret('qtext', $quesData['qtype'], $quesData['solution']);
         $solnvars = array_merge($GLOBALS['interpretcurvars'], $GLOBALS['interpretcurarrvars']);
 
         $toevalsoln = str_replace('\\', '\\\\', $toevalsoln);
-        $toevalsoln = str_replace(array('\\\\n', '\\\\"', '\\\\$', '\\\\{'),
-            array('\\n', '\\"', '\\$', '\\{'), $toevalsoln);
+        $toevalsoln = str_replace(array('\\\\"', '\\\\$', '\\\\{', '\\\\}'),
+            array('\\"', '\\$', '\\{', '\\}'), $toevalsoln);
         $toevalsoln = preg_replace('/\$answerbox(\[.*?\])?/', '', $toevalsoln);
         
         // Reset the RNG to a known state after the question code has been eval'd.
@@ -377,6 +382,24 @@ class QuestionHtmlGenerator
                 }
             }
             unset($answersize);
+        }
+
+        /*
+         * Apply defaults, if set
+         */
+        if (isset($defaults)) {
+            foreach ($defaults as $kidx => $atIdx) {
+                if (!in_array($kidx, self::ALLOWED_QUESTION_WRITER_VARS)) { continue; }
+                if ($quesData['qtype'] == "multipart" && is_array($anstypes)) {
+                    for ($_pnidx=0; $_pnidx < count($anstypes); $_pnidx++) {
+                        if (!isset(${$kidx}[$_pnidx])) {
+                            ${$kidx}[$_pnidx] = $atIdx;
+                        }
+                    }
+                } else if (!isset(${$kidx})) {
+                    ${$kidx} = $atIdx;
+                }
+            }
         }
 
         /*
@@ -769,7 +792,10 @@ class QuestionHtmlGenerator
           $evaledqtext = '';
           $evaledsoln = '';
         }
-        $detailedSolutionContent = $this->getDetailedSolutionContent($evaledsoln);
+
+        // fix php 8.3 breaking change: \{$a} doesn't consume \ starting in 8.3, so let's eat it
+        $evaledqtext = str_replace(['\\{','\\}'], ['{','}'], $evaledqtext);
+        $evaledsoln = str_replace(['\\{','\\}'], ['{','}'], $evaledsoln);
 
         /*
          * Possibly adjust the showanswer if it doesn't look right
@@ -858,6 +884,19 @@ class QuestionHtmlGenerator
                 $toevalqtxt .= '$showanswerloc';
             }
         }
+
+        if (strpos($evaledsoln, '[SAB') !== false) {
+            if (is_array($showanswerloc)) {
+                foreach ($displayedAnswersForParts as $iidx => $sa) {
+                    if (strpos($evaledsoln, '[SAB' . $iidx . ']') !== false) {
+                        $evaledsoln = str_replace('[SAB' . $iidx . ']', $sa, $evaledsoln);
+                    }
+                }
+            } else {
+                $evaledsoln = str_replace('[SAB]', $displayedAnswersForParts[0], $evaledsoln);
+            }
+        }
+        $detailedSolutionContent = $this->getDetailedSolutionContent($evaledsoln);
 
         /*
          *  Handle sequenial multipart, now that all answerboxes have been inserted

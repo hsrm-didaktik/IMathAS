@@ -180,8 +180,7 @@ if (!$skip) {
 	}
 	// not including in transaction to prevent cleanup from stalling on a
 	// weird course
-	$stm = $DBH->prepare("UPDATE imas_courses SET cleanupdate=0 WHERE id=?");
-	$stm->execute(array($cidtoclean));
+	$updcrs->execute(array(0, $cidtoclean));
 
 	if (count($stus)>0) {
 		$DBH->beginTransaction();
@@ -194,11 +193,12 @@ if (!$skip) {
         $stm = $DBH->prepare("DELETE iar FROM imas_assessment_records AS iar JOIN imas_assessments AS ia ON iar.assessmentid=ia.id WHERE ia.courseid=?");
 	    $stm->execute(array($cidtoclean));
 		$DBH->commit();
+
+		$stm = $DBH->prepare("INSERT INTO imas_log (time,log) VALUES (?,?)");
+		$stm->execute([$now, "Course cleanup complete on $cidtoclean"]);
 	}
 } else {
 	$updcrs->execute(array(0, $cidtoclean));
-	$stm = $DBH->prepare("UPDATE imas_courses SET cleanupdate=0 WHERE id=?");
-	$stm->execute(array($cidtoclean));
 }
 
 //clear out any old pw

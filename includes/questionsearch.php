@@ -15,12 +15,12 @@
 function parseSearchString($str)
 {
     $out = array();
-    preg_match_all('/(author|type|id|regex|used|avgtime|mine|unused|private|public|res|order|lastmod|created|avgscore|isrand|isbroken|wronglib)(:|=)("[^"]+?"|\w+)/', $str, $matches, PREG_SET_ORDER);
+    preg_match_all('/(author|type|uid|id|regex|used|avgtime|mine|intext|unused|private|public|res|order|lastmod|created|avgscore|isrand|isbroken|wronglib)(:|=)("[^"]+?"|\w+)/', $str, $matches, PREG_SET_ORDER);
     if (count($matches) > 0) {
         foreach ($matches as $match) {
             $out[$match[1]] = str_replace('"', '', $match[3]);
         }
-        $str = preg_replace('/(author|type|id|regex|used|avgtime|mine|unused|private|public|res|order|lastmod|created|avgscore|isrand|isbroken|wronglib)(:|=)("[^"]+?"|\w+)/', '', $str);
+        $str = preg_replace('/(author|type|uid|id|regex|used|avgtime|mine|intext|unused|private|public|res|order|lastmod|created|avgscore|isrand|isbroken|wronglib)(:|=)("[^"]+?"|\w+)/', '', $str);
     }
 
     $out['terms'] = preg_split('/\s+/', trim($str));
@@ -34,10 +34,12 @@ function parseSearchString($str)
         }
         if (ctype_digit($v) && !isset($out['id']) && count($out['terms']) == 1) {
             $out['id'] = $v;
-            // only id, remove as keyword
-            unset($out['terms']);
             break;
         }
+    }
+    // if searching id, don't need terms
+    if (isset($out['id'])) {
+        unset($out['terms']);
     }
     return $out;
 }
@@ -57,6 +59,7 @@ function parseSearchString($str)
  *    isrand:   1 to exclude non-rand
  *    isbroken: 1 to limit to broken questions
  *    wronglib: 1 to limit to questions marked as in wrong library
+ *    intext:   1 to search in qtext/control instead of description (only allowed on mine=1)
  *    res:      resources
  *    lastmod:  lastmod date range: "lower,upper"
  *    created:  created date range: "lower,upper"
@@ -113,11 +116,36 @@ function searchQuestions($search, $userid, $searchtype, $libs = array(), $option
                 $searchvals[] = $names[0] . ',' . $names[2] . '%';
                 $searchvals[] = $names[2] . ',' . $names[0] . '%';
             }
+            $authorbool = [];
+            if (isset($names[0]) && strlen($names[0])>2 && !in_array($names[0], $stopwords)) {
+                $authorbool[] = '+'.$names[0];
+            }
+            if (isset($names[2]) && strlen($names[2])>2 && !in_array($names[2], $stopwords)) {
+                $authorbool[] = '+'.$names[2];
+            }
+            if (count($authorbool)>0) {
+                $searchand[] = 'MATCH(iq.author) AGAINST(? IN BOOLEAN MODE)';
+                $searchvals[] = implode(' ', $authorbool);
+            }
         }
     }
+    $searchintext = false;
+    if (!empty($search['intext']) && 
+        (!empty($search['mine']) || 
+            (!empty($search['author']) && ctype_digit($search['author']))
+        )
+    ) {
+        $searchintext = true;
+    }
     if (!empty($search['regex'])) {
-        $searchand[] = 'iq.description REGEXP ?';
-        $searchvals[] = $search['regex'];
+        if ($searchintext) {
+            $searchand[] = '(iq.control REGEXP ? OR iq.qtext REGEXP ?)';
+            $searchvals[] = $search['regex'];
+            $searchvals[] = $search['regex'];
+        } else {
+            $searchand[] = 'iq.description REGEXP ?';
+            $searchvals[] = $search['regex'];
+        }
     }
     if (!empty($search['terms'])) {
         $wholewords = array();
@@ -128,7 +156,7 @@ function searchQuestions($search, $userid, $searchtype, $libs = array(), $option
                 break;
             }
         }
-        if ($haspos) {
+        if ($haspos && !$searchintext) {
             foreach ($search['terms'] as $k => $v) {
                 $sgn = '+';
                 if ($v[0] == '!') {
@@ -149,11 +177,22 @@ function searchQuestions($search, $userid, $searchtype, $libs = array(), $option
             foreach ($search['terms'] as $k => $v) {
                 if ($v[0] == '!') {
                     $v = substr($v, 1);
-                    $searchand[] = 'iq.description NOT LIKE ?';
+                    if ($searchintext) {
+                        $searchand[] = '(iq.qtext NOT LIKE ? AND iq.control NOT LIKE ?)';
+                    } else {
+                        $searchand[] = 'iq.description NOT LIKE ?';
+                    }
                 } else {
-                    $searchand[] = 'iq.description LIKE ?';
+                    if ($searchintext) {
+                        $searchand[] = '(iq.qtext LIKE ? OR iq.control LIKE ?)';
+                    } else {
+                        $searchand[] = 'iq.description LIKE ?';
+                    }
                 }
                 $searchvals[] = '%' . str_replace('%', '\\%', $v) . '%';
+                if ($searchintext) {
+                    $searchvals[] = '%' . str_replace('%', '\\%', $v) . '%';
+                }
             }
         }
     }
@@ -192,6 +231,10 @@ function searchQuestions($search, $userid, $searchtype, $libs = array(), $option
             $searchand[] = 'iq.lastmoddate < ?';
             $searchvals[] = strtotime($lastmodparts[1]);
         }
+    }
+    if (!empty($search['uid'])) {
+        $searchand[] = 'iq.uniqueid = ?';
+        $searchvals[] = str_replace(['UID','uid'],'', $search['uid']);
     }
     if (!empty($search['created'])) {
         $createdparts = explode(',', $search['created']);
@@ -259,24 +302,42 @@ function searchQuestions($search, $userid, $searchtype, $libs = array(), $option
     $lib2query = '';
     $assessquery = '';
     $libnames = [];
+    $libsIncludesUnassigned = false;
+    $numNumberedLibs = 0;
     if ($searchtype == 'libs' && count($libs) > 0) {
         $llist = implode(',', array_map('intval', $libs));
         $sortorder = [];
-        $stm = $DBH->prepare("SELECT name,id,sortorder FROM imas_libraries WHERE id IN ($llist)
-             AND ((ownerid=? OR userights>2) OR (userights>0 AND groupid=?))");
-        $stm->execute([$userid, $groupid]);
+        $query = "SELECT il.name,il.id,il.sortorder FROM imas_libraries AS il ";
+        if (!empty($options['isgroupadmin'])) {
+            $query .= "JOIN imas_users ON imas_users.id=il.ownerid ";
+        }
+        $query .= "WHERE il.id IN ($llist) ";
+        $libqarr = [];
+        if (!empty($options['isadmin'])) {
+            // no additional conditions needed
+        } else if (!empty($options['isgroupadmin'])) {
+            $query .= "AND (imas_users.groupid=? OR il.userights>2 OR il.groupid=?)";
+            $libqarr = [$groupid,$groupid];
+        } else {
+            $query .= "AND ((ownerid=? OR userights>2) OR (userights>0 AND groupid=?))";
+            $libqarr = [$userid, $groupid];
+        }
+        $stm = $DBH->prepare($query);
+        $stm->execute($libqarr);
         while ($row = $stm->fetch(PDO::FETCH_NUM)) {
             $libnames[$row[1]] = Sanitize::encodeStringForDisplay($row[0]);
             $sortorder[$row[0]] = $row[2];
         }
+        $numNumberedLibs = count($libnames);
+        $llist = implode(',', array_map('intval', array_keys($libnames)));
         if (in_array(0, $libs)) {
             $libnames[0] = _('Unassigned');
+            $libsIncludesUnassigned = true;
         }
-        $llist = implode(',', array_map('intval', array_keys($libnames)));
         if ($llist != '') {
             $libquery = "ili.libid IN ($llist) AND ";
             $lib2query = "ili2.libid IN ($llist) AND ";
-        } else {
+        } else if (!$libsIncludesUnassigned) {
             return 'No accessible libraries selected';
         }
     } else if ($searchtype == 'assess' && count($libs) > 0) {
@@ -299,54 +360,83 @@ function searchQuestions($search, $userid, $searchtype, $libs = array(), $option
         }
     }
 
-    $rightsand = [];
+    $rightsand = []; // for libid>0
+    $rightsand2 = []; // for libid=0
+    $searchvals2 = $searchvals;
     if (!empty($search['mine'])) {
         $rightsand[] = '(iq.ownerid=?)';
         $searchvals[] = $userid;
+        $rightsand2[] = '(iq.ownerid=?)';
+        $searchvals2[] = $userid;
     } else {
         if (!empty($options['isadmin'])) {
             if (isset($search['private']) && $search['private'] == 0) {
                 $rightsand[] = 'iq.userights>0';
+                $rightsand2[] = 'iq.userights>0';
             }
             if (isset($search['public']) && $search['public'] == 0) {
                 $rightsand[] = 'iq.userights=0';
+                $rightsand2[] = 'iq.userights=0';
             }
         } else if (!empty($options['isgroupadmin'])) {
             $admingroupid = $options['isgroupadmin'];
             if (isset($search['private']) && $search['private'] == 0) {
                 $rightsand[] = 'iq.userights>0';
+                $rightsand2[] = 'iq.userights>0';
             } else if ($searchtype != 'assess') {
                 $rightsand[] = '(imas_users.groupid=? OR iq.userights>0)';
                 $searchvals[] = $admingroupid;
+                // don't need, since we'll limit to groupid=? below
+                //$rightsand2[] = '(imas_users.groupid=? OR iq.userights>0)';
+                //$searchvals2[] = $admingroupid;
             }
             if (isset($search['public']) && $search['public'] == 0) {
                 $rightsand[] = 'iq.userights=0';
+                $rightsand2[] = 'iq.userights=0';
             }
             if ($searchtype != 'assess' && isset($search['id'])) {
-                $rightsand[] = '(ili.libid > 0 OR imas_users.groupid=? OR iq.id=?)';
-                $searchvals[] = $admingroupid;
-                $searchvals[] = $search['id'];
+                // not needed since libid>0
+                //$rightsand[] = '(ili.libid > 0 OR imas_users.groupid=? OR iq.id=?)';
+                //$searchvals[] = $admingroupid;
+                //$searchvals[] = $search['id'];
+                $rightsand2[] = '(imas_users.groupid=? OR iq.id=?)';
+                $searchvals2[] = $admingroupid;
+                $searchvals2[] = $search['id'];
             } else if ($searchtype != 'assess') {
-                $rightsand[] = '(ili.libid > 0 OR imas_users.groupid=?)';
-                $searchvals[] = $admingroupid;
+                // not needed since libid>0
+                //$rightsand[] = '(ili.libid > 0 OR imas_users.groupid=?)';
+                //$searchvals[] = $admingroupid;
+                $rightsand2[] = '(imas_users.groupid=?)';
+                $searchvals2[] = $admingroupid;
             }
         } else {
             if (isset($search['private']) && $search['private'] == 0) {
                 $rightsand[] = 'iq.userights>0';
+                $rightsand2[] = 'iq.userights>0';
             } else if ($searchtype != 'assess') {
                 $rightsand[] = '(iq.ownerid=? OR iq.userights>0)';
                 $searchvals[] = $userid;
+                $rightsand2[] = '(iq.ownerid=? OR iq.userights>0)';
+                $searchvals2[] = $userid;
             }
             if (isset($search['public']) && $search['public'] == 0) {
                 $rightsand[] = 'iq.userights=0';
+                $rightsand2[] = 'iq.userights=0';
             }
             if ($searchtype != 'assess' && isset($search['id'])) {
-                $rightsand[] = '(ili.libid > 0 OR iq.ownerid=? OR iq.id=?)';
-                $searchvals[] = $userid;
-                $searchvals[] = $search['id'];
+                // not needed since libid>0
+                //$rightsand[] = '(ili.libid > 0 OR iq.ownerid=? OR iq.id=?)';
+                //$searchvals[] = $userid;
+                //$searchvals[] = $search['id'];
+                $rightsand2[] = '(iq.ownerid=? OR iq.id=?)';
+                $searchvals2[] = $userid;
+                $searchvals2[] = $search['id'];
             } else if ($searchtype != 'assess') {
-                $rightsand[] = '(ili.libid > 0 OR iq.ownerid=?)';
-                $searchvals[] = $userid;
+                // not needed since libid>0
+                //$rightsand[] = '(ili.libid > 0 OR iq.ownerid=?)';
+                //$searchvals[] = $userid;
+                $rightsand2[] = '(iq.ownerid=?)';
+                $searchvals2[] = $userid;
             }
         }
     }
@@ -355,73 +445,127 @@ function searchQuestions($search, $userid, $searchtype, $libs = array(), $option
     } else {
         $rightsquery = '';
     }
+    if (count($rightsand2) > 0) {
+        $rightsquery2 = '(' . implode(' AND ', $rightsand2) . ')';
+    } else {
+        $rightsquery2 = '';
+    }
 
-    if ($searchtype == 'all' && empty($wholewords) && !empty($search['terms'])) {
+    if ($searchtype == 'all' && empty($wholewords) && !$searchintext && !empty($search['terms'])) {
         return _('Cannot search all libraries without at least one 3+ letter word in the search terms');
     }
     if ($searchtype == 'all' && $searchquery === '') {
         return 'Cannot search all libraries without a search term';
     }
 
-    $query = 'SELECT iq.id, iq.description, iq.userights, iq.qtype, iq.extref,';
-    $query .= 'iq.ownerid, iq.meantime, iq.meanscore,iq.meantimen,iq.isrand,
-    imas_users.LastName, imas_users.FirstName, imas_users.groupid,
-    LENGTH(iq.solution) AS hassolution,iq.solutionopts,iq.broken';
-    if ($searchtype == 'assess') {
-        $query .= ',iaq.id AS qid ';
-    } else {
-        $query .= ',ili.libid, ili.junkflag, ili.id AS libitemid ';
-    }
-    if ((!empty($search['order']) && $search['order']=='newest') || !empty($options['includelastmod'])) {
-        $query .= ',iq.lastmoddate ';
-    }
-    $query .= 'FROM imas_questionset AS iq ';
-    $query .= 'JOIN imas_users ON iq.ownerid=imas_users.id ';
-    if ($searchtype == 'assess') {
-        $query .= 'JOIN imas_questions AS iaq ON iaq.questionsetid=iq.id
-        JOIN imas_assessments AS ia ON iaq.assessmentid = ia.id ';
-    } else {
-        $query .= 'JOIN imas_library_items AS ili ON ' . $libquery . ' ili.qsetid=iq.id AND ili.deleted=0 ';
-        if ($searchtype == 'all' || ($searchtype == 'libs' && count($libs) > 1)) {
-            $query .= 'LEFT JOIN imas_library_items AS ili2 ON ' . $lib2query . ' ili2.qsetid=iq.id AND ili2.deleted=0 AND ili2.id < ili.id ';
+    $query = '(';
+    $piecesUsed = 0;
+    // library and unassigned searches are separated for efficiency;
+    // the self-join used for libraries is very inefficient for unassigned, and
+    // unassigned is never in another library
+    if ($searchtype == 'assess' || $searchtype == 'all' || ($searchtype == 'libs' && $libquery != '')) {
+        $query .= 'SELECT iq.id, iq.description, iq.userights, iq.qtype, iq.extref,';
+        $query .= 'iq.ownerid, iq.meantime, iq.meanscore,iq.meantimen,iq.isrand,
+        imas_users.LastName, imas_users.FirstName, imas_users.groupid,
+        LENGTH(iq.solution) AS hassolution,iq.solutionopts,iq.broken';
+        if ($searchtype == 'assess') {
+            $query .= ',iaq.id AS qid, ia.id AS aid ';
+        } else {
+            $query .= ',ili.libid, ili.junkflag, ili.id AS libitemid ';
         }
+        if ((!empty($search['order']) && $search['order']=='newest') || !empty($options['includelastmod'])) {
+            $query .= ',iq.lastmoddate ';
+        }
+        $query .= 'FROM imas_questionset AS iq ';
+        $query .= 'JOIN imas_users ON iq.ownerid=imas_users.id ';
+        if ($searchtype == 'assess') {
+            $query .= 'JOIN imas_questions AS iaq ON iaq.questionsetid=iq.id
+            JOIN imas_assessments AS ia ON iaq.assessmentid = ia.id ';
+        } else {
+            $query .= 'JOIN imas_library_items AS ili ON ' . $libquery . ' ili.qsetid=iq.id AND ili.deleted=0 ';
+            if ($searchtype == 'all' || ($searchtype == 'libs' && $numNumberedLibs > 1)) {
+                $query .= 'LEFT JOIN imas_library_items AS ili2 ON ' . $lib2query . ' ili2.qsetid=iq.id AND ili2.deleted=0 AND ili2.id < ili.id ';
+            }
+        }
+        
+        // begin WHERE
+        $query .= 'WHERE iq.deleted=0 ';
+        // TODO: Add group BY iq.id to eliminate duplicates from multiple libraries
+        if (!empty($options['hidereplaceby'])) {
+            $query .= ' AND iq.replaceby=0';
+        }
+
+        // NOTE: replaced string solution with int hassolution (=0 means no solution)
+
+        if ($searchquery !== '') {
+            $query .= ' AND ' . $searchquery;
+        }
+        if (!empty($options['skipfederated'])) {
+            $query .= ' AND iq.id NOT IN (SELECT iq.id FROM imas_questionset
+        AS iq JOIN imas_library_items as ili on ili.qsetid=iq.id AND ili.deleted=0
+        JOIN imas_libraries AS il ON ili.libid=il.id AND il.deleted=0 WHERE
+        il.federationlevel>0)';
+        }
+        if (!empty($options['existing']) && !empty($search['unused'])) {
+            $existingq = implode(',', array_map('intval', $options['existing']));
+            $query .= " AND iq.id NOT IN ($existingq)";
+        }
+        if ($searchtype == 'assess') {
+            $query .= ' AND ' . $assessquery;
+        } else if ($searchtype == 'all' || ($searchtype == 'libs' && $numNumberedLibs > 1)) {
+            $query .= ' AND ili2.id IS NULL ';
+        }
+
+        if ($rightsquery !== '') {
+            $query .= ' AND ' . $rightsquery;
+        }
+        if ($libsIncludesUnassigned) {
+            $query .= ' UNION ALL ';
+        }
+        $piecesUsed += 1;
     }
+    if ($libsIncludesUnassigned) {
+        // libs search - search separately for unassigned
+        $query .= 'SELECT iq.id, iq.description, iq.userights, iq.qtype, iq.extref,';
+        $query .= 'iq.ownerid, iq.meantime, iq.meanscore,iq.meantimen,iq.isrand,
+        imas_users.LastName, imas_users.FirstName, imas_users.groupid,
+        LENGTH(iq.solution) AS hassolution,iq.solutionopts,iq.broken';
+        $query .= ',ili.libid, ili.junkflag, ili.id AS libitemid ';
+        if ((!empty($search['order']) && $search['order']=='newest') || !empty($options['includelastmod'])) {
+            $query .= ',iq.lastmoddate ';
+        }
+        $query .= 'FROM imas_questionset AS iq ';
+        $query .= 'JOIN imas_users ON iq.ownerid=imas_users.id ';
+        $query .= 'JOIN imas_library_items AS ili ON ili.libid=0 AND ili.qsetid=iq.id AND ili.deleted=0 ';
+        
+        // begin WHERE
+        $query .= 'WHERE iq.deleted=0 ';
+        // TODO: Add group BY iq.id to eliminate duplicates from multiple libraries
+        if (!empty($options['hidereplaceby'])) {
+            $query .= ' AND iq.replaceby=0';
+        }
+
+        // NOTE: replaced string solution with int hassolution (=0 means no solution)
+
+        if ($searchquery !== '') {
+            $query .= ' AND ' . $searchquery;
+        }
+
+        if (!empty($options['existing']) && !empty($search['unused'])) {
+            $existingq = implode(',', array_map('intval', $options['existing']));
+            $query .= " AND iq.id NOT IN ($existingq)";
+        }
+  
+        if ($rightsquery2 !== '') {
+            $query .= ' AND ' . $rightsquery2;
+        }
+        $piecesUsed += 2;
+    }
+    $query .= ')';
     
-    // begin WHERE
-    $query .= 'WHERE iq.deleted=0 ';
-    // TODO: Add group BY iq.id to eliminate duplicates from multiple libraries
-    if (!empty($options['hidereplaceby'])) {
-        $query .= ' AND iq.replaceby=0';
-    }
-
-    // NOTE: replaced string solution with int hassolution (=0 means no solution)
-
-    if ($searchquery !== '') {
-        $query .= ' AND ' . $searchquery;
-    }
-    if (!empty($options['skipfederated'])) {
-        $query .= ' AND iq.id NOT IN (SELECT iq.id FROM imas_questionset
-      AS iq JOIN imas_library_items as ili on ili.qsetid=iq.id AND ili.deleted=0
-      JOIN imas_libraries AS il ON ili.libid=il.id AND il.deleted=0 WHERE
-      il.federationlevel>0)';
-    }
-    if (!empty($options['existing']) && !empty($search['unused'])) {
-        $existingq = implode(',', array_map('intval', $options['existing']));
-        $query .= " AND iq.id NOT IN ($existingq)";
-    }
+    
     if ($searchtype == 'assess') {
-        $query .= ' AND ' . $assessquery;
-    } else if ($searchtype == 'all' || ($searchtype == 'libs' && count($libs) > 1)) {
-        $query .= ' AND ili2.id IS NULL ';
-    }
-
-    if ($rightsquery !== '') {
-        $query .= ' AND ' . $rightsquery;
-    }
-    
-    
-    if ($searchtype == 'assess') {
-        $query .= ' ORDER BY ia.id ';
+        $query .= ' ORDER BY aid ';
     } else {
         if (!empty($search['order']) && $search['order']=='newest') {
             if ($searchtype == 'libs') {
@@ -444,7 +588,13 @@ function searchQuestions($search, $userid, $searchtype, $libs = array(), $option
     }
 
     $stm = $DBH->prepare($query);
-    $stm->execute($searchvals);
+    if ($piecesUsed == 3) {
+        $stm->execute(array_merge($searchvals, $searchvals2));
+    } else if ($piecesUsed == 2) {
+        $stm->execute($searchvals2);
+    } else {
+        $stm->execute($searchvals);
+    }
     $res = [];
     $qsids = [];
     while ($row = $stm->fetch(PDO::FETCH_ASSOC)) {
@@ -583,7 +733,7 @@ function outputSearchUI($searchtype = 'libs', $searchterms = '', $search_results
                 <?php echo _('Select Libraries...'); ?>
             </a></li>
             <?php 
-            if ($cid != 'admin') {
+            if ($cid != 'admin' && $cid > 0) {
                 echo '<li><a href="#" role="button" onclick="assessselect(); return false;">';
                 echo _('Select Assessments...');
                 echo '</a></li>';
@@ -689,7 +839,7 @@ function outputSearchUI($searchtype = 'libs', $searchterms = '', $search_results
                         <a href="#" onClick="displayDatePicker('search-created-max', this); return false">
 			            <img src="<?php echo $staticroot;?>/img/cal.gif" alt="Calendar"/></a>
                     </div></div>
-                    <p><label><input type=checkbox id="search-mine"><?php echo _('Mine Only');?></label> 
+                    <p><label><input type=checkbox id="search-mine" onclick="$('#search-intext-wrap').toggle(this.checked)"><?php echo _('Mine Only');?></label> 
 <?php
     if ($page == 'addquestions') {
                     echo '<label><input type=checkbox id="search-unused">' . _('Exclude Added') . '</label> ';
@@ -699,6 +849,7 @@ function outputSearchUI($searchtype = 'libs', $searchterms = '', $search_results
                         <label><input type=checkbox id="search-nopub"><?php echo _('Exclude Public');?></label> 
                         <label><input type=checkbox id="search-newest"><?php echo _('Newest First');?></label> 
                         <label><input type=checkbox id="search-nounrand"><?php echo _('Exclude non-randomized');?></label> 
+                        <label id="search-intext-wrap" style="display:none;"><input type=checkbox id="search-intext"><?php echo _('Search question code');?></label>
                     </p>
                     <p><?php echo _('Helps');?>: 
                         <label><input type=checkbox id="search-res-help" value="help"><?php echo _('Resource');?></label> 

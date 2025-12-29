@@ -312,6 +312,7 @@ function GB_show(caption,url,width,height,overlay,posstyle,showbelow,callback) {
 		document.getElementsByTagName("body")[0].appendChild(gb_overlay);
 		var gb_window = document.createElement("div");
 		gb_window.setAttribute("role","dialog");
+		gb_window.setAttribute("aria-modal","true");
 		gb_window.setAttribute("aria-labelledby","GB_title");
 		gb_window.setAttribute("tabindex",-1);
 		gb_window.id = "GB_window";
@@ -529,6 +530,23 @@ function chkAllNone(frmid, arr, mark, skip) {
   }
   return false;
 }
+var allowedImgDomains = [
+	'.amazonaws.com',
+	window.location.hostname
+];
+function isAllowedImgSrc(src) {
+	try {
+		var parser = document.createElement('a');
+		parser.href = src;
+		var hostname = parser.hostname;
+		for (var i=0; i < allowedImgDomains.length; i++) {
+			if (hostname.indexOf(allowedImgDomains[i]) !== -1) {
+				return true;
+			}
+		}
+	} catch (e) {}
+	return false;
+}
 
 //var tinyMCEPreInit = {base: staticroot+"/tinymce8"};
 function initeditor(edmode,edids,css,inline,setupfunction,extendsetup){
@@ -548,20 +566,35 @@ function initeditor(edmode,edids,css,inline,setupfunction,extendsetup){
 		selector: selectorstr,
 		inline: inlinemode,
 		license_key: 'gpl',
-		cache_suffix: '?v=082725',
-		plugins: "lists advlist autolink image charmap anchor searchreplace code link media table rollups asciimath asciisvg attach snippet emoticons accordion",
+		cache_suffix: '?v=112325',
+		plugins: "lists advlist autolink image charmap anchor searchreplace code link media table rollups asciimath asciisvg attach snippet emoticons accordion ableplayer",
 		menubar: false,
 		toolbar1: "myEdit myInsert styles | bold italic underline subscript superscript | forecolor backcolor | snippet code | saveclose",
 		toolbar2: " alignleft aligncenter alignright | bullist numlist outdent indent  | attach link unlink image | table | asciimath asciimathcharmap asciisvg",
-		extended_valid_elements : 'iframe[src|width|height|name|align|allowfullscreen|frameborder|style|class],param[name|value],@[sscr]',
+		extended_valid_elements : 'iframe[src|width|height|name|align|allowfullscreen|frameborder|style|class],param[name|value],@[sscr],asvg[sscr|src|type|style]',
+		custom_elements: 'asvg',
         content_css : staticroot+(cssmode==1?'/assessment/mathtest.css,':'/imascore.css,')+staticroot+'/themes/'+coursetheme,
 		AScgiloc : imasroot+'/filter/graph/svgimg.php',
 		convert_urls: false,
 		file_picker_callback: filePickerCallBackFunc,
 		file_picker_types: 'file image',
+		a11y_advanced_options: true,
 		images_upload_handler: image_upload_handler,
 		paste_data_images: true,
-		default_link_target: "_blank",
+		paste_postprocess: function (editor, args) {
+			const images = args.node.querySelectorAll('img');
+			for (var i = 0; i < images.length; i++) {
+				var img = images[i];
+				var src = img.getAttribute('src');
+				if (src && src.indexOf('data:')===-1 && src.indexOf('blob:')===-1 &&
+					!isAllowedImgSrc(img.getAttribute('src'))
+				) {
+					var text = document.createTextNode('[External image removed - upload the image instead]');
+          			img.parentNode.replaceChild(text, img);
+				}
+			}
+		},
+		link_default_target: "_blank",
 		browser_spellcheck: true,
 		contextmenu: false,
 		branding: false,
@@ -569,6 +602,7 @@ function initeditor(edmode,edids,css,inline,setupfunction,extendsetup){
 		sandbox_iframes: false,
 		resize: "both",
 		width: '100%',
+		height: 150,
 		content_style: "body {background-color: " + (coursetheme.match(/_dark/) ? "#000" : "#fff") + " !important;}",
 		table_class_list: [{title: "None", value:''},
 			{title:"Gridded", value:"gridded"},
@@ -594,6 +628,15 @@ function initeditor(edmode,edids,css,inline,setupfunction,extendsetup){
 					dialogel.style.width = '';
 					dialogel.focus();
 				});
+			}
+			if (!inline) {
+				var baseel = editor.getElement();
+				var textareaHeight = baseel.rows ? (baseel.rows-5)*16+108 : 400;
+				var desiredMinHeight = 150;
+				
+				if (textareaHeight > desiredMinHeight && editor.editorContainer) {
+					editor.editorContainer.style.height = textareaHeight + 'px';
+				}
 			}
         },
 		style_formats: [{
@@ -649,9 +692,16 @@ function initeditor(edmode,edids,css,inline,setupfunction,extendsetup){
 		edsetup.toolbar = "alignleft aligncenter | bullist numlist outdent indent | bold italic",
 		edsetup.mobile.menubar = "edit altinsert format tools table";
 	}
-		
-	if (setupfunction) {
-		edsetup.setup = setupfunction;
+	edsetup.setup = function(editor) {
+		editor.on('drop', function(e) {
+			var html = e.dataTransfer.getData('text/html');
+			if (html && !e.dataTransfer.files.length) {
+				e.preventDefault();
+			}
+		});
+		if (setupfunction) {
+			setupfunction.call(this, editor);
+		}
 	}
 	
     if (extendsetup) {
@@ -696,7 +746,9 @@ const image_upload_handler = (blobInfo, progress, isattach) => new Promise((reso
 
   xhr.withCredentials = false;
   xhr.open('POST', imasroot+'/tinymce8/upload_handler.php');
-
+  if (typeof CSRFP !== 'undefined') {
+	CSRFP.addCsrfpHeader(xhr);
+  }
   xhr.upload.onprogress = (e) => {
 	if (progress) {
     	progress(e.loaded / e.total * 100);
@@ -734,6 +786,11 @@ const image_upload_handler = (blobInfo, progress, isattach) => new Promise((reso
 	let filename = blobInfo.filename();
 	if (isresized) {
 		filename = filename.replace(/\.\w+$/,'.jpg');
+	}
+	var maxFileSize = 15000*1024; // 15MB
+	if (res.size > maxFileSize) {
+		reject({message:'This file is too large - maximum size is 15MB', remove:true});
+		return;
 	}
 	formData.append('file', res, filename);
 	if (isattach === true) {
@@ -870,7 +927,7 @@ function togglevideoembed() {
         var viframe = jQuery('<iframe/>', {
 			id: 'videoiframe'+id,
 			width: 640,
-			height: 400,
+			height: href.match(/ableplayer/)?530:400,
 			src: href,
 			frameborder: 0,
 			allowfullscreen: 1
@@ -897,6 +954,9 @@ function togglevideoembed() {
 }
 function rewriteVideoUrl(href) {
 	var qsconn = '?';
+		if (href.match(/ableplayer/)) {
+			return href;
+		}
 		href = href.replace(/%3F/g,'?').replace(/%3D/g,'=');
 		if (href.match(/youtube\.com/)) {
 			if (href.indexOf('playlist?list=')>-1) {
@@ -943,6 +1003,9 @@ function rewriteVideoUrl(href) {
 		return loc_protocol+'//'+vidsrc+vidid+timeref;
 }
 function setupvideoembeds(i,el) {
+	if (el.href.match(/youtu/) && !el.href.match(/[a-zA-Z0-9_-]{11}/)) {
+		return;
+	}
 
 	jQuery('<span/>', {
 		text: " [+]",
@@ -1269,6 +1332,7 @@ function initlinkmarkup(base) {
 	$(base).find('a').each(setuptracklinks).each(addNoopener);
 	$(base).find('a[href*="youtu"]').not('.textsegment a,.mce-content-body a,.prepped').each(setupvideoembeds);
 	$(base).find('a[href*="vimeo"]').not('.textsegment a,.mce-content-body a,.prepped').each(setupvideoembeds);
+	$(base).find('a[href*="ableplayer.php"]').not('.textsegment a,.mce-content-body a,.prepped').each(setupvideoembeds);
     $(base).find('a[href*="loom.com/share"],a[href*="loom.com/embed"]').not('.textsegment a,.mce-content-body a,.prepped').each(setupvideoembeds);
 	$(base).find("a.attach").not('.textsegment a,.mce-content-body a').not(".prepped").each(setuppreviewembeds);
 	setIframeSpinner(base);
@@ -1368,8 +1432,10 @@ jQuery(document).ready(function($) {
 			var winscrolltop = $(window).scrollTop();
 			for (var i=0;i<fixedonscrollel.length;i++) {
 				if (winscrolltop > initialtop[i] && initialtop[i]>0) {
+					$(fixedonscrollel[i]).next(".fixedonscrollpad").height($(fixedonscrollel[i]).height() + 5);
 					$(fixedonscrollel[i]).css('position','fixed').css('top','5px').attr("data-fixed",true);
 				} else {
+					$(fixedonscrollel[i]).next(".fixedonscrollpad").height(0);
 					$(fixedonscrollel[i]).css('position','static').attr("data-fixed",false);
 				}
 			}
@@ -1541,9 +1607,9 @@ function initFileAlt(el) {
                 var fileName = '';
                 fileName = el.value.split(/(\\|\/)/g).pop();
                 if (fileName) {
-                    var maxFileSize = 10000*1024; // 10MB
+                    var maxFileSize = 15000*1024; // 15MB
                     if (el.files[0].size > maxFileSize) {
-                        alert(_('This file is too large - maximum size is 10MB'));
+                        alert(_('This file is too large - maximum size is 15MB'));
                         $(el).val('');
                         label.html('');
                     } else {
@@ -1567,7 +1633,8 @@ jQuery('input.filealt').each(function(i,el) { initFileAlt(el);});
         "iframe[src*='player.vimeo.com']",
         "iframe[src*='youtube.com']",
         "iframe[src*='youtube-nocookie.com']",
-        "iframe[src*='loom.com']"
+        "iframe[src*='loom.com']",
+		"iframe[src*='ableplayer.php'"
       ];
 
       var $allVideos = $(this).find(selectors.join(','));

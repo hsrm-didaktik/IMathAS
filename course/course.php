@@ -340,7 +340,7 @@ if (!isset($teacherid) && !isset($tutorid) && !isset($studentid) && !isset($inst
 	$query .= "AND (imas_forum_threads.lastposttime>mfv.lastview OR (mfv.lastview IS NULL))) AS newitems ";
 	*/
 	$now = time();
-	$query = "SELECT imas_forum_threads.forumid, COUNT(imas_forum_threads.id) FROM imas_forum_threads ";
+	$query = "SELECT imas_forums.id, COUNT(imas_forum_threads.id) FROM imas_forum_threads ";
 	$query .= "JOIN imas_forums ON imas_forum_threads.forumid=imas_forums.id AND imas_forums.courseid=:courseid ";
 	if (!isset($teacherid)) {
 		$query .= "AND (imas_forums.avail=2 OR (imas_forums.avail=1 AND imas_forums.startdate<$now && imas_forums.enddate>$now)) ";
@@ -350,7 +350,7 @@ if (!isset($teacherid) && !isset($tutorid) && !isset($studentid) && !isset($inst
 	if (!isset($teacherid)) {
 		$query .= "AND (imas_forum_threads.stugroupid=0 OR imas_forum_threads.stugroupid IN (SELECT stugroupid FROM imas_stugroupmembers WHERE userid=:userid2)) ";
 	}
-	$query .= "GROUP BY imas_forum_threads.forumid";
+	$query .= "GROUP BY imas_forums.id";
 	$stm = $DBH->prepare($query);
 	if (!isset($teacherid)) {
 		$stm->execute(array(':now'=>$now, ':courseid'=>$cid, ':userid'=>$userid, ':userid2'=>$userid));
@@ -407,14 +407,6 @@ if ($overwriteBody==1) {
 	if (isset($teacherid)) {
  ?>
 	<script type="text/javascript">
-		//function moveitem(from,blk) {
-		//	var to = document.getElementById(blk+'-'+from).value;
-        //
-		//	if (to != from) {
-		//		var toopen = '<?php //echo $jsAddress1 ?>//&block=' + blk + '&from=' + from + '&to=' + to;
-		//		window.location = toopen;
-		//	}
-		//}
 		function moveDialog(block,item) {
 			GB_show(_("Move Item"), imasroot+"/course/moveitem.php?cid="+cid+"&item="+item+"&block="+block, 600, "auto", true, '', null, {'label':_('Move'),'func':'moveitem'});
 			return false;
@@ -662,7 +654,7 @@ if ($overwriteBody==1) {
            echo 'var blockiconsrc="'.$staticroot.'/img/'.$CFG['CPS']['miniicons']['folder'].'";';
 		   echo 'var caneditallnames=true;';
 		   echo "</script>";
-		   echo "<script src=\"$staticroot/javascript/nestedjq.js?v=080625\"></script>";
+		   echo "<script src=\"$staticroot/javascript/nestedjq.js?v=112525\"></script>";
 		   echo '<p><button type="button" onclick="quickviewexpandAll()">'._("Expand All").'</button> ';
 		   echo '<button type="button" onclick="quickviewcollapseAll()">'._("Collapse All").'</button> ';
 		   echo '<button type="button" onclick="addnewblock()">'._("Add Block").'</button></p>';

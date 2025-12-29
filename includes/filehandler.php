@@ -181,6 +181,10 @@ function storeuploadedfile($id,$key,$sec="private") {
 		}
 		if (is_uploaded_file($_FILES[$id]['tmp_name'])) {
 			downsizeimage($_FILES[$id]);
+			if (strpos($_FILES[$id]['name'], '.svg') !== false) {
+				require_once __DIR__ . '/svg-sanitizer/svgcleaner.php';
+				sanitizeSvg($_FILES[$id]);
+			}
 			$s3 = new S3($GLOBALS['AWSkey'],$GLOBALS['AWSsecret']);
 			// $_FILES[]['tmp_name'] is not user provided. This is safe.
 			if ($s3->putObjectFile(realpath($_FILES[$id]['tmp_name']),$GLOBALS['AWSbucket'],$key,$sec)) {
@@ -194,6 +198,10 @@ function storeuploadedfile($id,$key,$sec="private") {
 	} else {
 		if (is_uploaded_file($_FILES[$id]['tmp_name'])) {
 			downsizeimage($_FILES[$id]);
+			if (strpos($_FILES[$id]['name'], '.svg') !== false) {
+				require_once __DIR__ . '/svg-sanitizer/svgcleaner.php';
+				sanitizeSvg($_FILES[$id]);
+			}
 			$base = rtrim(dirname(dirname(__FILE__)), '/\\').'/filestore/';
 			$dir = $base.dirname($key);
 			$fn = basename($key);
@@ -595,17 +603,27 @@ function deleteAssess2FilesOnUnenroll($tounenroll, $aids, $groupassess) {
 	// combine the lists
 	$todel = array_unique(array_merge($todel, $tomaybedel));
 
-	$deled = array();
-
+	//$deled = array();
+	$delcnt = 0;
 	if (getfilehandlertype('filehandlertype') == 's3') {
 		$s3 = new S3($GLOBALS['AWSkey'],$GLOBALS['AWSsecret']);
-		foreach($todel as $file) {
+		$todelchunks = array_chunk($todel, 500);
+		foreach ($todelchunks as $todelarr) {
+			$todelarr = array_map(function($item) {
+				return 'adata/' . str_replace('\\/','/',$item);
+			}, $todelarr);
+			if ($s3->deleteObjects($GLOBALS['AWSbucket'], $todelarr)) {
+				$delcnt += count($todelarr);
+			}
+		}
+		/*foreach($todel as $file) {
 			if (in_array($file,$deled)) { continue;}
 			$s3object = "adata/$file";
 			if($s3->deleteObject($GLOBALS['AWSbucket'],$s3object)) {
 				$deled[] = $file;
 			}
 		}
+		*/
 	} else {
 		$base = rtrim(dirname(dirname(__FILE__)), '/\\').'/filestore';
 		foreach($todel as $file) {
@@ -616,7 +634,7 @@ function deleteAssess2FilesOnUnenroll($tounenroll, $aids, $groupassess) {
 			}
 		}
 	}
-	return count($deled);
+	return $delcnt; //count($deled);
 }
 
 function deleteasidfilesbyquery2($tosearchby,$val,$aid=null,$lim=0) {

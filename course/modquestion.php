@@ -23,10 +23,11 @@ if (!(isset($teacherid))) {
 	$aid = Sanitize::onlyInt($_GET['aid']);
 
   $query = "SELECT ias.id FROM imas_assessment_sessions AS ias,imas_students WHERE ";
-  $query .= "ias.assessmentid=:assessmentid AND ias.userid=imas_students.userid AND imas_students.courseid=:courseid";
+  $query .= "ias.assessmentid=:assessmentid AND ias.userid=imas_students.userid AND imas_students.courseid=:courseid LIMIT 1";
   $stm = $DBH->prepare($query);
   $stm->execute(array(':assessmentid'=>$aid, ':courseid'=>$cid));
   $beentaken = ($stm->rowCount() > 0);
+  $page_beenTakenMsg = '';
 
 	$curBreadcrumb = "$breadcrumbbase <a href=\"course.php?cid=$cid\">".Sanitize::encodeStringForDisplay($coursename)."</a> ";
 	$curBreadcrumb .= "&gt; <a href=\"addquestions.php?aid=$aid&cid=$cid\">"._("Add/Remove Questions")."</a> &gt; ";

@@ -2,6 +2,7 @@
 
 require_once "../init.php";
 require_once "../includes/videodata.php";
+require_once "../includes/colorcontrast.php";
 
 $what = 'cid';
 
@@ -13,27 +14,51 @@ if (isset($_GET['scan']) && $_GET['scan'] === 'myqs') {
     $what = 'myqs';
 } 
 
-$errors = [];
+$errors = [[],[],[]];
 $vidids = [];
 $vidlocs = [];
 $asciisvgpattern = '/^showasciisvg\(\s*((("([^"\\\\]|\\\\.)*"|\'([^\'\\\\]|\\\\.)*\'|[^,()])+,\s*){0,2}("([^"\\\\]|\\\\.)*"|\'([^\'\\\\]|\\\\.)*\'|[^,()])?\s*)?\)$/';
-function a11yscan($content, $field, $type, $itemname, $link='') {
+function a11yscan($content, $field, $type, $itemname, $link='',$hasa11yalt=false,$link2=null,$errorlevel=1) {
     global $asciisvgpattern,$vidids,$vidlocs;
+    $addederror = false;
     // ensure regex considers \" as well as " to account for encoding
     $content = str_replace(['\\\'','\\"', "'"], ['"','"','"'], $content);
     // look for empty text, or missing alt text.  sloppy, but works
     if (preg_match('/(<img[^>]*?alt="(.*?)"[^>]*?>|<img[^>]*>)/', $content, $matches)) {
         if (!isset($matches[2])) { // used second pattern; missing alt text
-            adderror(_('Missing alt text'), $field, $type, $itemname, $link); 
-        } else if (trim($matches[2]) == '') {
-            adderror(_('Blank alt text'), $field, $type, $itemname, $link); 
+            adderror($errorlevel,_('Missing alt text'), $field, $type, $itemname, $link, $link2);
+        } else if (trim($matches[2]) == '' && strpos($matches[0], 'role="presentation"') === false) {
+            adderror($errorlevel,_('Blank alt text'), $field, $type, $itemname, $link, $link2); 
         }
     }
     // look for asciisvg call with undefined alt text.
     // we'll assume if alt text is defined but blank that it was intentional
     // does not account for use of replacealttext later in the question
-    if (preg_match($asciisvgpattern, $content)) {
-        adderror(_('Likely useless auto-generated alt text from showasciisvg'), $field, $type, $itemname, $link); 
+    if (!$hasa11yalt && preg_match($asciisvgpattern, $content)) {
+        adderror($errorlevel,_('Likely useless auto-generated alt text from showasciisvg'), $field, $type, $itemname, $link, $link2); 
+        $addederror = true;
+    }
+    if (!$hasa11yalt && strpos($content,'textonimage(') !== false && 
+        strpos($content,'replacealttext(') === false
+    ) {
+        // textonimage without replacealttext probably 
+        adderror($errorlevel,_('Potential issue: textonimage used without replacealttext'), $field, $type, $itemname, $link, $link2); 
+        $addederror = true;
+    }
+    if (!$hasa11yalt && preg_match('/textonimage\([^\)]*\[AB/', $content) &&
+        strpos($content,'readerlabel') === false
+    ) {
+        //textonimage with AB without readerlabel
+        adderror($errorlevel,_('Potential issue: [AB] in textonimage used without readerlabel'), $field, $type, $itemname, $link, $link2); 
+        $addederror = true;
+    }
+    if (!$hasa11yalt && strpos($content,'jsxgraph') !== false && strpos($content,'graphdispmode')===false) {
+        adderror($errorlevel,_('Potential issue: question may use jsxgraph; check for accessible alt'), $field, $type, $itemname, $link, $link2); 
+        $addederror = true;
+    }
+    if (!$hasa11yalt && strpos($content,'geogebra') !== false && strpos($content,'graphdispmode')===false) {
+        adderror($errorlevel,_('Potential issue: question may use geogebra; check for accessible alt'), $field, $type, $itemname, $link, $link2); 
+        $addederror = true;
     }
     // look for youtube videos
     if (preg_match_all('/((youtube\.com|youtu\.be)[^>]*?)"/', $content, $matches, PREG_SET_ORDER)) {
@@ -44,17 +69,55 @@ function a11yscan($content, $field, $type, $itemname, $link='') {
             }
         }
     }
+    if (!$addederror && $errorlevel == 2) {
+        adderror($errorlevel,_('Negative accessibility reviews'), $field, $type, $itemname, $link, $link2); 
+    }
+    return $addederror;
 }
-function adderror($descr, $loc, $itemtype, $itemname, $link) {
-    global $errors;
-    if ($itemtype !== null) {
-        $errors[] = [sprintf('%s in %s of %s %s', $descr, $loc, $itemtype, $itemname), $link];
-    } else {
-        $errors[] = [sprintf('%s in %s', $descr, $loc), $link];
+function scancolors($items, $parent) {
+    global $errors,$cid;
+    foreach ($items as $k=>$item) {
+        if (is_array($item)) {
+            $bnum = $k+1;
+            if (!empty($item['colors'])) {
+                list($titlebg,$titletext,$blockbg) = explode(',', $item['colors']);
+                if (calculateLuminosityRatio($titletext,$titlebg) < 4.5) {
+                    adderror(1,
+                        _('Insufficient color contrast'), 
+                        _('title text and background'), 
+                        _('Block'),
+                        $item['name'],
+                        "course/addblock.php?cid=$cid&id=" . $parent.'-'.$bnum);
+                }
+            }
+            if (!empty($item['items'])) {
+                scancolors($item['items'], $parent.'-'.$bnum);
+            }
+        }
     }
 }
 
+function adderror($errorlevel,$descr, $loc, $itemtype, $itemname, $link, $link2 = null) {
+    global $errors;
+    /*if ($itemtype !== null) {
+        if ($link2 !== null) {
+            $errors[] = [sprintf('%s in %s', $descr, $loc), $link, 
+                sprintf('of %s %s', $itemtype, $itemname), $link2];
+        } else {
+            $errors[] = [sprintf('%s in %s of %s %s', $descr, $loc, $itemtype, $itemname), $link];
+        }
+    } else {
+        $errors[] = [sprintf('%s in %s', $descr, $loc), $link];
+    }*/
+    $errors[$errorlevel][] = [$descr, $loc, $itemtype, $itemname, $link2, $link];
+}
+
 if ($what === 'cid') {
+    $stm = $DBH->prepare("SELECT itemorder FROM imas_courses WHERE id=?");
+    $stm->execute([$cid]);
+    $itemorder = $stm->fetchColumn(0);
+    scancolors(unserialize($itemorder), '0');
+
     // scan assessment summary, intro (including between-question text)
     $stm = $DBH->prepare("SELECT name,summary,intro,id FROM imas_assessments WHERE courseid=?");
     $stm->execute([$cid]);
@@ -96,22 +159,35 @@ if ($what === 'cid') {
     }
 
     // scan questionset control, qtext
-    $query = 'SELECT iqs.control,iqs.qtext,ia.name,iqs.id,iqs.extref FROM imas_questionset AS iqs 
+    $query = 'SELECT iqs.control,iqs.qtext,iqs.a11yalt,ia.name,ia.id AS aid,iqs.id,iqs.extref,ia.showhints AS hintsdef,iq.showhints,
+        COUNT(CASE WHEN iar.review=1 THEN 1 END) AS positive_reviews,
+        COUNT(CASE WHEN iar.review=0 THEN 1 END) AS negative_reviews
+        FROM imas_questionset AS iqs 
         JOIN imas_questions AS iq ON iqs.id=iq.questionsetid
         JOIN imas_assessments AS ia ON ia.id=iq.assessmentid
-        WHERE ia.courseid=?';
+        LEFT JOIN imas_a11yreviews AS iar ON iar.qsetid=iqs.id
+        WHERE ia.courseid=?
+        GROUP BY iqs.id,ia.id';
     $stm = $DBH->prepare($query);
     $stm->execute([$cid]);
     $extrefissues = [];
     while ($row = $stm->fetch(PDO::FETCH_ASSOC)) {
-        a11yscan($row['control'] . $row['qtext'], sprintf(_('Question ID %d'), $row['id']), 
-            _('Assessment'), $row['name'], "course/testquestion2.php?cid=$cid&qsetid=" . $row['id']);
-        if (preg_match('/youtu[^!]*!!0/', $row['extref'])) {
+        if ($row['negative_reviews']>0) {
+            $thiserrorlevel = 2;
+        } else if ($row['positive_reviews']>0) {
+            $thiserrorlevel = 0;
+        } else {
+            $thiserrorlevel = 1;
+        }
+        $res = a11yscan($row['control'] . $row['qtext'], sprintf(_('Question ID %d'), $row['id']), 
+            _('Assessment'), $row['name'], "course/addquestions2.php?cid=$cid&aid=" . $row['aid'], 
+            $row['a11yalt']!=0,"course/testquestion2.php?cid=$cid&qsetid=" . $row['id'],
+            $thiserrorlevel);
+        if (preg_match('/youtu[^!]*!!0/', $row['extref']) &&
+            (($row['showhints'] > -1 && ($row['showhints']&2)==2) || 
+             ($row['showhints'] == -1 && ($row['hintsdef']&2)==2))
+        ) {
             $extrefissues[] = $row;
-            /*
-            adderror(_('Uncaptioned video'), sprintf(_('Question ID %d'), $row['id']), 
-                _('Assessment'), $row['name'], "course/testquestion2.php?cid=$cid&qsetid=" . $row['id']); 
-            */
         }
     }
 
@@ -154,8 +230,9 @@ if ($what === 'cid') {
                         $updatedextref = true;
                     } else if ($vidid !== '' && !$gaveerrorthisquestion) {
                         // it's a video, don't have captions, give error once
-                        adderror(_('Uncaptioned video'), sprintf(_('Question ID %d'), $row['id']), 
-                            _('Assessment'), $row['name'], "course/testquestion2.php?cid=$cid&qsetid=" . $row['id']);
+                        adderror(1, _('Uncaptioned video'), sprintf(_('Question ID %d'), $row['id']), 
+                            _('Assessment'), $row['name'], "course/addquestions2.php?cid=$cid&aid=" . $row['aid'],
+                            "course/testquestion2.php?cid=$cid&qsetid=" . $row['id']);
                         $gaveerrorthisquestion = true;
                     }
                 }
@@ -169,7 +246,7 @@ if ($what === 'cid') {
     }
 
     // scan qimages alttext for blank
-    $query = 'SELECT iqi.alttext,iqi.var,ia.name,iqs.id FROM imas_questionset AS iqs 
+    $query = 'SELECT iqi.alttext,iqi.var,ia.name,ia.id AS aid,iqs.id FROM imas_questionset AS iqs 
         JOIN imas_qimages AS iqi ON iqi.qsetid=iqs.id
         JOIN imas_questions AS iq ON iqs.id=iq.questionsetid
         JOIN imas_assessments AS ia ON ia.id=iq.assessmentid
@@ -178,21 +255,35 @@ if ($what === 'cid') {
     $stm->execute([$cid]);
     while ($row = $stm->fetch(PDO::FETCH_ASSOC)) {
         if (trim($row['alttext']) == '') {
-            adderror(_('Blank alt text'), sprintf(_('Question ID %d image variable %s'), $row['id'], $row['var']), 
-                _('Assessment'), $row['name'], "course/testquestion2.php?cid=$cid&qsetid=" . $row['id']); 
+            adderror(1, _('Blank alt text'), sprintf(_('Question ID %d image variable %s'), $row['id'], $row['var']), 
+                _('Assessment'), $row['name'],
+                "course/addquestions2.php?cid=$cid&aid=" . $row['aid'], 
+                "course/testquestion2.php?cid=$cid&qsetid=" . $row['id']); 
         }
     }
 } else if ($what === 'myqs') {
     // scan questionset control, qtext
-    $query = 'SELECT iqs.control,iqs.qtext,iqs.id,iqs.extref FROM imas_questionset AS iqs 
-    WHERE iqs.ownerid=?';
+    $query = 'SELECT iqs.control,iqs.qtext,iqs.id,iqs.extref,iqs.a11yalt,
+    COUNT(CASE WHEN iar.review=1 THEN 1 END) AS positive_reviews,
+    COUNT(CASE WHEN iar.review=0 THEN 1 END) AS negative_reviews
+    FROM imas_questionset AS iqs 
+    LEFT JOIN imas_a11yreviews AS iar ON iar.qsetid=iqs.id
+    WHERE iqs.ownerid=? GROUP BY iqs.id';
     $stm = $DBH->prepare($query);
     $stm->execute([$userid]);
     while ($row = $stm->fetch(PDO::FETCH_ASSOC)) {
+        if ($row['negative_reviews']>0) {
+            $thiserrorlevel = 2;
+        } else if ($row['positive_reviews']>0) {
+            $thiserrorlevel = 0;
+        } else {
+            $thiserrorlevel = 1;
+        }
         a11yscan($row['control'] . $row['qtext'], sprintf(_('Question ID %d'), $row['id']), 
-            null, null, "course/testquestion2.php?cid=$cid&qsetid=" . $row['id']);
+            null, null, "course/testquestion2.php?cid=$cid&qsetid=" . $row['id'],
+            $row['a11yalt']!=0, null, $thiserrorlevel);
         if (preg_match('/youtu[^!]*!!0/', $row['extref'])) {
-            adderror(_('Uncaptioned video'), sprintf(_('Question ID %d'), $row['id']), 
+            adderror(1, _('Uncaptioned video'), sprintf(_('Question ID %d'), $row['id']), 
                 null, null, "course/testquestion2.php?cid=$cid&qsetid=" . $row['id']); 
         }
     }
@@ -205,7 +296,7 @@ if ($what === 'cid') {
     $stm->execute([$userid]);
     while ($row = $stm->fetch(PDO::FETCH_ASSOC)) {
         if (trim($row['alttext']) == '') {
-            adderror(_('Blank alt text'), sprintf(_('Question ID %d image variable %s'), $row['id'], $row['var']), 
+            adderror(1, _('Blank alt text'), sprintf(_('Question ID %d image variable %s'), $row['id'], $row['var']), 
                 null, null , "course/testquestion2.php?cid=$cid&qsetid=" . $row['id']); 
         }
     }
@@ -223,16 +314,16 @@ if (count($vidids) > 0 && isset($CFG['YouTubeAPIKey'])) {
     $vidtoqueue = [];
     foreach ($vidids as $vidid) {
         if (!isset($viddata[$vidid]) || ($viddata[$vidid][0] == 0 && $viddata[$vidid][1] == 0)) {
-            adderror(sprintf(_('Potentially uncaptioned video (ID %s; this video will be scanned in the next few days to check for captions)'), $vidid),
+            adderror(1, sprintf(_('Potentially uncaptioned video (ID %s; this video will be scanned in the next few days to check for captions)'), $vidid),
                 $vidlocs[$vidid][0],$vidlocs[$vidid][1],$vidlocs[$vidid][2],$vidlocs[$vidid][3]);
             if (!isset($viddata[$vidid])) {
                 $vidtoqueue[] = $vidid;
             }
         } else if ($viddata[$vidid][1] == 3) {
-            adderror(sprintf(_('Missing/broken video (ID %s)'), $vidid),
+            adderror(1, sprintf(_('Missing/broken video (ID %s)'), $vidid),
                 $vidlocs[$vidid][0],$vidlocs[$vidid][1],$vidlocs[$vidid][2],$vidlocs[$vidid][3]);
         } else if ($viddata[$vidid][0] == 0 && $viddata[$vidid][1] > 0) {
-            adderror(sprintf(_('Uncaptioned video (ID %s)'), $vidid),
+            adderror(1, sprintf(_('Uncaptioned video (ID %s)'), $vidid),
                 $vidlocs[$vidid][0],$vidlocs[$vidid][1],$vidlocs[$vidid][2],$vidlocs[$vidid][3]);
         }
     }
@@ -254,7 +345,8 @@ $pagetitle = _('Accessibility Report');
 $curBreadcrumb = $breadcrumbbase;
 $curBreadcrumb .= "<a href=\"course.php?cid=$cid\">".Sanitize::encodeStringForDisplay($coursename)."</a> ";
 $curBreadcrumb .= "&gt; <a href=\"coursereports.php?cid=$cid\">" . _('Course Reports') . "</a> ";
-
+$placeinhead = '<style>tbody tr:hover, tbody tr:hover > * {background-color:#c1f5ff !important;} h2 {font-size:105%;}</style>';
+$placeinhead .= '<script type="text/javascript" src="'.$staticroot.'/javascript/tablesorter.js"></script>';
 
 require_once "../header.php";
 echo '<div class="breadcrumb">'. $curBreadcrumb . '&gt; '.$pagetitle.'</div>';
@@ -266,26 +358,75 @@ if ($what === 'myqs') {
     echo '<p>'._('This report scans items in your course for accessibility issues.').' ';
 }
 if (isset($CFG['YouTubeAPIKey'])) {
-    echo _('Currently it will only identify images that are missing alt text, and YouTube videos that do not have manual captions. It does not scan videos hosted elsewhere. Some YouTube videos might come back as "Potentially Uncaptioned", which just means we do not know yet; the video will be added to a queue and scanned in the next few days to check if has captions. The report will be updated once we have that information, so check back in a week or so.'). '</p>';
+    echo _('Currently it will only identify images that are missing alt text, some potential question issues that need manual review, and YouTube videos that do not have manual captions. It does not scan videos hosted elsewhere. Some YouTube videos might come back as "Potentially Uncaptioned", which just means we do not know yet; the video will be added to a queue and scanned in the next few days to check if has captions. The report will be updated once we have that information, so check back in a week or so.'). '</p>';
 } else {
-    echo _('Currently it will only identify images that are missing alt text, and YouTube videos added as helps to questions that do not have manual captions. YouTube links elsewhere are not scanned.'). '</p>';
+    echo _('Currently it will only identify images that are missing alt text, some potential question issues that need manual review, and YouTube videos added as helps to questions that do not have manual captions. YouTube links elsewhere are not scanned.'). '</p>';
 }
 echo '<p>'._('Note: Blank alt text can be valid, but should only be used to indicate a decorative image, one that does not add information to the page. For example, if the same information in the image is also included in adjacent text.').'</p>';
 
-echo '<ul>';
-foreach ($errors as $error) {
-    echo '<li>';
-    if (!empty($error[1])) {
-        echo '<a href="' . Sanitize::encodeStringForDisplay($basesiteurl . '/' . $error[1]) . '" target="_blank">';
-    }
-    echo Sanitize::encodeStringForDisplay($error[0]);
-    if (!empty($error[1])) {
-        echo '</a>';
-    }
-    echo '</li>';
+if (count($errors[2])>0) {
+    echo '<h2>'._('The questions in these issues have accessibility reviews indicating they may "need work", suggesting they are likely legitimate issues.').'</h2>';
+    outputerrortable(2);
 }
-echo '</ul>';
+if (count($errors[1])>0) {
+    echo '<h2>'._('These are content issues or issues in questions with no accessibilty reviews. You should review these issues.').'</h2>';
+    outputerrortable(1);
+}
+if (count($errors[0])>0) {
+    echo '<h2>'._('These are potential issues in questions with "looks good" accessibilty reviews, so these questions may be fine.').'</h2>';
+    outputerrortable(0);
+}
+
+function outputerrortable($errorlevel) {
+    global $what, $errors, $basesiteurl;
+    //echo '<ul>';
+    echo '<table class=gb id=errortable'.$errorlevel.'><thead><tr>';
+    echo '<th>'._('Issue').'</th>';
+    echo '<th>'._('Location').'</th>';
+    if ($what !== 'myqs') {
+        echo '<th>'._('Item Type').'</th>';
+        echo '<th>'._('Item').'</th>';
+    }
+    echo '</tr><thead><tbody>';
+    $alt = 0;
+    foreach ($errors[$errorlevel] as $error) {
+        if ($alt==0) {echo "<tr class=even>"; $alt=1;} else {echo "<tr class=odd>"; $alt=0;}
+        //[$descr, $loc, $itemtype,$itemname, $link, $link2];
+        echo '<td>'.Sanitize::encodeStringForDisplay($error[0]).'</td>';
+        echo '<td>';
+        if (!empty($error[4])) {
+            echo '<a href="' . Sanitize::encodeStringForDisplay($basesiteurl . '/' . $error[4]) . '" target="_blank">';
+        }
+        echo Sanitize::encodeStringForDisplay($error[1]);
+        if (!empty($error[4])) {
+            echo '</a>';
+        }
+        echo '</td>';
+        if ($what !== 'myqs') {
+            echo '<td>';
+            echo Sanitize::encodeStringForDisplay($error[2]);
+            echo '</td><td>';
+            if (!empty($error[5])) {
+                echo ' <a href="' . Sanitize::encodeStringForDisplay($basesiteurl . '/' . $error[5]) . '" target="_blank">';
+            }
+            echo Sanitize::encodeStringForDisplay($error[3]);
+            if (!empty($error[5])) {
+                echo '</a>';
+            }
+        }
+        echo '</tr>';
+    }
+    echo '</tbody></table>';
+    $sortstr = '"S","S"';
+    if ($what !== 'myqs') {
+        $sortstr .= ',"S","S"';
+    }
+    echo '<script type="text/javascript">
+                initSortTable("errortable'.$errorlevel.'",Array('.$sortstr.'),true);
+            </script>';
+}
 
 echo '<p>'._('Videos marked as "Missing/broken" that seem to be available are likely unlisted videos, preventing lookup of caption data.').'</p>';
+
 
 require_once '../footer.php';

@@ -80,7 +80,7 @@ function prepWithMath(str) {
   // avoid double-prep cased by script wrap of prepWithMath followed by
   // secondary after prepWithMath
   str = str.replace(/Ma(t|\(t\)\*)h\./g,'');
-	str = str.replace(/\b(abs|acos|asin|atan|ceil|floor|cos|sin|tan|sqrt|exp|max|min|pow)\(/g, 'Math.$1(');
+	str = str.replace(/\b(abs|acos|asin|atan|ceil|floor|sign|cos|sin|tan|sqrt|exp|max|min|pow)\(/g, 'Math.$1(');
 	str = str.replace(/\(E\)/g,'(Math.E)');
 	str = str.replace(/\((PI|pi)\)/g,'(Math.PI)');
 	return str;
@@ -508,7 +508,7 @@ function line(p,q,id) { // segment connecting points p,q (coordinates in units)
   if (id!=null) node = doc.getElementById(id);
   if (node==null) {
     node = myCreateElementSVG("path");
-    node.setAttribute("id", id);
+    if (id!=null) node.setAttribute("id", id);
     svgpicture.appendChild(node);
   }
   node.setAttribute("d","M"+(p[0]*xunitlength+origin[0])+","+
@@ -529,7 +529,7 @@ function path(plist,id,c) {
   if (id!=null) node = doc.getElementById(id);
   if (node==null) {
     node = myCreateElementSVG("path");
-    node.setAttribute("id", id);
+    if (id!=null) node.setAttribute("id", id);
     svgpicture.appendChild(node);
   }
   if (typeof plist == "string") st = plist;
@@ -560,7 +560,7 @@ function circle(center,radius,id) { // coordinates in units
   if (id!=null) node = doc.getElementById(id);
   if (node==null) {
     node = myCreateElementSVG("circle");
-    node.setAttribute("id", id);
+    if (id!=null) node.setAttribute("id", id);
     svgpicture.appendChild(node);
   }
 
@@ -585,7 +585,7 @@ function sector(center,radius,startang,endang,id) {
 	if (id!=null) node = doc.getElementById(id);
 	if (node==null) {
 		node = myCreateElementSVG("path");
-		node.setAttribute("id", id);
+		if (id!=null) node.setAttribute("id", id);
 		svgpicture.appendChild(node);
 	}
 	var arctype = 0;
@@ -628,7 +628,7 @@ function arc(start,end,radius,id) { // coordinates in units
   }
   if (node==null) {
     node = myCreateElementSVG("path");
-    node.setAttribute("id", id);
+    if (id!=null) node.setAttribute("id", id);
     svgpicture.appendChild(node);
   }
   node.setAttribute("d","M"+(start[0]*xunitlength+origin[0])+","+
@@ -656,7 +656,7 @@ function ellipse(center,rx,ry,id) { // coordinates in units
   if (id!=null) node = doc.getElementById(id);
   if (node==null) {
     node = myCreateElementSVG("ellipse");
-    node.setAttribute("id", id);
+    if (id!=null) node.setAttribute("id", id);
     svgpicture.appendChild(node);
   }
   node.setAttribute("cx",center[0]*xunitlength+origin[0]);
@@ -672,7 +672,7 @@ function rect(p,q,id,rx,ry) { // opposite corners in units, rounded by radii
   if (id!=null) node = doc.getElementById(id);
   if (node==null) {
     node = myCreateElementSVG("rect");
-    node.setAttribute("id", id);
+    if (id!=null) node.setAttribute("id", id);
     svgpicture.appendChild(node);
   }
   node.setAttribute("x",Math.min(p[0],q[0])*xunitlength+origin[0]);
@@ -748,7 +748,7 @@ function textabs(p,st,pos,angle,id,fontsty) {
   if (id!=null) node = doc.getElementById(id);
   if (node==null) {
     node = myCreateElementSVG("text");
-    node.setAttribute("id", id);
+    if (id!=null) node.setAttribute("id", id);
     svgpicture.appendChild(node);
     node.appendChild(doc.createTextNode(st));
   }
@@ -811,7 +811,7 @@ function dot(center, typ, label, pos, id) {
   if (typ=="+" || typ=="-" || typ=="|") {
     if (node==null) {
       node = myCreateElementSVG("path");
-      node.setAttribute("id", id);
+      if (id!=null) node.setAttribute("id", id);
       svgpicture.appendChild(node);
     }
     if (typ=="+") {
@@ -831,7 +831,7 @@ function dot(center, typ, label, pos, id) {
   } else {
     if (node==null) {
       node = myCreateElementSVG("circle");
-      node.setAttribute("id", id);
+      if (id!=null) node.setAttribute("id", id);
       svgpicture.appendChild(node);
     }
     node.setAttribute("cx",cx);
@@ -977,8 +977,8 @@ function axes(dx,dy,labels,gdx,gdy,dox,doy,smallticks) {
   if (ygrid!=null) gdy = ygrid;
   
   if (smallticks!=null && smallticks==1) {
-    var gridymin = origin[1] + .7*ticklength;
-    var gridymax = origin[1] - .7*ticklength;
+    var gridymin = height - origin[1] + .7*ticklength;
+    var gridymax = height - origin[1] - .7*ticklength;
     var gridxmin = origin[0] - .7*ticklength;
     var gridxmax = origin[0] + .7*ticklength;
   } else {

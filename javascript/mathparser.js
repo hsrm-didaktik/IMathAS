@@ -1226,6 +1226,19 @@ function cplx_funcvar(input, v) {
 var pi = Math.PI, ln = Math.log, e = Math.E;
 var arcsin = Math.asin, arccos = Math.acos, arctan = Math.atan;
 
+// mathjs, for jsxgraph
+var logten = function(x) { return (Math.LOG10E*Math.log(x)) };
+function nthlogten(n,v) {
+	return ((Math.log(v))/(Math.log(n)));
+}
+var sinn = function(n,x) {return Math.pow(Math.sin(x),n)};
+var cosn = function(n,x) {return Math.pow(Math.cos(x),n)};
+var tann = function(n,x) {return Math.pow(Math.tan(x),n)};
+var cscn = function(n,x) {return 1/Math.pow(Math.sin(x),n)};
+var secn = function(n,x) {return 1/Math.pow(Math.cos(x),n)};
+var cotn = function(n,x) {return 1/Math.pow(Math.tan(x),n)};
+var lnn = function(n,x) {return Math.pow(Math.log(x),n)};
+
 var funcstoindexarr = "sinh|cosh|tanh|sech|csch|coth|sqrt|ln|log|exp|sin|cos|tan|sec|csc|cot|abs|root|arcsin|arccos|arctan|arcsec|arccsc|arccot|arcsinh|arccosh|arctanh|arcsech|arccsch|arccoth|argsinh|argcosh|argtanh|argsech|argcsch|argcoth|arsinh|arcosh|artanh|arsech|arcsch|arcoth|pi".split("|");
 function functoindex(match) {
 	for (var i=0;i<funcstoindexarr.length;i++) {
@@ -1242,7 +1255,7 @@ function indextofunc(match, contents) {
 function matchtolower(match) {
 	return match.toLowerCase();
 }
-function mathjs(st) {
+function mathjs(st,varlist) {
   //translate a math formula to js function notation
   // a^b --> pow(a,b)
   // na --> n*a
@@ -1257,13 +1270,33 @@ function mathjs(st) {
   st = st.replace(/root\s*(\d+)/,"root($1)");
   st = st.replace(/\|(.*?)\|/g,"abs($1)");
   st = st.replace(/(Sin|Cos|Tan|Sec|Csc|Cot|Arc|Abs|Log|Exp|Ln|Sqrt)/gi, matchtolower);
-  st = st.replace(/pi/g, "(pi)");
+  //hide functions for now
+  st = st.replace(/(sinh|cosh|tanh|sech|csch|coth|sqrt|ln|log|exp|sin|cos|tan|sec|csc|cot|abs|root)/g, functoindex);
+  //escape variables so regex's won't interfere
+  if (varlist != null && varlist != '') {
+    var vararr = varlist.split("|");
+    vararr.push("pi"); //escape pi like a variable to prevent conflict w i as a variable
+    vararr.sort(function(a,b) { return b.length - a.length; });
+    varlist = vararr.join("|");
+    st = st.replace(new RegExp("("+varlist+")","gi"), function(match,p1) {
+      for (var i=0; i<vararr.length;i++) {
+        if (vararr[i]==p1) {
+          return '(@v'+i+'@)';
+        }
+      }
+      return p1;
+    });
+  } else {
+    st = st.replace(/pi/g, "(pi)");
+  }
   //temp store of scientific notation
   st = st.replace(/([0-9])E([\-0-9])/g,"$1(EE)$2");
   st = st.replace(/\*?\s*degrees?/g,"*((pi)/180)");
   st = st.replace(/div/,'/');
   //convert named constants
   st = st.replace(/e/g, "(E)");
+    //restore functions
+  st = st.replace(/@(\d+)@/g, indextofunc);
   //convert functions
   st = st.replace(/log_([a-zA-Z\d\.]+|\(([a-zA-Z\/\d\.]+)\))\s*\(/g,"nthlog($1,");
   st = st.replace(/log/g,"logten");
@@ -1277,6 +1310,13 @@ function mathjs(st) {
   //clean up
   st = st.replace(/#/g,"");
   st = st.replace(/\s/g,"");
+
+  //restore variables
+  if (varlist != null && varlist != '') {
+    st = st.replace(/@v(\d+)@/g, function(match,contents) {
+  	  return vararr[contents];
+    });
+  }
 
   //add implicit multiplication
   st = st.replace(/([0-9]\.?)([\(a-zA-Z])/g,"$1*$2");

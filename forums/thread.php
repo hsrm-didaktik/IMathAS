@@ -324,7 +324,7 @@ if (isset($_GET['search']) && trim($_GET['search'])!='') {
 				foreach ($items as $item) {
 					if (is_array($item)) {
 						if (!empty($item['items'])) {
-							flattenitems($item['items'],$ishidden||($item['avail']==0));
+							flattenitems($item['items'],$ishidden||(($item['avail'] ?? 1)==0));
 						}
 					} else if (isset($itemsassoc[$item]) && $ishidden) { // is a hidden forum 
 						$hiddenforums[] = $itemsassoc[$item];
@@ -421,16 +421,16 @@ if (isset($_GET['markallread'])) {
 $qarr = [':forumid'=>$forumid, ':now'=>$canviewall?2000000000:$now];
 $query = "SELECT ifp.id,ifp.threadid,ifp.posttype,ifp.tag,ifp.userid,ifp.forumid,ifp.isanon,ifp.subject,";
 $query .= "imas_forum_threads.views as tviews,imas_users.LastName,imas_users.FirstName,imas_forum_threads.stugroupid,imas_forum_threads.lastposttime ";
-$query .= "FROM imas_forum_posts AS ifp JOIN imas_users ON ifp.userid=imas_users.id ";
-$query .= "JOIN imas_forum_threads ON ifp.threadid=imas_forum_threads.id ";
+$query .= "FROM imas_forum_threads JOIN imas_forum_posts AS ifp ON ifp.threadid=imas_forum_threads.id AND ifp.parent=0 ";
+$query .= "JOIN imas_users ON ifp.userid=imas_users.id ";
 if ($page < 0) {
     $query .= 'LEFT JOIN imas_forum_views ON imas_forum_views.threadid=imas_forum_threads.id AND imas_forum_views.userid=:userid ';
     $qarr[':userid'] = $userid;
 }
-$query .= "WHERE ifp.parent=0 AND ifp.forumid=:forumid ";
+$query .= "WHERE imas_forum_threads.forumid=:forumid ";
 $query .= "AND imas_forum_threads.lastposttime<:now ";
 if ($dofilter) {
-    $query .= "AND ifp.threadid IN ($limthreads) ";
+    $query .= "AND imas_forum_threads.id IN ($limthreads) ";
 }
 if ($page==-1) {
     //$query .= "AND ifp.threadid IN ($newpostlist) ";
@@ -853,12 +853,14 @@ echo "</p>";
 
 				echo "<td class=c>".Sanitize::encodeStringForDisplay($posts)."</td>";
 
+				echo '<td class="c">';
 				if ($isteacher) {
-					echo '<td class="pointer c" onclick="GB_show(\''._('Thread Views').'\',\'listviews.php?cid='.$cid.'&amp;thread='.Sanitize::onlyInt($line['id']).'\',500,500);">';
-				} else {
-					echo '<td class="c">';
-				}
+					echo '<a href="#" aria-haspopup="dialog" role="button" onclick="GB_show(\''._('Thread Views').'\',\'listviews.php?cid='.$cid.'&amp;thread='.Sanitize::onlyInt($line['id']).'\',500,500);return false;">';
+				} 
 				echo Sanitize::encodeStringForDisplay($line['tviews']) ." (".Sanitize::encodeStringForDisplay($uniqviews[$line['id']] ?? 0).")</td><td class=c>".Sanitize::encodeStringForDisplay($lastpost);
+				if ($isteacher) {
+					echo '</a>';
+				}
 				if ($lastpost=='' || !isset($lastview[$line['id']]) || !isset($maxdate[$line['id']]) || $maxdate[$line['id']]>$lastview[$line['id']]) {
 					echo " <span class=\"noticetext\">New</span>";
 				}

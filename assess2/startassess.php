@@ -26,8 +26,6 @@ require_once "./AssessInfo.php";
 require_once "./AssessRecord.php";
 require_once './AssessUtils.php';
 
-header('Content-Type: application/json; charset=utf-8');
-
 // validate inputs
 check_for_required('GET', array('aid', 'cid'));
 $cid = Sanitize::onlyInt($_GET['cid']);
@@ -183,7 +181,7 @@ if (!$canViewAll && $assess_info->getSetting('isgroup') == 2) {
     if ($assess_record->hasRecord() && count($available_new_members) > 0) {
         $sourcedids = AssessUtils::formLTIsourcedId($available_new_members, $aid, true);
         // get current record
-        $fieldstocopy = 'assessmentid,agroupid,timeontask,starttime,lastchange,score,status,scoreddata,practicedata,ver';
+        $fieldstocopy = 'assessmentid,agroupid,timeontask,starttime,lastchange,score,status,status2,scoreddata,practicedata,ver';
         $query = "SELECT $fieldstocopy FROM ";
         $query .= "imas_assessment_records WHERE userid=:userid AND assessmentid=:assessmentid";
         $stm = $DBH->prepare($query);
@@ -258,12 +256,19 @@ if (!$assess_record->hasUnsubmittedAttempt()) {
 
 // log access
 if ($isRealStudent) {
-  $query = "INSERT INTO imas_content_track (userid,courseid,type,typeid,viewtime) VALUES ";
-  $query .= "(:userid, :courseid, :type, :typeid, :viewtime)";
+  $userIP = $_SERVER['HTTP_CF_CONNECTING_IP']
+        ?? $_SERVER['HTTP_X_FORWARDED_FOR']
+        ?? $_SERVER['REMOTE_ADDR']
+        ?? $_SERVER['HTTP_CLIENT_IP']
+        ?? '';
+  $query = "INSERT INTO imas_content_track (userid,courseid,type,typeid,viewtime,info) VALUES ";
+  $query .= "(:userid, :courseid, :type, :typeid, :viewtime, :info)";
   $stm = $DBH->prepare($query);
   $stm->execute(array(':userid'=>$uid, ':courseid'=>$cid,
     ':type'=>$in_practice?'assessreview':'assess',
-    ':typeid'=>$aid, ':viewtime'=>time()));
+    ':typeid'=>$aid, ':viewtime'=>time(), 
+    ':info'=>substr(base64_encode(hex2bin(md5($userIP))),-8,6)
+  ));
 }
 
 // update lti_sourcedid if needed

@@ -110,8 +110,10 @@ if ($myrights<20) {
 					$stm = $DBH->prepare("SELECT imas_questionset.id FROM imas_questionset,imas_users WHERE imas_questionset.ownerid=imas_users.id AND imas_questionset.id IN ($translist) AND imas_users.groupid=:groupid");
 					$stm->execute(array(':groupid'=>$groupid));
 					$upd_stm = $DBH->prepare("UPDATE imas_questionset SET ownerid=:ownerid WHERE id=:id");
+					$upd_stm2 = $DBH->prepare("UPDATE imas_questionerrorlog SET ownerid=:ownerid WHERE qsetid=:id");
 					while ($row = $stm->fetch(PDO::FETCH_NUM)) {
 						$upd_stm->execute(array(':ownerid'=>$_POST['newowner'], ':id'=>$row[0]));
+						$upd_stm2->execute(array(':ownerid'=>$_POST['newowner'], ':id'=>$row[0]));
 					}
 
 				} else {
@@ -120,8 +122,16 @@ if ($myrights<20) {
 						$query .= " AND ownerid=:ownerid2";
 						$stm = $DBH->prepare($query);
 						$stm->execute(array(':ownerid'=>$_POST['newowner'], ':ownerid2'=>$userid));
+
+						$query = "UPDATE imas_questionerrorlog SET ownerid=:ownerid WHERE qsetid IN ($translist)";
+						$query .= " AND ownerid=:ownerid2";
+						$stm = $DBH->prepare($query);
+						$stm->execute(array(':ownerid'=>$_POST['newowner'], ':ownerid2'=>$userid));
 					} else {
 						$stm = $DBH->prepare("UPDATE imas_questionset SET ownerid=:ownerid WHERE id IN ($translist)");
+						$stm->execute(array(':ownerid'=>$_POST['newowner']));
+
+						$stm = $DBH->prepare("UPDATE imas_questionerrorlog SET ownerid=:ownerid WHERE qsetid IN ($translist)");
 						$stm->execute(array(':ownerid'=>$_POST['newowner']));
 					}
 				}
@@ -635,7 +645,7 @@ $testqpage = ($courseUIver>1) ? 'testquestion2.php' : 'testquestion.php';
 
 /******* begin html output ********/
 $placeinhead = "<script type=\"text/javascript\" src=\"$staticroot/javascript/junkflag.js\"></script>";
-$placeinhead .= "<script type=\"text/javascript\" src=\"$staticroot/javascript/qsearch.js?v=071125\"></script>";
+$placeinhead .= "<script type=\"text/javascript\" src=\"$staticroot/javascript/qsearch.js?v=111925\"></script>";
 $placeinhead .= "<script type=\"text/javascript\" src=\"$staticroot/javascript/DatePicker.js?v=080818\"></script>";
 $placeinhead .= "<script type=\"text/javascript\">var JunkFlagsaveurl = '" . $GLOBALS['basesiteurl'] . "/course/savelibassignflag.php';</script>";
 $placeinhead .= "<link rel=\"stylesheet\" href=\"$staticroot/course/addquestions2.css?v=060823\" type=\"text/css\" />";
@@ -721,7 +731,7 @@ if (isset($searchtype)) {
 
 			<?php //writeHtmlSelect("newowner",$page_transferUserList['val'],$page_transferUserList['label']); ?>
             <?php require_once '../includes/userlookupform.php'; 
-                generateUserLookupForm(_('Transfer question ownership to:'), 'newowner');
+                generateUserLookupForm(_('Transfer question ownership to:'), 'newowner', '', false);
             ?>
 
 			<p>
@@ -902,7 +912,7 @@ if (isset($searchtype)) {
 			
 			<?php //writeHtmlSelect("newowner",$page_transferUserList['val'],$page_transferUserList['label']); ?>
             <?php require_once '../includes/userlookupform.php'; 
-                generateUserLookupForm(_('Transfer question ownership to:'), 'newowner');
+                generateUserLookupForm(_('Transfer question ownership to:'), 'newowner', '', false);
             ?>
 			<p>
 				<input type=submit value="Transfer">

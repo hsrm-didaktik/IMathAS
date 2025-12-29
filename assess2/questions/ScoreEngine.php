@@ -52,7 +52,8 @@ class ScoreEngine
         'strflags',
         'questions',
         'variables',
-        'formatfeedbackon'
+        'formatfeedbackon',
+        'defaults'
     );
 
     const ADDITIONAL_VARS_FOR_SCORING = array(
@@ -179,6 +180,32 @@ class ScoreEngine
             }
             $anstypes = array_map('trim', $anstypes);
         }
+
+        /*
+         * Apply defaults, if set
+         */
+        if (isset($defaults)) {
+            foreach ($defaults as $kidx => $atIdx) {
+                if (!in_array($kidx, self::VARS_FOR_SCOREPART_EVALS)) { continue; }
+                if ($quesData['qtype'] == "multipart" && is_array($anstypes)) {
+                    for ($_pnidx=0; $_pnidx < count($anstypes); $_pnidx++) {
+                        if (!isset(${$kidx}[$_pnidx]) && 
+                            ($anstypes[$_pnidx] !== 'draw' || ($kidx !== 'abstolerance' && $kidx !== 'reltolerance'))
+                        ) {
+                            ${$kidx}[$_pnidx] = $atIdx;
+                        }
+                    }
+                } else if (!isset(${$kidx}) && 
+                    ($quesData['qtype'] !== 'draw' || ($kidx !== 'abstolerance' && $kidx !== 'reltolerance'))
+                ) {
+                    ${$kidx} = $atIdx;
+                }
+            }
+        }
+
+        /*
+		 * Massage some more data.
+		 */
 
         if (isset($reqdecimals) && $reqdecimals !== '') {
             $hasGlobalAbstol = false;
@@ -323,16 +350,20 @@ class ScoreEngine
             (time() - $quesData['lastmoddate']) > 10000
         ) {
             // only log if hasn't been edited in a few hours
-            $query = 'INSERT INTO imas_questionerrors (qsetid, seed, scored, etime, error)
-                VALUES (?,?,?,?,?) ON DUPLICATE KEY UPDATE etime=VALUES(etime),error=VALUES(error)';
+            $errortolog = implode('; ', $this->errors);
+            
+            $query = 'INSERT INTO imas_questionerrorlog (qsetid, seed, etime, ehash, error, ownerid)
+                VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE etime=VALUES(etime)';
             $stm = $this->dbh->prepare($query);
             $stm->execute([
                 $scoreQuestionParams->getDbQuestionSetId(),
                 $scoreQuestionParams->getQuestionSeed(),
-                1,
                 time(),
-                implode('; ', $this->errors)
+                md5($errortolog),
+                $errortolog,
+                $quesData['ownerid']
             ]);
+            
         }
 
         return $scoreResult;

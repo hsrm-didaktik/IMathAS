@@ -107,6 +107,17 @@
           {{ $t('gradebook.' + (showExcused ? 'hide' : 'show') + '_excused') }}
         </button>
       </div>
+      <div v-if="canEdit && aData.scoresingb === 'manual'">
+        {{ $t('gradebook.manualstatus' + aData.manual_released) }}
+        <button
+          type="button"
+          class="slim"
+          :disabled = "!canSubmit"
+          @click="setManualRelease"
+        >
+          {{ $t('gradebook.manualbutton' + aData.manual_released) }}
+        </button>
+      </div>
 
       <div v-if="showExcused" class="introtext">
         {{ $t('gradebook.excused_list') }}
@@ -121,7 +132,7 @@
         <a v-if="showViewAsStu" :href="viewAsStuUrl">
           {{ $t('gradebook.view_as_stu') }}
         </a>
-        <span v-if="showViewAsStu">|</span>
+        <span v-if="showViewAsStu"> | </span>
         <a :href="viewAsStuUrl + '#/print'">
           {{ $t('gradebook.print') }}
         </a> |
@@ -152,6 +163,13 @@
               @click="clearAttempts('attempt')"
             >
               {{ $t('gradebook.clear_attempt') }}
+            </button>
+            <button
+              v-if = "!isByQuestion && canEdit && aData.keepscore === 'last' && curAver < aData.assess_versions.length - 1"
+              type="button"
+              @click="setVerAsLast"
+            >
+              {{ $t('gradebook.set_as_last') }}
             </button>
           </div>
           <div v-if="isUnsubmitted">
@@ -400,6 +418,12 @@
           @update = "updateFeedback"
         />
         <div v-if = "!op_oneatatime || nextVisible === -1">
+          <p v-if = "canEdit && aData.scoresingb === 'manual' && aData.manual_released == 0">
+            <label>
+              <input type="checkbox" v-model="releaseOnSave" />
+              {{ $t('gradebook.release_on_save') }}
+            </label>
+          </p>
           <button
             v-if = "op_oneatatime"
             :disabled = "prevVisible === -1"
@@ -431,6 +455,7 @@
             {{ savedMsg }}
           </span>
           <button
+            v-if="hasExit"
             type = "button"
             class = "secondary"
             :disabled = "!canSubmit"
@@ -460,6 +485,7 @@
             {{ savedMsg }}
           </span>
           <button
+            v-if="hasExit"
             type = "button"
             class = "secondary"
             :disabled = "!canSubmit"
@@ -556,6 +582,7 @@ export default {
       op_showans: false,
       sidebysideon: false,
       op_oneatatime: false,
+      releaseOnSave: false,
       curqn: 0
     };
   },
@@ -688,7 +715,7 @@ export default {
         let showit = true;
         if (this.hide100 && qdata.score > qdata.points_possible - 0.002) {
           showit = false;
-        } else if (this.hidePerfect && Math.abs(qdata.rawscore - 1) < 0.002) {
+        } else if (this.hidePerfect && Math.abs(qdata.rawscore) > 0.998) {
           showit = false;
         } else if (this.hideUnanswered && qdata.parts.reduce((a, c) => Math.max(a, c.try), 0) === 0) {
           showit = false;
@@ -773,6 +800,9 @@ export default {
       } else {
         return store.assessInfo.interquestion_text;
       }
+    },
+    hasExit () {
+      return (window.exiturl && window.exiturl !== '');
     }
   },
   methods: {
@@ -847,7 +877,7 @@ export default {
       }
       var doexit = (exit === true);
       var donextstu = (nextstu === true);
-      actions.saveChanges(doexit, donextstu);
+      actions.saveChanges(doexit, donextstu, this.releaseOnSave);
     },
     submitForm () {
       this.submitChanges(true);
@@ -858,6 +888,17 @@ export default {
     clearAttempts (type) {
       store.clearAttempts.type = type;
       store.clearAttempts.show = true;
+    },
+    setVerAsLast () {
+      store.confirmObj = {
+        body: 'gradebook.setaslast_warn',
+        action: () => actions.setVerAsLast()
+      };
+    },
+    setManualRelease () {
+      // toggle value
+      this.releaseOnSave = false;
+      actions.setManualRelease(1 - this.aData.manual_released);
     },
     clearLPblock () {
       actions.clearLPblock();
