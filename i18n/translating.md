@@ -16,13 +16,13 @@ If this is the first run, you'll need to create the language file
 
 `touch i18n/es.po`
 
-Now, build the .po file. This will process the appropriate git versioned files.
+Now, build the .po file. This will process the appropriate git versioned files. This can be done by calling the script ~/getmo
 
 `git ls-tree -r master --name-only | grep -E '(php|js)$' | grep -v 'i18n/' | xargs xgettext -d es -p i18n -j --from-code=UTF-8`
 
 ## Translate
 
-Translate i18n/es.po manually
+Translate i18n/de.po manually
 
 ## Compile the translations
 
