@@ -53,8 +53,9 @@ if (!isset($imasroot)) { //don't allow direct access to loginpage.php
 <tr><td><label for="password"><?php echo _('Password'); ?></label>:</td><td><input type="password" size="15" id="password" name="password" /></td></tr>
 </table>
 <div class=textright><input type="submit" value="Login"></div>
-
+<!--
 <div class="textright"><a href="<?php echo $imasroot; ?>/forms.php?action=newuser"><?php echo 'Als neuer Student registrieren';?></a></br>
+-->
 <a href="<?php echo $imasroot; ?>/newinstructor.php"><?php echo 'Als neuer Dozent registrieren';?></a>
 </div>
 <div class="textright"><a href="<?php echo $imasroot; ?>/forms.php?action=resetpw"><?php echo _('Forgot Password');?></a><br/>
@@ -83,8 +84,9 @@ $(function() {
 <p>Das System wurde für verschiedene Formen von umfangreichen Mathematikaufgaben entworfen. Studenten können durch generierte Tests und automatische Auswertung direkt Rückmeldung bekommen.</p>
 
 <p>Wenn Sie bereits ein Benutzerkonto haben, können Sie sich rechts anmelden.</p>
+<!--
 <p><?php printf('Wenn Sie sich noch nicht registriert haben, können Sie sich <a href="%s/forms.php?action=newuser">als neuer Student registrieren</a>', $imasroot);?>. Für den Kurszugang erhalten Sie von Ihrem Dozenten eine Kurs-ID und ggf. ein Passwort. Viele Kurse sind nur über das Lernmanagementsystem der Hochschulen zugänglich. Für diese Kurse brauchen Sie sich hier nicht zu registrieren.</p>
-
+-->
 <p>In öffentliche Kurse können Sie sich auch mit <em>guest</em> ohne Passwort einschreiben. Gast-Kennungen werden regelmäßig gelöscht.</p>
 
 <p><?php printf('Sie können <a href="%s/newinstructor.php"><b>hier eine Dozentenkennung beantragen</b></a>. Für Mitarbeitende und Studierende von Hochschulen des Landes stellt der Virtuelle Campus Rheinland-Pfalz diese Kennung kostenlos zur Verfügung. Mit einer Dozentenkennung erhalten Sie Zugang zur hochschulübergreifenden Aufgabenbibliothek und können eigene Aufgaben und Tests erstellen und in das Lernmanagementsystem Ihrer Hochschule einbinden.', $imasroot)?></p>

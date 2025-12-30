@@ -1,4 +1,7 @@
 <?php
+if (!isset($coursetheme)) {
+	$coursetheme = 'netmath.css';
+}
 if ($coursetheme=='otbsreader.css') {
 	$nologo = true;
 }

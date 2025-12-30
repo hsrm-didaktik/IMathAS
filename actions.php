@@ -29,6 +29,7 @@ require_once "includes/sanitize.php";
 	require_once "includes/password.php";
 
 	if (isset($_GET['action']) && $_GET['action']=="newuser") {
+		/* Disabling student self registration
 		$init_session_start = true;
 		require_once "init_without_validate.php";
 		require_once "includes/newusercommon.php";
@@ -252,6 +253,7 @@ require_once "includes/sanitize.php";
 			require_once "footer.php";
 		}
 		//header('Location: ' . $urlmode  . $_SERVER['HTTP_HOST'] . rtrim(dirname($_SERVER['PHP_SELF']), '/\\') . "/index.php");
+		*/
 		exit;
 	} else if (isset($_GET['action']) && $_GET['action']=="confirm") {
 		require_once "init_without_validate.php";
