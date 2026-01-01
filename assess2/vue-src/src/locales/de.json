@@ -129,6 +129,7 @@
     "jump_to_answer": "Gehe zur Antwort",
     "jump_warn": "Dies verbraucht alle übrigen Versuche für diese Version der Frage.",
     "showwork": "Hier können Sie Ihre ausführliche Lösung einreichen. Sie können auch ein Foto Ihrer Notizen in diesen Bereich ziehen oder über das Büroklammer-Symbol hochladen.",
+    "showwork_n": "Arbeiten zur Frage {n}",
     "uploadwork": "Geben Sie hier Ihre Lösung ein, indem Sie eine Datei oder ein Bild hochladen",
     "uploading": "Lade hoch...",
     "intronext": "Um zu beginnen, navigieren Sie über die Auswahl oder mit der >-Schaltfläche zu einer Frage ",
@@ -461,6 +462,7 @@
     "no_versions": "Noch keine Test-Versuche anzuzeigen",
     "minutes": "Minuten",
     "avail_never": "Die Noten sind zurzeit vom Dozenten nicht freigegeben.",
+    "avail_manual": "Die Note ist vom Dozenten noch nicht freigegeben",
     "avail_after_take": "Wird angezeigt, wenn Sie einen Test-Versuch einreichen.",
     "avail_after_due": "Wird nach Fälligkeit angezeigt.",
     "avail_after_lp": "Wird nach der Kulanz-Zeit angezeigt.",
@@ -491,7 +493,14 @@
     "nextq": "Nächste Frage",
     "prevq": "Vorherige Frage",
     "oneatatime": "Einzeln",
-    "a11yalt": "Barrierefreie Alternative"
+    "a11yalt": "Barrierefreie Alternative",
+    "set_as_last": "Zum Letzten",
+    "setaslast_warn": "Dadurch wird dieser Versuch zu letzten Versuch, der dann auch gewertet wird",
+    "manualstatus0": "Die Note wurde noch nicht für Studerende freigegeben",
+    "manualbutton0": "Note freigeben",
+    "manualstatus1": "Note wurde für Studierende freigegeben",
+    "manualbutton1": "Freigabe der Note zurückziehen",
+    "release_on_save": "Note beim Speichern für Studierende freigeben"
   },
   "work": {
     "add": "Lösung hinzufügen",
@@ -514,5 +523,16 @@
   "links": {
     "settings": "Einstellungen",
     "questions": "Fragen"
+  },
+  "latepass": {
+    "reason0": "Kein verspätetes Einreichen möglich",
+    "reason2": "Kein verspätetes Einreichen mehr möglich",
+    "reason3": "Der Kurs ist beendet. Kein verspätetes Einreichen möglich.",
+    "reason4": "Verspätetes Einreichen nicht mehr möglich, da der Test bereits beendet ist.",
+    "reason5": "Verspätetes Einreichen nicht mehr möglich, da der Test für die erlaubte Zahl verspäteter Einreichungen zu lange beendet ist.",
+    "reason6": "Verspätetes Einreichen nicht möglich - Sie haben dafür kein Kontingent",
+    "reason7": "Sie den Test im Übungsmodus geöffnet. In diesem Modus sind keine verspäteten Einreichungen möglich.",
+    "reason8": "Sie haben den test bereits in der Notenübersicht angesehen. Dadurch ist ein verspätetes Einreichen nicht mehr möglich.",
+    "reason9": "Kein verspätetes Einreichen möglich, da Sie keine Versuche mehr übrig haben."
   }
 }
