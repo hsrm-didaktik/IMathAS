@@ -37,7 +37,7 @@ if (isset($_POST['remove'])) {
   $tempkey = key($_FILES);
   $temp = current($_FILES);
   if (Sanitize::isFilenameBlacklisted(str_replace(' ','_',$temp['name']))) {
-    header("HTTP/1.0 500 Invalid file name.");
+    header("HTTP/1.0 500 Invalid file type.");
     exit;
   }
   $temp['name'] = Sanitize::sanitizeFilenameAndCheckBlacklist(str_replace(' ','_',$temp['name']));
@@ -58,6 +58,20 @@ if (isset($_POST['remove'])) {
 
     // Verify extension
     $extension = strtolower(pathinfo($temp['name'], PATHINFO_EXTENSION));
+    if ($extension == '') {
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mimeType = $finfo->file($temp['tmp_name']);
+        $allowedTypes = [
+            'image/jpeg' => '.jpg',
+            'image/png'  => '.png',
+            'image/gif'  => '.gif',
+            'image/webp' => '.webp'
+        ];
+        if (array_key_exists($mimeType, $allowedTypes)) {
+            $extension = substr($allowedTypes[$mimeType], 1); // remove the dot
+            $temp['name'] .= $allowedTypes[$mimeType];
+        } 
+    }
     if ($extension == 'dat' && $temp['type'] == 'image/svg+xml') {
         $temp['name'] = str_replace('.dat','.svg', $temp['name']);
         $extension = 'svg';
