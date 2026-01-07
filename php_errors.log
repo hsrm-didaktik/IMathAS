@@ -44,3 +44,8 @@
 [30-Dec-2025 09:46:17 Europe/Berlin] PHP Notice:  Undefined variable: coursetheme in /var/www/html/IMathAS/headercontentvcrp.php on line 5
 [30-Dec-2025 09:46:17 Europe/Berlin] PHP Notice:  Undefined variable: coursetheme in /var/www/html/IMathAS/headercontentvcrp.php on line 5
 [03-Jan-2026 15:14:21 Europe/Berlin] PHP Parse error:  syntax error, unexpected '$allownongrouplibs' (T_VARIABLE) in /var/www/html/IMathAS/config.php on line 74
+[07-Jan-2026 19:54:20 Europe/Berlin] PHP Notice:  Undefined index: lastemail in /var/www/html/IMathAS/validate.php on line 389
+[07-Jan-2026 19:54:20 Europe/Berlin] PHP Notice:  Undefined index: specialrights in /var/www/html/IMathAS/validate.php on line 401
+[07-Jan-2026 19:54:20 Europe/Berlin] PHP Notice:  Undefined index: listperpage in /var/www/html/IMathAS/validate.php on line 421
+[07-Jan-2026 19:54:20 Europe/Berlin] PHP Notice:  Undefined index: hasuserimg in /var/www/html/IMathAS/validate.php on line 423
+[07-Jan-2026 19:54:20 Europe/Berlin] PHP Notice:  Undefined index: FCMtoken in /var/www/html/IMathAS/validate.php on line 429

@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-03 15:21+0100\n"
-"PO-Revision-Date: 2026-01-03 15:29+0100\n"
+"POT-Creation-Date: 2026-01-07 10:29+0100\n"
+"PO-Revision-Date: 2026-01-07 10:34+0100\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3455,6 +3455,7 @@ msgstr "Benutzer ID (remote)"
 #: course/addquestions2.php:586 javascript/addqsort.js:1410
 #: javascript/addqsort.js:1687 javascript/addqsort2.js:1548
 #: javascript/addqsort2.js:1869 javascript/drawing.js:368
+#: javascript/drawing.js:379
 msgid "Remove"
 msgstr "Entfernen"
 
@@ -5346,7 +5347,7 @@ msgstr "Zeichnen:"
 #: assess2/questions/answerboxes/DrawingAnswerBox.php:490
 #: javascript/drawing.js:241
 #: assess2/questions/answerboxes/DrawingAnswerBox.php:529
-#: javascript/drawing.js:243
+#: javascript/drawing.js:243 javascript/drawing.js:245
 msgid "Line"
 msgstr "Linie"
 
@@ -5447,6 +5448,7 @@ msgstr "Offener Punkt"
 #: assess2/questions/answerboxes/DrawingAnswerBox.php:542
 #: assess2/questions/answerboxes/DrawingAnswerBox.php:545
 #: javascript/drawing.js:281 javascript/drawing.js:282
+#: javascript/drawing.js:283 javascript/drawing.js:284
 msgid "Polygon"
 msgstr "Vieleck"
 
@@ -5591,6 +5593,7 @@ msgstr " Kann Excel Datei nicht öffnen"
 #: assessment/displayq2.php:7410
 #: assess2/questions/scorepart/FileScorePart.php:100
 #: assessment/displayq2.php:7419
+#: assess2/questions/scorepart/FileScorePart.php:99
 #, php-format
 msgid "Upload of %s: "
 msgstr "Hochladen von %s: "
@@ -5655,6 +5658,7 @@ msgstr "Fehler - Datei nicht in Vorschau hochgeladen"
 #: assessment/displayq2.php:7484
 #: assess2/questions/scorepart/FileScorePart.php:166
 #: assessment/displayq2.php:7495
+#: assess2/questions/scorepart/FileScorePart.php:165
 msgid "Successful"
 msgstr "Erfolgreich"
 
@@ -5672,6 +5676,7 @@ msgstr "Erfolgreich"
 #: assess2/questions/scorepart/FileScorePart.php:170
 #: assess2/questions/scorepart/FileScorePart.php:171
 #: assessment/displayq2.php:7499 assessment/displayq2.php:7500
+#: assess2/questions/scorepart/FileScorePart.php:169
 msgid "Error storing file"
 msgstr "Fehler beim Speichern der Datei"
 
@@ -5689,6 +5694,7 @@ msgstr "Fehler beim Speichern der Datei"
 #: assess2/questions/scorepart/FileScorePart.php:179
 #: assess2/questions/scorepart/FileScorePart.php:180
 #: assessment/displayq2.php:7507 assessment/displayq2.php:7508
+#: assess2/questions/scorepart/FileScorePart.php:178
 msgid "Error uploading file - file too big"
 msgstr "Fehler beim Hochladen der Datei - Datei zu groß"
 
@@ -5706,6 +5712,7 @@ msgstr "Fehler beim Hochladen der Datei - Datei zu groß"
 #: assess2/questions/scorepart/FileScorePart.php:182
 #: assess2/questions/scorepart/FileScorePart.php:183
 #: assessment/displayq2.php:7510 assessment/displayq2.php:7511
+#: assess2/questions/scorepart/FileScorePart.php:181
 msgid "Error uploading file"
 msgstr "Fehler beim Hochladen der Datei"
 
@@ -6592,7 +6599,8 @@ msgstr "CSV herunterladen"
 #: assessment/macros.php:234 assessment/macros.php:236
 #: assessment/macros.php:237 assessment/macros.php:243
 #: assessment/macros.php:280 assessment/macros.php:288
-#: assessment/macros/graph.php:231
+#: assessment/macros/graph.php:231 assessment/macros/graph.php:232
+#: assessment/macros/graph.php:234
 #, php-format
 msgid "Open dot at %s"
 msgstr "Offener Punkt bei %s"
@@ -6600,7 +6608,7 @@ msgstr "Offener Punkt bei %s"
 #: assessment/macros.php:237 assessment/macros.php:239
 #: assessment/macros.php:240 assessment/macros.php:246
 #: assessment/macros.php:283 assessment/macros.php:291
-#: assessment/macros/graph.php:234
+#: assessment/macros/graph.php:234 assessment/macros/graph.php:241
 #, php-format
 msgid "Dot at %s"
 msgstr "Punkt bei %s"
@@ -6608,7 +6616,7 @@ msgstr "Punkt bei %s"
 #: assessment/macros.php:268 assessment/macros.php:272
 #: assessment/macros.php:273 assessment/macros.php:279
 #: assessment/macros.php:316 assessment/macros.php:325
-#: assessment/macros/graph.php:268
+#: assessment/macros/graph.php:268 assessment/macros/graph.php:276
 #, php-format
 msgid "Text label, color %s, at %s reading: %s"
 msgstr "Angezeigter Text, Farbe %s, bei %s gelesen: %s"
@@ -19515,7 +19523,7 @@ msgstr "Gezeichnete Elemente:"
 #: javascript/drawing.js:208 javascript/drawing.js:213
 #: javascript/drawing.js:214 javascript/drawing.js:215
 #: javascript/drawing.js:227 javascript/drawing.js:228
-#: javascript/drawing.js:230
+#: javascript/drawing.js:230 javascript/drawing.js:232
 msgid "Linear inequality with solid line"
 msgstr "Lineare Ungleichung mit Vollinie"
 
@@ -19528,6 +19536,7 @@ msgstr "Lineare Ungleichung mit Vollinie"
 #: javascript/drawing.js:216 javascript/drawing.js:227
 #: javascript/drawing.js:228 javascript/drawing.js:229
 #: javascript/drawing.js:230 javascript/drawing.js:231
+#: javascript/drawing.js:232 javascript/drawing.js:233
 msgid "Enter 2 points on the line, then a third point in the shaded region"
 msgstr ""
 "Geben Sie 2 Punkte auf der Linie ein, dann einen dritten Punkt in der "
@@ -19538,7 +19547,7 @@ msgstr ""
 #: javascript/drawing.js:209 javascript/drawing.js:214
 #: javascript/drawing.js:215 javascript/drawing.js:216
 #: javascript/drawing.js:228 javascript/drawing.js:229
-#: javascript/drawing.js:231
+#: javascript/drawing.js:231 javascript/drawing.js:233
 msgid "Linear inequality with dashed line"
 msgstr "Lineare Gleichung mit gestrichelter Linie"
 
@@ -19547,7 +19556,7 @@ msgstr "Lineare Gleichung mit gestrichelter Linie"
 #: javascript/drawing.js:212 javascript/drawing.js:217
 #: javascript/drawing.js:218 javascript/drawing.js:219
 #: javascript/drawing.js:231 javascript/drawing.js:232
-#: javascript/drawing.js:234
+#: javascript/drawing.js:234 javascript/drawing.js:236
 msgid "Parabolic inequality with solid line"
 msgstr "Parabolische Ungleichung mit Vollinie"
 
@@ -19556,7 +19565,7 @@ msgstr "Parabolische Ungleichung mit Vollinie"
 #: javascript/drawing.js:213 javascript/drawing.js:218
 #: javascript/drawing.js:219 javascript/drawing.js:220
 #: javascript/drawing.js:232 javascript/drawing.js:233
-#: javascript/drawing.js:235
+#: javascript/drawing.js:235 javascript/drawing.js:237
 msgid "Parabolic inequality with dashed line"
 msgstr "Parabolische Ungleichung mit gestrichelter Linie"
 
@@ -19565,7 +19574,7 @@ msgstr "Parabolische Ungleichung mit gestrichelter Linie"
 #: javascript/drawing.js:217 javascript/drawing.js:222
 #: javascript/drawing.js:227 javascript/drawing.js:228
 #: javascript/drawing.js:240 javascript/drawing.js:241
-#: javascript/drawing.js:243
+#: javascript/drawing.js:243 javascript/drawing.js:245
 msgid "Enter two points on the line"
 msgstr "Markieren Sie zwei Punkte auf der Geraden"
 
@@ -19578,7 +19587,8 @@ msgstr "Markieren Sie zwei Punkte auf der Geraden"
 #: javascript/drawing.js:257 javascript/drawing.js:241
 #: javascript/drawing.js:271 javascript/drawing.js:243
 #: javascript/drawing.js:273 javascript/drawing.js:245
-#: javascript/drawing.js:277
+#: javascript/drawing.js:277 javascript/drawing.js:279
+#: javascript/drawing.js:288
 msgid "Line segment"
 msgstr "Strecke"
 
@@ -19591,7 +19601,7 @@ msgstr "Strecke"
 #: javascript/drawing.js:257 javascript/drawing.js:241
 #: javascript/drawing.js:271 javascript/drawing.js:243
 #: javascript/drawing.js:273 javascript/drawing.js:245
-#: javascript/drawing.js:277
+#: javascript/drawing.js:277 javascript/drawing.js:279
 msgid "Enter the starting and ending point of the line segment"
 msgstr "Geben Sie den Start- und den Endpunkt der Strecke ein"
 
@@ -19600,7 +19610,7 @@ msgstr "Geben Sie den Start- und den Endpunkt der Strecke ein"
 #: javascript/drawing.js:219 javascript/drawing.js:224
 #: javascript/drawing.js:229 javascript/drawing.js:230
 #: javascript/drawing.js:242 javascript/drawing.js:244
-#: javascript/drawing.js:246
+#: javascript/drawing.js:246 javascript/drawing.js:248
 msgid "Ray"
 msgstr "Strahl"
 
@@ -19609,7 +19619,7 @@ msgstr "Strahl"
 #: javascript/drawing.js:219 javascript/drawing.js:224
 #: javascript/drawing.js:229 javascript/drawing.js:230
 #: javascript/drawing.js:242 javascript/drawing.js:244
-#: javascript/drawing.js:246
+#: javascript/drawing.js:246 javascript/drawing.js:248
 msgid "Enter the starting point of the ray and another point on the ray"
 msgstr "Geben Sie den Starpunkt des Strahls ein und einen Punkt auf dem Strahl"
 
@@ -19619,6 +19629,7 @@ msgstr "Geben Sie den Starpunkt des Strahls ein und einen Punkt auf dem Strahl"
 #: javascript/drawing.js:230 javascript/drawing.js:231
 #: javascript/drawing.js:243 javascript/drawing.js:245
 #: javascript/drawing.js:247 javascript/drawing.js:248
+#: javascript/drawing.js:249 javascript/drawing.js:250
 msgid "Parabola"
 msgstr "Parabel"
 
@@ -19630,7 +19641,7 @@ msgstr "Parabel"
 #: javascript/drawing.js:232 javascript/drawing.js:243
 #: javascript/drawing.js:244 javascript/drawing.js:245
 #: javascript/drawing.js:246 javascript/drawing.js:247
-#: javascript/drawing.js:249
+#: javascript/drawing.js:249 javascript/drawing.js:251
 msgid "Enter the vertex, then another point on the parabola"
 msgstr ""
 "Geben Sie den Scheitelpunkt ein, dann einen anderen Punkt auf der Parabel"
@@ -19640,7 +19651,7 @@ msgstr ""
 #: javascript/drawing.js:221 javascript/drawing.js:226
 #: javascript/drawing.js:231 javascript/drawing.js:232
 #: javascript/drawing.js:244 javascript/drawing.js:246
-#: javascript/drawing.js:249
+#: javascript/drawing.js:249 javascript/drawing.js:251
 msgid "Parabola opening right or left"
 msgstr "Nach rechts oder links öffnende Parabel"
 
@@ -19649,7 +19660,7 @@ msgstr "Nach rechts oder links öffnende Parabel"
 #: javascript/drawing.js:222 javascript/drawing.js:227
 #: javascript/drawing.js:232 javascript/drawing.js:233
 #: javascript/drawing.js:246 javascript/drawing.js:248
-#: javascript/drawing.js:251
+#: javascript/drawing.js:251 javascript/drawing.js:253
 msgid "Cubic"
 msgstr "Kurve 3. Grades"
 
@@ -19658,7 +19669,7 @@ msgstr "Kurve 3. Grades"
 #: javascript/drawing.js:222 javascript/drawing.js:227
 #: javascript/drawing.js:232 javascript/drawing.js:233
 #: javascript/drawing.js:246 javascript/drawing.js:248
-#: javascript/drawing.js:251
+#: javascript/drawing.js:251 javascript/drawing.js:253
 msgid "Enter the inflection point, then another point on the cubic"
 msgstr ""
 "Geben Sie den Wendepunkt ein, dann einen weiterenPunkt auf der Kurve 3. "
@@ -19669,7 +19680,7 @@ msgstr ""
 #: javascript/drawing.js:223 javascript/drawing.js:228
 #: javascript/drawing.js:233 javascript/drawing.js:234
 #: javascript/drawing.js:248 javascript/drawing.js:250
-#: javascript/drawing.js:253
+#: javascript/drawing.js:253 javascript/drawing.js:255
 msgid "Cube root"
 msgstr "Kubikwurzel"
 
@@ -19678,7 +19689,7 @@ msgstr "Kubikwurzel"
 #: javascript/drawing.js:223 javascript/drawing.js:228
 #: javascript/drawing.js:233 javascript/drawing.js:234
 #: javascript/drawing.js:248 javascript/drawing.js:250
-#: javascript/drawing.js:253
+#: javascript/drawing.js:253 javascript/drawing.js:255
 msgid ""
 "Enter the inflection point of the cube root, then another point on the graph"
 msgstr ""
@@ -19690,7 +19701,7 @@ msgstr ""
 #: javascript/drawing.js:224 javascript/drawing.js:229
 #: javascript/drawing.js:234 javascript/drawing.js:235
 #: javascript/drawing.js:249 javascript/drawing.js:251
-#: javascript/drawing.js:254
+#: javascript/drawing.js:254 javascript/drawing.js:256
 msgid "Absolute value"
 msgstr "Absoluter Betrag"
 
@@ -19699,7 +19710,7 @@ msgstr "Absoluter Betrag"
 #: javascript/drawing.js:224 javascript/drawing.js:229
 #: javascript/drawing.js:234 javascript/drawing.js:235
 #: javascript/drawing.js:249 javascript/drawing.js:251
-#: javascript/drawing.js:254
+#: javascript/drawing.js:254 javascript/drawing.js:256
 msgid ""
 "Enter the corner point of the absolute value, then another point on the graph"
 msgstr ""
@@ -19711,7 +19722,7 @@ msgstr ""
 #: javascript/drawing.js:225 javascript/drawing.js:230
 #: javascript/drawing.js:235 javascript/drawing.js:236
 #: javascript/drawing.js:250 javascript/drawing.js:252
-#: javascript/drawing.js:255
+#: javascript/drawing.js:255 javascript/drawing.js:257
 msgid "Rational"
 msgstr "Rationale Funktion"
 
@@ -19720,7 +19731,7 @@ msgstr "Rationale Funktion"
 #: javascript/drawing.js:225 javascript/drawing.js:230
 #: javascript/drawing.js:235 javascript/drawing.js:236
 #: javascript/drawing.js:250 javascript/drawing.js:252
-#: javascript/drawing.js:255
+#: javascript/drawing.js:255 javascript/drawing.js:257
 msgid ""
 "Enter the point where the vertical and horizontal asymptote cross, then a "
 "point on the graph"
@@ -19733,7 +19744,7 @@ msgstr ""
 #: javascript/drawing.js:226 javascript/drawing.js:231
 #: javascript/drawing.js:236 javascript/drawing.js:237
 #: javascript/drawing.js:251 javascript/drawing.js:253
-#: javascript/drawing.js:256
+#: javascript/drawing.js:256 javascript/drawing.js:258
 msgid "Exponential"
 msgstr "Exponentialfunktion"
 
@@ -19745,7 +19756,8 @@ msgstr "Exponentialfunktion"
 #: javascript/drawing.js:238 javascript/drawing.js:251
 #: javascript/drawing.js:252 javascript/drawing.js:253
 #: javascript/drawing.js:254 javascript/drawing.js:256
-#: javascript/drawing.js:257
+#: javascript/drawing.js:257 javascript/drawing.js:258
+#: javascript/drawing.js:259
 msgid "Enter two points on the graph"
 msgstr "Geben Sie zwei Punkte auf dem Graphen ein"
 
@@ -19754,7 +19766,7 @@ msgstr "Geben Sie zwei Punkte auf dem Graphen ein"
 #: javascript/drawing.js:227 javascript/drawing.js:232
 #: javascript/drawing.js:237 javascript/drawing.js:238
 #: javascript/drawing.js:252 javascript/drawing.js:254
-#: javascript/drawing.js:257
+#: javascript/drawing.js:257 javascript/drawing.js:259
 msgid "Logarithm"
 msgstr "Logarithmusfunktion"
 
@@ -19763,7 +19775,7 @@ msgstr "Logarithmusfunktion"
 #: javascript/drawing.js:228 javascript/drawing.js:233
 #: javascript/drawing.js:238 javascript/drawing.js:239
 #: javascript/drawing.js:253 javascript/drawing.js:255
-#: javascript/drawing.js:258
+#: javascript/drawing.js:258 javascript/drawing.js:260
 msgid "Shifted Exponential"
 msgstr "Verschobene Exponentialfunktion"
 
@@ -19775,7 +19787,8 @@ msgstr "Verschobene Exponentialfunktion"
 #: javascript/drawing.js:240 javascript/drawing.js:253
 #: javascript/drawing.js:254 javascript/drawing.js:255
 #: javascript/drawing.js:256 javascript/drawing.js:258
-#: javascript/drawing.js:259
+#: javascript/drawing.js:259 javascript/drawing.js:260
+#: javascript/drawing.js:261
 msgid "Enter a point on the asymptote, then enter two points on the graph"
 msgstr ""
 "Geben Sie einen Punkt auf der Asymptote ein, dann zwei Punkte auf dem Graphen"
@@ -19785,7 +19798,7 @@ msgstr ""
 #: javascript/drawing.js:229 javascript/drawing.js:234
 #: javascript/drawing.js:239 javascript/drawing.js:240
 #: javascript/drawing.js:254 javascript/drawing.js:256
-#: javascript/drawing.js:259
+#: javascript/drawing.js:259 javascript/drawing.js:261
 msgid "Shifted Logarithm"
 msgstr "Verschobener Logarithmus"
 
@@ -19794,7 +19807,7 @@ msgstr "Verschobener Logarithmus"
 #: javascript/drawing.js:230 javascript/drawing.js:235
 #: javascript/drawing.js:240 javascript/drawing.js:241
 #: javascript/drawing.js:255 javascript/drawing.js:257
-#: javascript/drawing.js:260
+#: javascript/drawing.js:260 javascript/drawing.js:262
 msgid "Circle"
 msgstr "Kreis"
 
@@ -19803,7 +19816,7 @@ msgstr "Kreis"
 #: javascript/drawing.js:230 javascript/drawing.js:235
 #: javascript/drawing.js:240 javascript/drawing.js:241
 #: javascript/drawing.js:255 javascript/drawing.js:257
-#: javascript/drawing.js:260
+#: javascript/drawing.js:260 javascript/drawing.js:262
 msgid "Enter the center point of the circle, then a point on the graph"
 msgstr "Geben Sie den Kreismittelpunkt ein, dann einen Punkt auf dem Umfang"
 
@@ -19812,7 +19825,7 @@ msgstr "Geben Sie den Kreismittelpunkt ein, dann einen Punkt auf dem Umfang"
 #: javascript/drawing.js:231 javascript/drawing.js:236
 #: javascript/drawing.js:241 javascript/drawing.js:242
 #: javascript/drawing.js:256 javascript/drawing.js:258
-#: javascript/drawing.js:261
+#: javascript/drawing.js:261 javascript/drawing.js:263
 msgid "Ellipse"
 msgstr "Ellipse"
 
@@ -19821,7 +19834,7 @@ msgstr "Ellipse"
 #: javascript/drawing.js:231 javascript/drawing.js:236
 #: javascript/drawing.js:241 javascript/drawing.js:242
 #: javascript/drawing.js:256 javascript/drawing.js:258
-#: javascript/drawing.js:261
+#: javascript/drawing.js:261 javascript/drawing.js:263
 msgid ""
 "Enter the center point of the ellipse, then a point offset from the center "
 "by the horizontal radius and vertical radius"
@@ -19835,7 +19848,7 @@ msgstr ""
 #: javascript/drawing.js:233 javascript/drawing.js:238
 #: javascript/drawing.js:243 javascript/drawing.js:244
 #: javascript/drawing.js:258 javascript/drawing.js:260
-#: javascript/drawing.js:263
+#: javascript/drawing.js:263 javascript/drawing.js:265
 msgid "Vertical hyperbola"
 msgstr "Vertikale Hyperbel"
 
@@ -19844,7 +19857,7 @@ msgstr "Vertikale Hyperbel"
 #: javascript/drawing.js:233 javascript/drawing.js:238
 #: javascript/drawing.js:243 javascript/drawing.js:244
 #: javascript/drawing.js:258 javascript/drawing.js:260
-#: javascript/drawing.js:263
+#: javascript/drawing.js:263 javascript/drawing.js:265
 msgid ""
 "Enter the center point of the hyperbola, then a point (x,y) where x is the x-"
 "coordinate of the co-vertex and y is the y-coordinate of the vertex"
@@ -19857,7 +19870,7 @@ msgstr ""
 #: javascript/drawing.js:234 javascript/drawing.js:239
 #: javascript/drawing.js:244 javascript/drawing.js:245
 #: javascript/drawing.js:259 javascript/drawing.js:261
-#: javascript/drawing.js:264
+#: javascript/drawing.js:264 javascript/drawing.js:266
 msgid "Horizontal hyperbola"
 msgstr "Horizontale Hyperbel"
 
@@ -19866,7 +19879,7 @@ msgstr "Horizontale Hyperbel"
 #: javascript/drawing.js:234 javascript/drawing.js:239
 #: javascript/drawing.js:244 javascript/drawing.js:245
 #: javascript/drawing.js:259 javascript/drawing.js:261
-#: javascript/drawing.js:264
+#: javascript/drawing.js:264 javascript/drawing.js:266
 msgid ""
 "Enter the center point of the hyperbola, then a point (x,y) where x is the x-"
 "coordinate of the vertex and y is the y-coordinate of the co-vertex"
@@ -19883,7 +19896,8 @@ msgstr ""
 #: javascript/drawing.js:259 javascript/drawing.js:261
 #: javascript/drawing.js:273 javascript/drawing.js:263
 #: javascript/drawing.js:275 javascript/drawing.js:266
-#: javascript/drawing.js:279
+#: javascript/drawing.js:279 javascript/drawing.js:268
+#: javascript/drawing.js:281 javascript/drawing.js:292
 msgid "Solid dot"
 msgstr "Ausgefüllter Punkt"
 
@@ -19902,6 +19916,8 @@ msgstr "Ausgefüllter Punkt"
 #: javascript/drawing.js:275 javascript/drawing.js:276
 #: javascript/drawing.js:266 javascript/drawing.js:267
 #: javascript/drawing.js:279 javascript/drawing.js:280
+#: javascript/drawing.js:268 javascript/drawing.js:269
+#: javascript/drawing.js:281 javascript/drawing.js:282
 msgid "Enter the coordinates of the dot"
 msgstr "Geben Sie die Koordinaten des Punktes ein"
 
@@ -19914,7 +19930,8 @@ msgstr "Geben Sie die Koordinaten des Punktes ein"
 #: javascript/drawing.js:260 javascript/drawing.js:262
 #: javascript/drawing.js:274 javascript/drawing.js:264
 #: javascript/drawing.js:276 javascript/drawing.js:267
-#: javascript/drawing.js:280
+#: javascript/drawing.js:280 javascript/drawing.js:269
+#: javascript/drawing.js:282 javascript/drawing.js:293
 msgid "Open dot"
 msgstr "Offener Punkt"
 
@@ -19923,7 +19940,7 @@ msgstr "Offener Punkt"
 #: javascript/drawing.js:239 javascript/drawing.js:244
 #: javascript/drawing.js:249 javascript/drawing.js:250
 #: javascript/drawing.js:264 javascript/drawing.js:266
-#: javascript/drawing.js:269
+#: javascript/drawing.js:269 javascript/drawing.js:271
 msgid "Cosine"
 msgstr "Kosinus"
 
@@ -19932,7 +19949,7 @@ msgstr "Kosinus"
 #: javascript/drawing.js:239 javascript/drawing.js:244
 #: javascript/drawing.js:249 javascript/drawing.js:250
 #: javascript/drawing.js:264 javascript/drawing.js:266
-#: javascript/drawing.js:269
+#: javascript/drawing.js:269 javascript/drawing.js:271
 msgid ""
 "Enter a point at the start of a phase, then a point half a phase further"
 msgstr ""
@@ -19944,7 +19961,7 @@ msgstr ""
 #: javascript/drawing.js:240 javascript/drawing.js:245
 #: javascript/drawing.js:250 javascript/drawing.js:251
 #: javascript/drawing.js:265 javascript/drawing.js:267
-#: javascript/drawing.js:270
+#: javascript/drawing.js:270 javascript/drawing.js:272
 msgid "Sine"
 msgstr "Sinus"
 
@@ -19953,7 +19970,7 @@ msgstr "Sinus"
 #: javascript/drawing.js:240 javascript/drawing.js:245
 #: javascript/drawing.js:250 javascript/drawing.js:251
 #: javascript/drawing.js:265 javascript/drawing.js:267
-#: javascript/drawing.js:270
+#: javascript/drawing.js:270 javascript/drawing.js:272
 msgid ""
 "Enter a point at the start of a phase, then a point a quarter phase further"
 msgstr ""
@@ -19965,7 +19982,7 @@ msgstr ""
 #: javascript/drawing.js:242 javascript/drawing.js:247
 #: javascript/drawing.js:252 javascript/drawing.js:253
 #: javascript/drawing.js:267 javascript/drawing.js:269
-#: javascript/drawing.js:273
+#: javascript/drawing.js:273 javascript/drawing.js:275
 msgid "Vector"
 msgstr "Vektor"
 
@@ -19974,7 +19991,7 @@ msgstr "Vektor"
 #: javascript/drawing.js:242 javascript/drawing.js:247
 #: javascript/drawing.js:252 javascript/drawing.js:253
 #: javascript/drawing.js:267 javascript/drawing.js:269
-#: javascript/drawing.js:273
+#: javascript/drawing.js:273 javascript/drawing.js:275
 msgid "Enter the starting and ending point of the vector"
 msgstr "Geben Sie den Start- und den Endpunkt des Vektors ein"
 
@@ -19983,7 +20000,7 @@ msgstr "Geben Sie den Start- und den Endpunkt des Vektors ein"
 #: javascript/drawing.js:245 javascript/drawing.js:250
 #: javascript/drawing.js:255 javascript/drawing.js:256
 #: javascript/drawing.js:270 javascript/drawing.js:272
-#: javascript/drawing.js:276
+#: javascript/drawing.js:276 javascript/drawing.js:278
 msgid "Lines"
 msgstr "Geraden"
 
@@ -19999,7 +20016,7 @@ msgstr ""
 #: javascript/drawing.js:247 javascript/drawing.js:252
 #: javascript/drawing.js:257 javascript/drawing.js:258
 #: javascript/drawing.js:272 javascript/drawing.js:274
-#: javascript/drawing.js:278
+#: javascript/drawing.js:278 javascript/drawing.js:280
 msgid "Freehand"
 msgstr "Freihandzeichnen"
 
@@ -21548,6 +21565,7 @@ msgstr ""
 #: javascript/drawing.js:258 javascript/drawing.js:270
 #: javascript/drawing.js:272 javascript/drawing.js:274
 #: javascript/drawing.js:276 javascript/drawing.js:278
+#: javascript/drawing.js:280
 msgid "Enter a list of points to connect with lines"
 msgstr ""
 "Geben Sie eine Liste von Punkten ein, die durch Linien verbunden werden"
@@ -21560,6 +21578,7 @@ msgstr ""
 #: javascript/drawing.js:275 javascript/drawing.js:276
 #: javascript/drawing.js:277 javascript/drawing.js:278
 #: javascript/drawing.js:281 javascript/drawing.js:282
+#: javascript/drawing.js:283 javascript/drawing.js:284
 msgid "Enter a list of points for dots to connect with lines"
 msgstr ""
 "Geben Sie eine Liste von Punkten für die Stellen ein, die durch Linien "
@@ -21573,7 +21592,8 @@ msgstr ""
 #: javascript/drawing.js:347 javascript/drawing.js:355
 #: javascript/drawing.js:376 javascript/drawing.js:357
 #: javascript/drawing.js:378 javascript/drawing.js:361
-#: javascript/drawing.js:382
+#: javascript/drawing.js:382 javascript/drawing.js:372
+#: javascript/drawing.js:393
 msgid "Drawing element "
 msgstr "Zeichenelement "
 
@@ -21582,6 +21602,7 @@ msgstr "Zeichenelement "
 #: javascript/drawing.js:337 javascript/drawing.js:342
 #: javascript/drawing.js:343 javascript/drawing.js:372
 #: javascript/drawing.js:374 javascript/drawing.js:378
+#: javascript/drawing.js:389
 msgid "Removed drawing element"
 msgstr "Zeichenelement entfernt"
 
@@ -21590,6 +21611,7 @@ msgstr "Zeichenelement entfernt"
 #: javascript/drawing.js:384 javascript/drawing.js:389
 #: javascript/drawing.js:390 javascript/drawing.js:419
 #: javascript/drawing.js:421 javascript/drawing.js:425
+#: javascript/drawing.js:442
 msgid ""
 "Error: Invalid format for points. Give points as open parenthesis number "
 "comma number close parenthesis. Separate points with a comma."
@@ -21603,6 +21625,7 @@ msgstr ""
 #: javascript/drawing.js:385 javascript/drawing.js:390
 #: javascript/drawing.js:391 javascript/drawing.js:420
 #: javascript/drawing.js:422 javascript/drawing.js:426
+#: javascript/drawing.js:443
 msgid "Error: Invalid format for points"
 msgstr "Fehler: Falsches Format für Punkte"
 
@@ -21611,6 +21634,7 @@ msgstr "Fehler: Falsches Format für Punkte"
 #: javascript/drawing.js:387 javascript/drawing.js:392
 #: javascript/drawing.js:393 javascript/drawing.js:422
 #: javascript/drawing.js:424 javascript/drawing.js:428
+#: javascript/drawing.js:445
 msgid "Error: Incorrect number of points. Expecting "
 msgstr "Fehler: Falsche Anzahl von Punkten. Erwartet werden "
 
@@ -21619,6 +21643,7 @@ msgstr "Fehler: Falsche Anzahl von Punkten. Erwartet werden "
 #: javascript/drawing.js:388 javascript/drawing.js:393
 #: javascript/drawing.js:394 javascript/drawing.js:423
 #: javascript/drawing.js:425 javascript/drawing.js:429
+#: javascript/drawing.js:446
 msgid "Error: Incorrect number of points"
 msgstr "Fehler: Falsche Anzahl von Punkten"
 
@@ -22549,7 +22574,8 @@ msgstr " min"
 #: javascript/assessment_min.js:5 javascript/drawing.js:220
 #: javascript/drawing.js:231 javascript/drawing.js:232
 #: javascript/drawing.js:233 javascript/drawing.js:234
-#: javascript/drawing.js:235
+#: javascript/drawing.js:235 javascript/drawing.js:236
+#: javascript/drawing.js:237
 msgid ""
 "Enter the vertex, then another point on the parabola, then a third point in "
 "the shaded region"
@@ -22561,6 +22587,7 @@ msgstr ""
 #: javascript/drawing_min.js:1 javascript/assessment_min.js:5
 #: javascript/drawing.js:223 javascript/drawing.js:235
 #: javascript/drawing.js:236 javascript/drawing.js:238
+#: javascript/drawing.js:240
 msgid "Absolute value inequality with solid line"
 msgstr "Betragsungleichung mit durchgezogener Linie"
 
@@ -22569,7 +22596,8 @@ msgstr "Betragsungleichung mit durchgezogener Linie"
 #: javascript/assessment_min.js:5 javascript/drawing.js:224
 #: javascript/drawing.js:235 javascript/drawing.js:236
 #: javascript/drawing.js:237 javascript/drawing.js:238
-#: javascript/drawing.js:239
+#: javascript/drawing.js:239 javascript/drawing.js:240
+#: javascript/drawing.js:241
 msgid ""
 "Enter the corner point of the absolute value, then another point on the "
 "graph, then a third point in the shaded region"
@@ -22582,6 +22610,7 @@ msgstr ""
 #: javascript/drawing_min.js:1 javascript/assessment_min.js:5
 #: javascript/drawing.js:224 javascript/drawing.js:236
 #: javascript/drawing.js:237 javascript/drawing.js:239
+#: javascript/drawing.js:241
 msgid "Absolute value inequality with dashed line"
 msgstr "Betragsungleichung mit gestrichelter Linie"
 
@@ -22707,6 +22736,7 @@ msgstr "Kopien von Kopien"
 #: assess2/AssessRecord.php:1905 assess2/AssessRecord.php:1911
 #: assess2/AssessRecord.php:1910 assess2/AssessRecord.php:1916
 #: assess2/AssessRecord.php:2008 assess2/AssessRecord.php:2015
+#: assess2/AssessRecord.php:2021 assess2/AssessRecord.php:2028
 msgid "Unable to load question data"
 msgstr "Kann Fragen-Daten nicht laden"
 
@@ -23950,6 +23980,7 @@ msgstr "Gehen Sie zurück zum LMS und öffnen Sie den korrekten Test"
 #: assess2/AssessRecord.php:1087 assess2/AssessRecord.php:1085
 #: assess2/AssessRecord.php:1089 assess2/AssessRecord.php:1157
 #: assess2/AssessRecord.php:1160 assess2/AssessRecord.php:1226
+#: assess2/AssessRecord.php:1239
 msgid "Never submitted"
 msgstr "Niemals eingereicht"
 
@@ -27162,12 +27193,14 @@ msgstr "Nicht randomisiert"
 #: javascript/assess2_min.js:1 javascript/assessment_min.js:5
 #: javascript/drawing.js:245 javascript/drawing_min.js:1
 #: javascript/drawing.js:247 javascript/drawing.js:250
+#: javascript/drawing.js:252
 msgid "Half Parabola"
 msgstr "Parabelhälfte"
 
 #: javascript/assess2_min.js:1 javascript/assessment_min.js:5
 #: javascript/drawing.js:245 javascript/drawing_min.js:1
 #: javascript/drawing.js:247 javascript/drawing.js:250
+#: javascript/drawing.js:252
 msgid "Enter the vertex, then another point on the half parabola"
 msgstr ""
 "Geben Sie den Scheitelpunkt ein, dann einen anderen Punkt auf der "
@@ -27176,12 +27209,14 @@ msgstr ""
 #: javascript/assess2_min.js:1 javascript/assessment_min.js:5
 #: javascript/drawing.js:247 javascript/drawing_min.js:1
 #: javascript/drawing.js:249 javascript/drawing.js:252
+#: javascript/drawing.js:254
 msgid "Square root"
 msgstr "Quadratwurzel"
 
 #: javascript/assess2_min.js:1 javascript/assessment_min.js:5
 #: javascript/drawing.js:247 javascript/drawing_min.js:1
 #: javascript/drawing.js:249 javascript/drawing.js:252
+#: javascript/drawing.js:254
 msgid ""
 "Enter the starting point of the square root, then another point on the graph"
 msgstr ""
@@ -27662,13 +27697,13 @@ msgstr " Leeres Funktionsargument oder Klammern"
 
 #: javascript/assess2_min.js:1 javascript/drawing.js:242
 #: javascript/drawing_min.js:1 javascript/assessment_min.js:5
-#: javascript/drawing.js:244
+#: javascript/drawing.js:244 javascript/drawing.js:246
 msgid "Dashed Line"
 msgstr "Gestrichelte  Linie"
 
 #: javascript/assess2_min.js:1 javascript/drawing.js:242
 #: javascript/drawing_min.js:1 javascript/assessment_min.js:5
-#: javascript/drawing.js:244
+#: javascript/drawing.js:244 javascript/drawing.js:246
 msgid "Enter two points on the dashed line"
 msgstr "Gib zwei Punkte auf der gestrichelten Linie ein"
 
@@ -29099,17 +29134,17 @@ msgid "Done adding"
 msgstr "Hinzufügen beendet"
 
 #: javascript/assess2_min.js:1 javascript/drawing.js:248
-#: javascript/drawing_min.js:1
+#: javascript/drawing_min.js:1 javascript/drawing.js:250
 msgid "Enter three points on the parabola"
 msgstr "Gib drei Punkte der Parabel an"
 
 #: javascript/assess2_min.js:1 javascript/drawing.js:272
-#: javascript/drawing_min.js:1
+#: javascript/drawing_min.js:1 javascript/drawing.js:274
 msgid "Tangent"
 msgstr "Tangente"
 
 #: javascript/assess2_min.js:1 javascript/drawing.js:272
-#: javascript/drawing_min.js:1
+#: javascript/drawing_min.js:1 javascript/drawing.js:274
 msgid ""
 "Enter the inflection point of the tangent, then a point on a vertical "
 "asymptote, then a point on the graph"
@@ -29419,3 +29454,46 @@ msgstr ""
 #: msgs/msglist.php:390
 msgid "No courses available to send messages through."
 msgstr "Es gibt keine Kurse über die Nachrichten gesendet werden könnten."
+
+#: assessment/macros/graph.php:239
+#, php-format
+msgid "Solid dot at %s"
+msgstr "Ausgefüllter Punkt bei %s"
+
+#: javascript/assess2_min.js:1 javascript/drawing.js:288
+#: javascript/drawing_min.js:1
+msgid ""
+"Enter the starting and ending values of the line segment, separated by a "
+"comma"
+msgstr ""
+"Gib, durch Kommata getrennt, die Werte für Anfang und Ende der Strecke ein"
+
+#: javascript/assess2_min.js:1 javascript/drawing.js:289
+#: javascript/drawing_min.js:1
+msgid "Ray to the left"
+msgstr "Strahl nach links"
+
+#: javascript/assess2_min.js:1 javascript/drawing.js:289
+#: javascript/drawing_min.js:1
+msgid "Enter the value the ray goes left from"
+msgstr "Gib den Wert ein, von dem aus der Strahl nach links geht"
+
+#: javascript/assess2_min.js:1 javascript/drawing.js:290
+#: javascript/drawing_min.js:1
+msgid "Ray to the right"
+msgstr "Strahl nach rechts"
+
+#: javascript/assess2_min.js:1 javascript/drawing.js:290
+#: javascript/drawing_min.js:1
+msgid "Enter the value the ray goes right from"
+msgstr "Gib den Wert ein, von dem aus der Strahl nach rechts geht"
+
+#: javascript/assess2_min.js:1 javascript/drawing.js:292
+#: javascript/drawing_min.js:1
+msgid "Enter the value of the solid dot"
+msgstr "Gib den Wert für den ausgefüllten Punkt ein"
+
+#: javascript/assess2_min.js:1 javascript/drawing.js:293
+#: javascript/drawing_min.js:1
+msgid "Enter the value of the open dot"
+msgstr "Gib den Wert für den nicht ausgefüllten Punkt ein"

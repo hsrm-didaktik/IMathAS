@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-29 11:07+0100\n"
-"PO-Revision-Date: 2025-12-29 16:47+0100\n"
+"POT-Creation-Date: 2026-01-03 15:21+0100\n"
+"PO-Revision-Date: 2026-01-03 15:29+0100\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -52,7 +52,8 @@ msgstr ""
 #: course/addvideotimes.php:469 course/masschgprereqs.php:170
 #: course/testquestion2.php:521 directaccess.php:172 embedq2.php:434
 #: forms.php:174 forms.php:557 forms.php:577 forms.php:603 multiembedq.php:295
-#: multiembedq2.php:393
+#: multiembedq2.php:393 course/testquestion2.php:524 forms.php:177
+#: forms.php:560 forms.php:580 forms.php:606
 msgid "Submit"
 msgstr "Absenden"
 
@@ -231,7 +232,9 @@ msgstr "Als neuer Benutzer registrieren"
 #: diag/index.php:149 diag/index.php:154 diag/index.php:218 actions.php:814
 #: actions.php:856 admin/actions.php:369 actions.php:595 actions.php:607
 #: actions.php:619 actions.php:656 actions.php:701 actions.php:842
-#: actions.php:883 admin/actions.php:366
+#: actions.php:883 admin/actions.php:366 actions.php:575 actions.php:597
+#: actions.php:621 actions.php:658 actions.php:703 actions.php:844
+#: actions.php:885
 msgid "Try Again"
 msgstr "Erneut versuchen"
 
@@ -384,31 +387,31 @@ msgstr ""
 "Benutzernamen und Passwort anmelden"
 
 #: actions.php:238 actions.php:270 actions.php:273 actions.php:272
-#: actions.php:263 actions.php:268 actions.php:265
+#: actions.php:263 actions.php:268 actions.php:265 actions.php:267
 #, php-format
 msgid "Confirmed.  Please %s Log In %s"
 msgstr "Bestätigt. Bitte %s melden Sie sich an %s"
 
 #: actions.php:243 javascript/livepoll.js:645 actions.php:275 actions.php:278
 #: actions.php:277 actions.php:268 actions.php:272 actions.php:269
-#: admin/actions.php:57 admin/actions.php:358
+#: admin/actions.php:57 admin/actions.php:358 actions.php:271
 msgid "Error"
 msgstr "Fehler"
 
 #: actions.php:262 actions.php:294 actions.php:297 actions.php:296
-#: actions.php:287 actions.php:303 actions.php:300
+#: actions.php:287 actions.php:303 actions.php:300 actions.php:302
 msgid "The email address on record for this username is invalid."
 msgstr "Die für diesen Nutzer gespeicherte E-Mail-Adresse ist ungültig."
 
 #: actions.php:264 actions.php:296 actions.php:299 actions.php:298
-#: actions.php:289 actions.php:305 actions.php:302
+#: actions.php:289 actions.php:305 actions.php:302 actions.php:304
 msgid "Contact your teacher for help resetting your password."
 msgstr ""
 "Wenden Sie sich an Ihren Dozenten, um Hilfe beim Zurücksetzen Ihres "
 "Kennworts zu erhalten."
 
 #: actions.php:266 actions.php:298 actions.php:301 actions.php:300
-#: actions.php:291 actions.php:307 actions.php:304
+#: actions.php:291 actions.php:307 actions.php:304 actions.php:306
 msgid "Contact the system administrator for help resetting your password:"
 msgstr ""
 "Wenden Sie sich an den Systemadministrator, um Hilfe beim Zurücksetzen Ihres "
@@ -417,14 +420,14 @@ msgstr ""
 #: actions.php:285 actions.php:352 actions.php:317 actions.php:384
 #: actions.php:320 actions.php:387 actions.php:319 actions.php:386
 #: actions.php:310 actions.php:377 actions.php:328 actions.php:403
-#: actions.php:325 actions.php:426
+#: actions.php:325 actions.php:426 actions.php:327 actions.php:428
 #, php-format
 msgid "This is an automated message from %s. Do not respond to this email"
 msgstr ""
 "Dies ist eine automatische Nachricht von %s. Antworten Sie nicht darauf"
 
 #: actions.php:286 actions.php:318 actions.php:321 actions.php:320
-#: actions.php:311 actions.php:329 actions.php:326
+#: actions.php:311 actions.php:329 actions.php:326 actions.php:328
 msgid ""
 "Your username was entered in the Reset Password page.  If you did not do "
 "this, you may ignore and delete this message. "
@@ -434,7 +437,7 @@ msgstr ""
 "Nachricht ignorieren und löschen. "
 
 #: actions.php:287 actions.php:319 actions.php:322 actions.php:321
-#: actions.php:312 actions.php:330 actions.php:327
+#: actions.php:312 actions.php:330 actions.php:327 actions.php:329
 msgid ""
 "If you did request a password reset, click the link below, or copy and paste "
 "it into your browser's address bar.  You will then be prompted to choose a "
@@ -446,12 +449,12 @@ msgstr ""
 "Passwort zu wählen."
 
 #: actions.php:292 actions.php:324 actions.php:327 actions.php:326
-#: actions.php:317 actions.php:335 actions.php:332
+#: actions.php:317 actions.php:335 actions.php:332 actions.php:334
 msgid " Password Reset Request"
 msgstr " Anforderung für das Setzen eines neuen Passworts"
 
 #: actions.php:295 actions.php:327 actions.php:330 actions.php:329
-#: actions.php:320 actions.php:338 actions.php:335
+#: actions.php:320 actions.php:338 actions.php:335 actions.php:337
 msgid ""
 "An email with a password reset link has been sent your email address on "
 "record"
@@ -460,7 +463,7 @@ msgstr ""
 "gespeicherte Email-Adresse versandt"
 
 #: actions.php:296 actions.php:328 actions.php:331 actions.php:330
-#: actions.php:321 actions.php:339 actions.php:336
+#: actions.php:321 actions.php:339 actions.php:336 actions.php:338
 msgid ""
 "If you do not see it in a few minutes, check your spam or junk box to see if "
 "the email ended up there."
@@ -469,13 +472,13 @@ msgstr ""
 "Ordner und Ihren Papierkorb. Vielleicht ist die Nachricht ja dort gelandet."
 
 #: actions.php:297 actions.php:329 actions.php:332 actions.php:331
-#: actions.php:322 actions.php:340 actions.php:337
+#: actions.php:322 actions.php:340 actions.php:337 actions.php:339
 #, php-format
 msgid "It may help to add %s to your contacts list."
 msgstr "Es kann helfen, wenn Sie %s in Ihr Adressbuch aufnehmen."
 
 #: actions.php:298 actions.php:330 actions.php:333 actions.php:332
-#: actions.php:323 actions.php:341 actions.php:338
+#: actions.php:323 actions.php:341 actions.php:338 actions.php:340
 msgid ""
 "If you still have trouble or the wrong email address is on file, contact "
 "your instructor - they can reset your password for you."
@@ -510,17 +513,17 @@ msgstr "Passwörter stimmen nicht überein"
 #: actions.php:331 admin/userreportdetails.php:70 forms.php:382 actions.php:363
 #: forms.php:440 actions.php:366 actions.php:365 actions.php:356 forms.php:489
 #: actions.php:372 forms.php:521 actions.php:394 admin/userreportdetails.php:67
-#: forms.php:533
+#: forms.php:533 actions.php:396 forms.php:536
 msgid "Password Reset"
 msgstr "Passwort zurücksetzen"
 
 #: actions.php:332 actions.php:364 actions.php:367 actions.php:366
-#: actions.php:357 actions.php:373 actions.php:395
+#: actions.php:357 actions.php:373 actions.php:395 actions.php:397
 msgid "Login with your new password"
 msgstr "Melden Sie sich mit Ihrem neuem Passwort an"
 
 #: actions.php:334 actions.php:366 actions.php:369 actions.php:368
-#: actions.php:359 actions.php:375 actions.php:397
+#: actions.php:359 actions.php:375 actions.php:397 actions.php:399
 msgid "Invalid code"
 msgstr "Ungültiger Code"
 
@@ -530,7 +533,7 @@ msgid "Invalid user"
 msgstr "Ungültiger Nenutzer"
 
 #: actions.php:353 actions.php:385 actions.php:388 actions.php:387
-#: actions.php:378 actions.php:404 actions.php:427
+#: actions.php:378 actions.php:404 actions.php:427 actions.php:429
 #, php-format
 msgid ""
 "Your email was entered in the Username Lookup page on %s.  If you did not do "
@@ -541,7 +544,7 @@ msgstr ""
 "und löschen."
 
 #: actions.php:354 actions.php:386 actions.php:389 actions.php:388
-#: actions.php:379 actions.php:405 actions.php:428
+#: actions.php:379 actions.php:405 actions.php:428 actions.php:430
 msgid "All usernames using this email address are listed below"
 msgstr "Hier ist eine Liste aller Benutzernamen mit dieser Email-Adresse"
 
@@ -592,7 +595,7 @@ msgstr "Hier ist eine Liste aller Benutzernamen mit dieser Email-Adresse"
 #: admin/forms.php:1549 course/addassessment2form.php:982
 #: course/addassessment2form.php:1030 course/chgassessments2form.php:1000
 #: course/chgassessments2form.php:1052 course/gbtable2.php:1006
-#: course/gradebook.php:801 util/listnewteachers.php:262
+#: course/gradebook.php:801 util/listnewteachers.php:262 actions.php:440
 msgid "Never"
 msgstr "Niemals"
 
@@ -605,17 +608,17 @@ msgstr "Niemals"
 #: admin/admin2.php:215 admin/admin2.php:325 util/finddupacctreq.php:79
 #: util/finddupacctreq.php:84 actions.php:442 admin/userreportdetails.php:261
 #: assessment/showtest.php:1422 util/finddupacctreq.php:80
-#: util/finddupacctreq.php:85
+#: util/finddupacctreq.php:85 actions.php:444
 msgid "Username"
 msgstr "Benutzername"
 
 #: actions.php:367 actions.php:399 actions.php:402 actions.php:401
-#: actions.php:392 actions.php:419 actions.php:442
+#: actions.php:392 actions.php:419 actions.php:442 actions.php:444
 msgid "Last logged in"
 msgstr "Zuletzt angemeldet"
 
 #: actions.php:369 actions.php:401 actions.php:404 actions.php:403
-#: actions.php:394 actions.php:430 actions.php:453
+#: actions.php:394 actions.php:430 actions.php:453 actions.php:455
 msgid ""
 "If you forgot your password, use the Lost Password link at the login page."
 msgstr ""
@@ -623,12 +626,12 @@ msgstr ""
 "vorgesehenen Link auf der Anmeldeseite."
 
 #: actions.php:372 actions.php:404 actions.php:407 actions.php:406
-#: actions.php:397 actions.php:433 actions.php:456
+#: actions.php:397 actions.php:433 actions.php:456 actions.php:458
 msgid " Username Request"
 msgstr " Anforderung von Benutzernamen"
 
 #: actions.php:373 actions.php:405 actions.php:408 actions.php:407
-#: actions.php:398 actions.php:434 actions.php:457
+#: actions.php:398 actions.php:434 actions.php:457 actions.php:459
 msgid " usernames match this email address and were emailed"
 msgstr " Benutzer haben diese Email-Adresse und wurden angeschrieben"
 
@@ -637,11 +640,12 @@ msgstr " Benutzer haben diese Email-Adresse und wurden angeschrieben"
 #: actions.php:422 actions.php:407 actions.php:421 actions.php:398
 #: actions.php:410 actions.php:412 actions.php:434 actions.php:442
 #: actions.php:444 actions.php:457 actions.php:465 actions.php:467
+#: actions.php:459 actions.php:469
 msgid "Return to login page"
 msgstr "Zurück zur Anmeldeseite"
 
 #: actions.php:385 actions.php:417 actions.php:420 actions.php:419
-#: actions.php:410 actions.php:442 actions.php:465
+#: actions.php:410 actions.php:442 actions.php:465 actions.php:467
 msgid ""
 "Your account can only be accessed through your school's learning management "
 "system."
@@ -650,7 +654,7 @@ msgstr ""
 "werden."
 
 #: actions.php:387 actions.php:419 actions.php:422 actions.php:421
-#: actions.php:412 actions.php:444 actions.php:467
+#: actions.php:412 actions.php:444 actions.php:467 actions.php:469
 msgid ""
 "No usernames match this email address, or the email address provided is "
 "invalid."
@@ -661,7 +665,8 @@ msgstr ""
 #: actions.php:429 actions.php:767 actions.php:461 actions.php:799
 #: actions.php:464 actions.php:805 actions.php:463 actions.php:454
 #: actions.php:786 actions.php:836 actions.php:510 actions.php:899
-#: actions.php:900 actions.php:535 actions.php:930
+#: actions.php:900 actions.php:535 actions.php:930 actions.php:537
+#: actions.php:932
 msgid "This is an automated message. Do not reply to this email."
 msgstr ""
 "Dies ist eine automatisch erzeugte Nachricht. Antworten Sie nicht auf diese "
@@ -670,7 +675,8 @@ msgstr ""
 #: actions.php:430 actions.php:768 actions.php:462 actions.php:800
 #: actions.php:465 actions.php:806 actions.php:464 actions.php:455
 #: actions.php:787 actions.php:837 actions.php:511 actions.php:900
-#: actions.php:901 actions.php:536 actions.php:931
+#: actions.php:901 actions.php:536 actions.php:931 actions.php:538
+#: actions.php:933
 #, php-format
 msgid "Hi, your account details on %s were recently changed."
 msgstr "Hallo, Ihre Kontodaten auf %s wurden kürzlich geändert."
@@ -678,21 +684,24 @@ msgstr "Hallo, Ihre Kontodaten auf %s wurden kürzlich geändert."
 #: actions.php:431 actions.php:773 actions.php:463 actions.php:805
 #: actions.php:466 actions.php:811 actions.php:465 actions.php:456
 #: actions.php:792 actions.php:842 actions.php:512 actions.php:905
-#: actions.php:906 actions.php:537 actions.php:937
+#: actions.php:906 actions.php:537 actions.php:937 actions.php:539
+#: actions.php:939
 msgid "Your password was changed."
 msgstr "Ihr Passwort wurde geändert."
 
 #: actions.php:432 actions.php:775 actions.php:464 actions.php:807
 #: actions.php:467 actions.php:813 actions.php:466 actions.php:457
 #: actions.php:794 actions.php:844 actions.php:513 actions.php:907
-#: actions.php:908 actions.php:538 actions.php:939
+#: actions.php:908 actions.php:538 actions.php:939 actions.php:540
+#: actions.php:941
 msgid "If this was you, you can disregard this email."
 msgstr "Wenn Sie dies waren, können Sie diese E-Mail ignorieren."
 
 #: actions.php:433 actions.php:776 actions.php:465 actions.php:808
 #: actions.php:468 actions.php:814 actions.php:467 actions.php:458
 #: actions.php:795 actions.php:845 actions.php:514 actions.php:908
-#: actions.php:909 actions.php:539 actions.php:940
+#: actions.php:909 actions.php:539 actions.php:940 actions.php:541
+#: actions.php:942
 msgid ""
 "If you did not make these changes, please log into your account and correct "
 "the changes and change your password."
@@ -703,7 +712,8 @@ msgstr ""
 #: actions.php:445 actions.php:789 actions.php:477 actions.php:821
 #: actions.php:480 actions.php:827 actions.php:479 actions.php:470
 #: actions.php:808 actions.php:858 actions.php:519 actions.php:913
-#: actions.php:914 actions.php:544 actions.php:945
+#: actions.php:914 actions.php:544 actions.php:945 actions.php:546
+#: actions.php:947
 msgid "If you are unable to log into your account, use the following link."
 msgstr ""
 "Wenn Sie sich nicht bei Ihrem Konto anmelden können, verwenden Sie den "
@@ -715,31 +725,33 @@ msgstr ""
 #: actions.php:860 forms.php:491 actions.php:521 actions.php:915
 #: admin/userreportdetails.php:289 forms.php:523 actions.php:916
 #: actions.php:546 actions.php:947 admin/userreportdetails.php:286
-#: forms.php:535
+#: forms.php:535 actions.php:548 actions.php:949 forms.php:538
 msgid "Reset Password"
 msgstr "Passwort zurücksetzen"
 
 #: actions.php:450 actions.php:795 actions.php:482 actions.php:827
 #: actions.php:485 actions.php:833 actions.php:484 actions.php:475
 #: actions.php:814 actions.php:864 actions.php:524 actions.php:919
-#: actions.php:920 actions.php:549 actions.php:951
+#: actions.php:920 actions.php:549 actions.php:951 actions.php:551
+#: actions.php:953
 msgid "Alert:"
 msgstr "Warnung:"
 
 #: actions.php:450 actions.php:795 actions.php:482 actions.php:827
 #: actions.php:485 actions.php:833 actions.php:484 actions.php:475
 #: actions.php:814 actions.php:864 actions.php:524 actions.php:919
-#: actions.php:920 actions.php:549 actions.php:951
+#: actions.php:920 actions.php:549 actions.php:951 actions.php:551
+#: actions.php:953
 msgid "Account Activity"
 msgstr "Aktivität der Kennung"
 
 #: actions.php:456 actions.php:488 actions.php:491 actions.php:490
-#: actions.php:481 actions.php:543 actions.php:573
+#: actions.php:481 actions.php:543 actions.php:573 actions.php:575
 msgid "Password change failed"
 msgstr "Die Passwortänderung ist fehlgeschlagen"
 
 #: actions.php:463 actions.php:495 actions.php:498 actions.php:497
-#: actions.php:488 actions.php:550 actions.php:580
+#: actions.php:488 actions.php:550 actions.php:580 actions.php:582
 msgid "Error: Guests can't enroll in courses"
 msgstr "Fehler: Gäste können sich nicht in Kurse einschreiben"
 
@@ -749,6 +761,7 @@ msgstr "Fehler: Gäste können sich nicht in Kurse einschreiben"
 #: course/moddataset.php:1083 util/questionerrors.php:111 validate.php:766
 #: validate.php:768 validate.php:767 validate.php:769 actions.php:589
 #: course/moddataset.php:1065 util/questionerrors.php:108 validate.php:764
+#: actions.php:591
 msgid "Home"
 msgstr "Startseite"
 
@@ -756,17 +769,18 @@ msgstr "Startseite"
 #: actions.php:506 forms.php:373 forms.php:375 actions.php:507 actions.php:509
 #: actions.php:508 actions.php:497 actions.php:499 forms.php:422 forms.php:424
 #: actions.php:559 actions.php:561 forms.php:454 forms.php:456 actions.php:589
-#: actions.php:591 forms.php:466 forms.php:468
+#: actions.php:591 forms.php:466 forms.php:468 actions.php:593 forms.php:469
+#: forms.php:471
 msgid "Enroll in a Course"
 msgstr "In einen Kurs einschreiben"
 
 #: actions.php:478 actions.php:510 actions.php:513 actions.php:512
-#: actions.php:503 actions.php:565 actions.php:595
+#: actions.php:503 actions.php:565 actions.php:595 actions.php:597
 msgid "Please include Course ID."
 msgstr "Bitte geben Sie die Kurs-ID an."
 
 #: actions.php:490 actions.php:522 actions.php:525 actions.php:524
-#: actions.php:515 actions.php:577 actions.php:607
+#: actions.php:515 actions.php:577 actions.php:607 actions.php:609
 msgid "Course not found."
 msgstr "Kurs nicht gefunden."
 
@@ -776,7 +790,7 @@ msgstr "Kurs nicht gefunden."
 #: directaccess.php:144 directaccess.php:211 actions.php:583
 #: directaccess.php:49 directaccess.php:149 directaccess.php:216
 #: actions.php:613 directaccess.php:47 directaccess.php:148
-#: directaccess.php:218
+#: directaccess.php:218 actions.php:615
 msgid ""
 "Course is closed for self enrollment.  Contact your instructor for access."
 msgstr ""
@@ -784,17 +798,17 @@ msgstr ""
 "Dozenten/Ihre Dozentin um einen Zugang zu erhalten."
 
 #: actions.php:496 actions.php:528 actions.php:531 actions.php:530
-#: actions.php:521 actions.php:583 actions.php:613
+#: actions.php:521 actions.php:583 actions.php:613 actions.php:615
 msgid "Return to home page."
 msgstr "Zurück zur Startseite."
 
 #: actions.php:502 actions.php:534 actions.php:537 actions.php:536
-#: actions.php:527 actions.php:589 actions.php:619
+#: actions.php:527 actions.php:589 actions.php:619 actions.php:621
 msgid "Please include Enrollment Key."
 msgstr "Bitte geben Sie das Kurspasswort ein."
 
 #: actions.php:511 actions.php:543 actions.php:546 actions.php:545
-#: actions.php:536 actions.php:598 actions.php:628
+#: actions.php:536 actions.php:598 actions.php:628 actions.php:630
 msgid ""
 "You are a teacher for this course, and can't enroll as a student.  Use "
 "Student View to see the class from a student's perspective, or create a "
@@ -807,7 +821,7 @@ msgstr ""
 #: actions.php:512 actions.php:522 actions.php:544 actions.php:554
 #: actions.php:547 actions.php:557 actions.php:546 actions.php:556
 #: actions.php:537 actions.php:599 actions.php:609 actions.php:629
-#: actions.php:639
+#: actions.php:639 actions.php:631 actions.php:641
 msgid ""
 "Click on the course name on the <a href=\"index.php\">main page</a> to "
 "access the course"
@@ -816,13 +830,13 @@ msgstr ""
 "Kurses um hinein zu gelangen"
 
 #: actions.php:521 actions.php:553 actions.php:556 actions.php:555
-#: actions.php:546 actions.php:608 actions.php:638
+#: actions.php:546 actions.php:608 actions.php:638 actions.php:640
 msgid "You are a tutor for this course, and can't enroll as a student. "
 msgstr ""
 "Sie sind Tutor in diesem Kurs und können sich nicht als Student einschreiben "
 
 #: actions.php:531 actions.php:563 actions.php:566 actions.php:565
-#: actions.php:556 actions.php:618 actions.php:648
+#: actions.php:556 actions.php:618 actions.php:648 actions.php:650
 msgid ""
 "You are already enrolled in the course.  Click on the course name on the <a "
 "href=\"index.php\">main page</a> to access the course"
@@ -831,17 +845,17 @@ msgstr ""
 "\"index.php\">Hauptseite</a> auf den Kursnamen um hinein zu gelangen"
 
 #: actions.php:539 actions.php:571 actions.php:574 actions.php:573
-#: actions.php:564 actions.php:626 actions.php:656
+#: actions.php:564 actions.php:626 actions.php:656 actions.php:658
 msgid "Incorrect Enrollment Key."
 msgstr "Falsches Kurspasswort."
 
 #: actions.php:572 actions.php:604 actions.php:610 actions.php:591
-#: actions.php:653 actions.php:683
+#: actions.php:653 actions.php:683 actions.php:685
 msgid "You have been enrolled in course ID "
 msgstr "Sie wurden in den folgenden Kurs eingeschrieben. Kurs-ID "
 
 #: actions.php:573 actions.php:605 actions.php:611 actions.php:592
-#: actions.php:654 actions.php:684
+#: actions.php:654 actions.php:684 actions.php:686
 msgid ""
 "Return to the <a href=\"index.php\">main page</a> and click on the course "
 "name to access the course"
@@ -850,28 +864,31 @@ msgstr ""
 "auf den Kursnamen um in den Kurs hinein zu gelangen"
 
 #: actions.php:585 actions.php:617 actions.php:623 actions.php:604
-#: actions.php:666 actions.php:696
+#: actions.php:666 actions.php:696 actions.php:698
 msgid "Error: Guests can't unenroll from courses"
 msgstr "Fehler: Gäste können sich nicht aus Kursen austragen"
 
 #: actions.php:590 actions.php:622 actions.php:628 actions.php:609
-#: actions.php:671 actions.php:701
+#: actions.php:671 actions.php:701 actions.php:703
 msgid "Course ID not specified."
 msgstr "Kurs-ID nicht angegeben."
 
 #: actions.php:736 actions.php:768 actions.php:774 actions.php:755
 #: actions.php:794 actions.php:855 actions.php:856 actions.php:883
+#: actions.php:885
 msgid "Password change failed."
 msgstr "Änderung des Passworts fehlgeschlagen."
 
 #: actions.php:770 actions.php:802 actions.php:808 actions.php:789
 #: actions.php:839 actions.php:902 actions.php:903 actions.php:933
+#: actions.php:935
 #, php-format
 msgid "Your email address was changed to %s."
 msgstr "Ihre E-Mail-Adresse wurde in %s geändert."
 
 #: actions.php:822 actions.php:854 actions.php:860 actions.php:841
 #: actions.php:905 actions.php:971 actions.php:972 actions.php:1010
+#: actions.php:1012
 msgid "Changes Recorded."
 msgstr "Änderungen gespeichert."
 
@@ -889,7 +906,7 @@ msgstr "Änderungen gespeichert."
 #: course/addquestions.php:1344 course/addquestions2.php:617
 #: course/sendmsgmodal.php:118 course/viewforumgrade.php:98
 #: javascript/addqsort2.js:2048 javascript/qsearch.js:232 lti/dynreg.php:154
-#: msgs/cleanupmsgs.php:80
+#: msgs/cleanupmsgs.php:80 actions.php:1016
 msgid "Done"
 msgstr "Erledigt"
 
@@ -1216,6 +1233,7 @@ msgstr "Fortfahren"
 #: includes/userutils.php:50 includes/userutils.php:87
 #: javascript/addqsort.js:1089 javascript/addqsort2.js:1178
 #: util/listnewteachers.php:154 util/listnewteachers.php:205
+#: course/testquestion2.php:663
 msgid "Default"
 msgstr "Standard"
 
@@ -1408,7 +1426,7 @@ msgstr "Name"
 #: course/listusers.php:771 admin/userreportdetails.php:272
 #: course/gradebook.php:808 course/gradebook.php:812 course/listusers.php:854
 #: course/listusers.php:906 forms.php:589 includes/coursecopylist.php:66
-#: util/finddupacctreq.php:81 util/finddupacctreq.php:86
+#: util/finddupacctreq.php:81 util/finddupacctreq.php:86 forms.php:592
 msgid "Email"
 msgstr "E-Mail"
 
@@ -1446,6 +1464,7 @@ msgstr "Rolle"
 #: javascript/addqsort.js:1155 javascript/addqsort.js:1231
 #: javascript/addqsort2.js:1246 javascript/addqsort2.js:1331
 #: util/finddupacctreq.php:87 wikis/editwiki.php:221 wikis/viewwiki.php:329
+#: forms.php:253
 msgid "Group"
 msgstr "Gruppe"
 
@@ -2465,7 +2484,7 @@ msgstr "Gruppen suchen"
 #: course/addquestions.php:1371 course/addquestions.php:1382
 #: course/findquestion.php:121 course/report-missingwork.php:167
 #: course/report-ungraded.php:182 includes/questionsearch.php:753
-#: includes/questionsearch.php:867 msgs/msglist.php:573
+#: includes/questionsearch.php:867 msgs/msglist.php:573 msgs/msglist.php:579
 msgid "Search"
 msgstr "Suche"
 
@@ -2773,7 +2792,7 @@ msgstr "Markieren:"
 #: course/gradebook.php:1703 course/isolateassessgrade.php:200
 #: course/isolateassessgrade.php:312 course/listusers.php:866 forms.php:620
 #: forms.php:632 forms.php:644 forums/newthreads.php:115
-#: includes/questionsearch.php:770
+#: includes/questionsearch.php:770 forms.php:623 forms.php:635 forms.php:647
 msgid "All"
 msgstr "Alle"
 
@@ -2829,6 +2848,7 @@ msgstr "Alle"
 #: course/gradebook.php:562 course/gradebook.php:640 course/gradebook.php:865
 #: course/listusers.php:851 course/listusers.php:866 forms.php:620
 #: forms.php:632 forms.php:644 forums/newthreads.php:115 index.php:106
+#: forms.php:623 forms.php:635 forms.php:647
 msgid "None"
 msgstr "Keine"
 
@@ -2891,7 +2911,7 @@ msgstr ""
 #: ltihome.php:428 header.php:339 msgs/msglist.php:846
 #: admin/importitems2.php:179 admin/listdiag.php:130 admin/userlti.php:315
 #: header.php:302 index.php:621 index.php:684 ltihome.php:459
-#: msgs/msglist.php:867
+#: msgs/msglist.php:867 msgs/msglist.php:873
 msgid "Course"
 msgstr "Kurs"
 
@@ -3057,18 +3077,21 @@ msgstr "Darstellungs-Reihenfolge"
 #: admin/modcourseorder.php:171 forms.php:475 index.php:467 forms.php:533
 #: index.php:475 forms.php:582 admin/modcourseorder.php:173 forms.php:622
 #: index.php:484 admin/modcourseorder.php:187 forms.php:644 index.php:460
+#: forms.php:647
 msgid "Courses you're taking"
 msgstr "Kurse, an denen Sie teilnehmen"
 
 #: admin/modcourseorder.php:173 forms.php:463 index.php:464 forms.php:521
 #: index.php:472 forms.php:570 admin/modcourseorder.php:175 forms.php:610
 #: index.php:481 admin/modcourseorder.php:189 forms.php:632 index.php:457
+#: forms.php:635
 msgid "Courses you're tutoring"
 msgstr "Kurse, die Sie unterstützen"
 
 #: admin/modcourseorder.php:175 forms.php:451 index.php:460 forms.php:509
 #: index.php:468 forms.php:558 admin/modcourseorder.php:177 forms.php:598
 #: index.php:477 admin/modcourseorder.php:191 forms.php:620 index.php:453
+#: forms.php:623
 msgid "Courses you're teaching"
 msgstr "Kurse, an denen Sie lehren"
 
@@ -3118,7 +3141,7 @@ msgstr ""
 #: course/exception.php:249 course/gbsettings.php:461 course/gradeallq2.php:959
 #: course/gradebook.php:864 course/gradebook.php:1470 course/latepasses.php:179
 #: course/managecalitems.php:185 course/managecalitems.php:214
-#: course/masschgdates.php:527 forms.php:654
+#: course/masschgdates.php:527 forms.php:654 forms.php:657
 msgid "Save Changes"
 msgstr "Änderungen speichern"
 
@@ -3277,7 +3300,7 @@ msgstr "Benutzer simulieren"
 #: admin/userdetails.php:183 course/gradebook.php:576 course/gradebook.php:745
 #: index.php:645 msgs/msglist.php:841 course/gradebook.php:645
 #: course/gradebook.php:816 course/listusers.php:871 index.php:621
-#: msgs/msglist.php:862
+#: msgs/msglist.php:862 msgs/msglist.php:868
 msgid "Message"
 msgstr "Nachricht"
 
@@ -3338,7 +3361,8 @@ msgstr "Kurse, an denen Sie teilnehmen"
 #: admin/userreportdetails.php:424 forms.php:128 forms.php:485
 #: admin/forms.php:499 admin/forms.php:788 admin/userlti.php:316
 #: admin/userreportdetails.php:312 admin/userreportdetails.php:380
-#: admin/userreportdetails.php:421 forms.php:129 forms.php:497
+#: admin/userreportdetails.php:421 forms.php:129 forms.php:497 forms.php:132
+#: forms.php:500
 msgid "Course ID"
 msgstr "Kurs-ID"
 
@@ -3460,7 +3484,7 @@ msgstr "Wählen Sie oben eine contextid um die zugeordneten Tests anzuzeigen"
 #: course/gradebook.php:790 admin/userlti.php:333 course/gradebook.php:801
 #: course/gradebook.php:802 admin/userlti.php:344 course/gradebook.php:877
 #: course/report-a11y.php:388 javascript/rubric.js:18
-#: javascript/rubric_min.js:1
+#: javascript/rubric_min.js:1 course/report-a11y.php:426
 msgid "Item"
 msgstr "Teil"
 
@@ -4473,6 +4497,7 @@ msgstr "Ihre Antwort"
 #: javascript/addqsort.js:1507 javascript/addqsort2.js:1168
 #: javascript/addqsort2.js:1666 javascript/addqsort2.js:1675
 #: javascript/qsearch.js:425
+#: assess2/questions/answerboxes/FunctionExpressionAnswerBox.php:155
 #, php-format
 msgid "Preview"
 msgstr "Vorschau"
@@ -4560,6 +4585,7 @@ msgstr "Geben Sie eine algebraische Gleichung ein"
 #: assess2/questions/answerboxes/CalculatedMatrixAnswerBox.php:62
 #: assess2/questions/answerboxes/FunctionExpressionAnswerBox.php:101
 #: assessment/displayq2.php:2041
+#: assess2/questions/answerboxes/FunctionExpressionAnswerBox.php:104
 msgid "Enter an algebraic expression"
 msgstr "Geben Sie einen Term ein"
 
@@ -4596,6 +4622,7 @@ msgstr "Geben Sie Ihre Antwort als Gleichung ein.  Beispiel: y=3x^2+1, 2+x+y=3"
 #: assess2/questions/answerboxes/FunctionExpressionAnswerBox.php:99
 #: assess2/questions/answerboxes/FunctionExpressionAnswerBox.php:102
 #: assessment/displayq2.php:2150
+#: assess2/questions/answerboxes/FunctionExpressionAnswerBox.php:105
 msgid "Be sure your variables match those in the question"
 msgstr ""
 "Stellen Sie sicher, dass Ihre Variablen mit denen in der Frage übereinstimmen"
@@ -4608,6 +4635,7 @@ msgstr ""
 #: assess2/questions/answerboxes/FunctionExpressionAnswerBox.php:84
 #: assess2/questions/answerboxes/FunctionExpressionAnswerBox.php:102
 #: assessment/displayq2.php:2150
+#: assess2/questions/answerboxes/FunctionExpressionAnswerBox.php:105
 msgid "Enter your answer as an expression.  Example: 3x^2+1, x/5, (a+b)/c"
 msgstr ""
 "Geben Sie Ihre Antwort als Ausdruck ein.  Beispiel: 3x^2+1, x/5, (a+b)/c"
@@ -5702,7 +5730,7 @@ msgstr "Fehler beim Hochladen der Datei"
 #: javascript/AMhelpers2.js:2076 javascript/assess2_min.js:1
 #: assess2/questions/answerboxhelpers.php:179 javascript/AMhelpers2.js:2096
 #: assessment/macros/parsers.php:598 javascript/AMhelpers.js:687
-#: javascript/AMhelpers2.js:2097
+#: javascript/AMhelpers2.js:2097 javascript/AMhelpers2.js:2100
 msgid "error - more than 1 i in expression"
 msgstr "Fehler - mehr als ein i im Ausdruck"
 
@@ -5788,7 +5816,9 @@ msgstr "Fehler - mehr als ein i im Ausdruck"
 #: javascript/AMhelpers.js:724 javascript/AMhelpers.js:735
 #: javascript/AMhelpers.js:746 javascript/AMhelpers2.js:2118
 #: javascript/AMhelpers2.js:2134 javascript/AMhelpers2.js:2145
-#: javascript/AMhelpers2.js:2156
+#: javascript/AMhelpers2.js:2156 javascript/AMhelpers2.js:2121
+#: javascript/AMhelpers2.js:2137 javascript/AMhelpers2.js:2148
+#: javascript/AMhelpers2.js:2159
 msgid "error - invalid form"
 msgstr "Fehler - ungültige Form"
 
@@ -6951,7 +6981,9 @@ msgstr "Benutzerspezifische Einstellungen bearbeiten"
 #: course/assessselect.php:92 course/courseshowitems.php:1933
 #: course/report-a11y.php:125 course/report-a11y.php:126
 #: course/report-a11y.php:183 course/report-a11y.php:234
-#: course/report-a11y.php:259
+#: course/report-a11y.php:259 course/report-a11y.php:149
+#: course/report-a11y.php:150 course/report-a11y.php:207
+#: course/report-a11y.php:260 course/report-a11y.php:287
 msgid "Assessment"
 msgstr "Test"
 
@@ -6969,7 +7001,7 @@ msgstr "Dies wird alle nicht gespeicherte Arbeit verwerfen."
 #: msgs/msglist.php:574 course/course.php:498 course/course.php:591
 #: header.php:340 index.php:386 msgs/msglist.php:654 header.php:341
 #: assessment/showtest.php:1249 header.php:304 index.php:362
-#: msgs/msglist.php:673
+#: msgs/msglist.php:673 msgs/msglist.php:679
 msgid "Messages"
 msgstr "Nachrichten"
 
@@ -7025,7 +7057,7 @@ msgstr ""
 #: directaccess.php:216 directaccess.php:237 directaccess.php:238
 #: lti/show_postback_form.php:85 directaccess.php:240 directaccess.php:245
 #: lti/show_postback_form.php:86 assessment/showtest.php:1424
-#: directaccess.php:247 forms.php:252
+#: directaccess.php:247 forms.php:252 forms.php:255
 msgid "Password"
 msgstr "Passwort"
 
@@ -7178,6 +7210,7 @@ msgstr "Zeitlimit wegen Fälligkeitsdatum verkürzt"
 #: course/testquestion2.php:255 course/testquestion2.php:288
 #: course/testquestion2.php:289 course/testquestion2.php:298
 #: assessment/showtest.php:1576 course/testquestion2.php:418
+#: course/testquestion2.php:421
 msgid "remaining"
 msgstr "verbleibend"
 
@@ -7975,7 +8008,7 @@ msgstr "FragenID: "
 #: assessment/testutil.php:833 assessment/testutil.php:840
 #: course/testquestion.php:335 course/testquestion2.php:464 embedq2.php:433
 #: multiembedq2.php:397 course/testquestion2.php:584 embedq2.php:446
-#: multiembedq2.php:412
+#: multiembedq2.php:412 course/testquestion2.php:587
 msgid "License"
 msgstr "Lizenz"
 
@@ -8289,7 +8322,7 @@ msgstr ""
 #: forms.php:49 directaccess.php:296 bltilaunch.php:434 bltilaunch.php:435
 #: directaccess.php:297 directaccess.php:299 bltilaunch.php:458
 #: bltilaunch.php:461 directaccess.php:306 forms.php:50 bltilaunch.php:456
-#: directaccess.php:308 forms.php:51
+#: directaccess.php:308 forms.php:51 forms.php:54
 msgid "Choose a password:"
 msgstr "Passwort wählen:"
 
@@ -8297,7 +8330,7 @@ msgstr "Passwort wählen:"
 #: forms.php:50 directaccess.php:297 bltilaunch.php:435 bltilaunch.php:436
 #: directaccess.php:298 directaccess.php:300 bltilaunch.php:459
 #: bltilaunch.php:462 directaccess.php:307 forms.php:51 bltilaunch.php:457
-#: directaccess.php:309 forms.php:52
+#: directaccess.php:309 forms.php:52 forms.php:55
 msgid "Confirm password:"
 msgstr "Passwort bestätigen:"
 
@@ -8306,7 +8339,7 @@ msgstr "Passwort bestätigen:"
 #: bltilaunch.php:436 bltilaunch.php:437 directaccess.php:299
 #: directaccess.php:301 bltilaunch.php:460 bltilaunch.php:463
 #: diag/index.php:400 directaccess.php:308 forms.php:52 bltilaunch.php:458
-#: diag/index.php:404 directaccess.php:310 forms.php:53
+#: diag/index.php:404 directaccess.php:310 forms.php:53 forms.php:56
 msgid "Enter First Name:"
 msgstr "Vorname:"
 
@@ -8315,7 +8348,7 @@ msgstr "Vorname:"
 #: bltilaunch.php:437 bltilaunch.php:438 directaccess.php:300
 #: directaccess.php:302 bltilaunch.php:461 bltilaunch.php:464
 #: diag/index.php:402 directaccess.php:309 forms.php:53 bltilaunch.php:459
-#: diag/index.php:406 directaccess.php:311 forms.php:54
+#: diag/index.php:406 directaccess.php:311 forms.php:54 forms.php:57
 msgid "Enter Last Name:"
 msgstr "Nachname:"
 
@@ -8324,7 +8357,7 @@ msgstr "Nachname:"
 #: bltilaunch.php:438 bltilaunch.php:439 directaccess.php:301
 #: directaccess.php:303 bltilaunch.php:462 forms.php:262 bltilaunch.php:465
 #: directaccess.php:310 forms.php:54 forms.php:294 bltilaunch.php:460
-#: directaccess.php:312 forms.php:55 forms.php:295
+#: directaccess.php:312 forms.php:55 forms.php:295 forms.php:58 forms.php:298
 msgid "Enter E-mail address:"
 msgstr "E-Mail-Adresse eingeben:"
 
@@ -8333,7 +8366,7 @@ msgstr "E-Mail-Adresse eingeben:"
 #: bltilaunch.php:439 bltilaunch.php:440 directaccess.php:307
 #: directaccess.php:309 bltilaunch.php:463 forms.php:272 bltilaunch.php:466
 #: directaccess.php:316 forms.php:55 forms.php:304 bltilaunch.php:461
-#: directaccess.php:318 forms.php:56 forms.php:309
+#: directaccess.php:318 forms.php:56 forms.php:309 forms.php:59 forms.php:312
 msgid "Notify me by email when I receive a new message:"
 msgstr "Benachrichtige mich per E-Mail, wenn ich eine neue Nachricht erhalte:"
 
@@ -8720,7 +8753,8 @@ msgstr "Titel des Tests"
 #: course/addassessment2form.php:223 course/chgassessments2form.php:89
 #: course/addquestions.php:1591 course/copyitems.php:549
 #: course/gradebook.php:489 course/report-a11y.php:125
-#: course/report-a11y.php:140
+#: course/report-a11y.php:140 course/report-a11y.php:149
+#: course/report-a11y.php:164
 msgid "Summary"
 msgstr "Zusammenfassung (für die Kursseite)"
 
@@ -9752,7 +9786,8 @@ msgstr "Verwende Standard-Rückmeldung"
 #: course/report-a11y.php:58 course/report-a11y.php:66
 #: course/addassessment2form.php:694 course/chgassessments2form.php:732
 #: course/courseshowitems.php:1946 course/report-a11y.php:133
-#: course/report-a11y.php:141
+#: course/report-a11y.php:141 course/report-a11y.php:157
+#: course/report-a11y.php:165
 msgid "Text"
 msgstr "Text"
 
@@ -11191,7 +11226,7 @@ msgstr "Vorschau für Ausgewählte"
 #: course/moddataset.php:1406 course/modquestiongrid2.php:362
 #: course/report-a11y.php:148 forums/posthandler.php:549
 #: javascript/addqsort.js:1076 javascript/addqsort2.js:1163
-#: javascript/qsearch.js:285
+#: javascript/qsearch.js:285 course/report-a11y.php:172
 msgid "Description"
 msgstr "Beschreibung"
 
@@ -11338,6 +11373,7 @@ msgstr "Zurück"
 #: course/showlinkedtext.php:163 course/testquestion2.php:289
 #: course/testquestion2.php:291 course/addquestions.php:1486
 #: course/testquestion2.php:409 course/testquestion2.php:411
+#: course/testquestion2.php:412 course/testquestion2.php:414
 msgid "Next"
 msgstr "Weiter"
 
@@ -11391,7 +11427,7 @@ msgstr "Aus Bibliotheken auswählen"
 #: forms.php:610 forms.php:622 course/addquestions.php:1521
 #: course/addquestions.php:1585 course/categorize.php:211
 #: course/copyitems.php:543 course/isolateassessgrade.php:312 forms.php:620
-#: forms.php:632 forms.php:644
+#: forms.php:632 forms.php:644 forms.php:623 forms.php:635 forms.php:647
 msgid "Check"
 msgstr "Auswahl"
 
@@ -12036,6 +12072,7 @@ msgstr ""
 #: course/sendmsgmodal.php:232 course/testquestion2.php:445
 #: msgs/msglist.php:585 course/gradebook.php:816 course/sendmsgmodal.php:247
 #: course/testquestion2.php:565 msgs/msglist.php:606
+#: course/testquestion2.php:568 msgs/msglist.php:612
 msgid "Send Message"
 msgstr "Nachricht absenden"
 
@@ -12629,6 +12666,7 @@ msgstr ""
 
 #: course/coursemap.php:147 course/coursemap.php:150 course/coursemap.php:153
 #: course/report-a11y.php:58 course/report-a11y.php:133
+#: course/report-a11y.php:157
 msgid "Inline text item"
 msgstr "Eingebetteter Text"
 
@@ -13388,6 +13426,8 @@ msgstr "Füge hier hinzu:"
 #: course/report-a11y.php:83 course/courseshowitems.php:1958
 #: course/report-a11y.php:148 course/report-a11y.php:149
 #: course/report-a11y.php:150 course/report-a11y.php:158
+#: course/report-a11y.php:172 course/report-a11y.php:173
+#: course/report-a11y.php:174 course/report-a11y.php:182
 msgid "Forum"
 msgstr "Forum"
 
@@ -13408,6 +13448,7 @@ msgstr "Training"
 #: course/courseshowitems.php:1910 course/courseshowitems.php:1970
 #: course/deleteblock.php:105 course/courseshowitems.php:1976
 #: course/deleteblock.php:111 course/report-a11y.php:88
+#: course/report-a11y.php:112
 msgid "Block"
 msgstr "Block"
 
@@ -14831,7 +14872,7 @@ msgstr "Ausgewählte Studierende austragen"
 #: forms.php:479 admin/userdetails.php:417 course/gradebook.php:585
 #: forms.php:509 forms.php:511 course/gradebook.php:656
 #: course/listusers.php:568 course/listusers.php:885 forms.php:521
-#: forms.php:523
+#: forms.php:523 forms.php:524 forms.php:526
 msgid "Unenroll"
 msgstr "Austragen"
 
@@ -15974,6 +16015,7 @@ msgstr "zuordnen zur Variablen:"
 #: course/moddataset.php:1372 course/moddataset.php:1388
 #: course/testquestion2.php:449 course/moddataset.php:1358
 #: course/moddataset.php:1375 course/testquestion2.php:569
+#: course/testquestion2.php:572
 #, php-format
 msgid "Description:"
 msgstr "Beschreibung:"
@@ -17007,18 +17049,21 @@ msgstr "Punkte für letzte Antwort: "
 #: course/testquestion.php:150 course/testquestion2.php:208
 #: course/testquestion2.php:241 course/testquestion2.php:242
 #: course/testquestion2.php:251 course/testquestion2.php:371
+#: course/testquestion2.php:374
 msgid "Oops, error toggling the flag"
 msgstr "Ups, Fehler beim Umschalten"
 
 #: course/testquestion.php:153 course/testquestion2.php:211
 #: course/testquestion2.php:244 course/testquestion2.php:245
 #: course/testquestion2.php:254 course/testquestion2.php:374
+#: course/testquestion2.php:377
 msgid "Couldn't save changes:"
 msgstr "Konnte Änderungen nicht speichern:"
 
 #: course/testquestion.php:160 course/testquestion2.php:218
 #: course/testquestion2.php:251 course/testquestion2.php:252
 #: course/testquestion2.php:261 course/testquestion2.php:381
+#: course/testquestion2.php:384
 msgid ""
 "Make sure you also contact the question author or support so they know why "
 "you marked the question as broken"
@@ -17032,12 +17077,14 @@ msgstr ""
 #: course/testquestion2.php:275 course/testquestion2.php:277
 #: course/testquestion2.php:284 course/testquestion2.php:286
 #: course/testquestion2.php:404 course/testquestion2.php:406
+#: course/testquestion2.php:407 course/testquestion2.php:409
 msgid "Prev"
 msgstr "Zurück"
 
 #: course/testquestion.php:188 course/testquestion2.php:251
 #: course/testquestion2.php:284 course/testquestion2.php:285
 #: course/testquestion2.php:294 course/testquestion2.php:414
+#: course/testquestion2.php:417
 msgid "checked"
 msgstr "ausgewählt"
 
@@ -17046,7 +17093,8 @@ msgstr "ausgewählt"
 #: course/testquestion2.php:296 course/testquestion2.php:297
 #: course/testquestion2.php:298 course/testquestion2.php:306
 #: course/testquestion2.php:307 course/testquestion2.php:426
-#: course/testquestion2.php:427
+#: course/testquestion2.php:427 course/testquestion2.php:429
+#: course/testquestion2.php:430
 msgid "Mark Question for Use"
 msgstr "Frage zur Verwendung markieren"
 
@@ -17066,6 +17114,7 @@ msgstr "HTML anzeigen"
 #: course/testquestion2.php:397 course/testquestion2.php:398
 #: course/testquestion2.php:401 course/testquestion2.php:404
 #: course/testquestion2.php:415 course/testquestion2.php:535
+#: course/testquestion2.php:538
 msgid "Message owner"
 msgstr "Eigentümer benachrichtigen"
 
@@ -17073,6 +17122,7 @@ msgstr "Eigentümer benachrichtigen"
 #: course/testquestion2.php:401 course/testquestion2.php:402
 #: course/testquestion2.php:405 course/testquestion2.php:408
 #: course/testquestion2.php:419 course/testquestion2.php:539
+#: course/testquestion2.php:542
 msgid "Email owner"
 msgstr "Mail an den Eigentümer"
 
@@ -17080,6 +17130,7 @@ msgstr "Mail an den Eigentümer"
 #: course/testquestion2.php:412 course/testquestion2.php:413
 #: course/testquestion2.php:416 course/testquestion2.php:419
 #: course/testquestion2.php:430 course/testquestion2.php:550
+#: course/testquestion2.php:553
 msgid "Contact support"
 msgstr "Nachricht an Support"
 
@@ -17087,6 +17138,7 @@ msgstr "Nachricht an Support"
 #: course/testquestion2.php:416 course/testquestion2.php:417
 #: course/testquestion2.php:420 course/testquestion2.php:423
 #: course/testquestion2.php:438 course/testquestion2.php:558
+#: course/testquestion2.php:561
 #, php-format
 msgid "Question ID:"
 msgstr "FragenID:"
@@ -17095,6 +17147,7 @@ msgstr "FragenID:"
 #: course/testquestion2.php:417 course/testquestion2.php:418
 #: course/testquestion2.php:421 course/testquestion2.php:424
 #: course/testquestion2.php:439 course/testquestion2.php:559
+#: course/testquestion2.php:562
 msgid "Seed:"
 msgstr "Initialisierung für zufällige Auswahl:"
 
@@ -17102,6 +17155,7 @@ msgstr "Initialisierung für zufällige Auswahl:"
 #: course/testquestion2.php:420 course/testquestion2.php:421
 #: course/testquestion2.php:424 course/testquestion2.php:427
 #: course/testquestion2.php:443 course/testquestion2.php:563
+#: course/testquestion2.php:566
 msgid "Edit Question"
 msgstr "Frage bearbeiten"
 
@@ -17113,7 +17167,7 @@ msgstr "Frage bearbeiten"
 #: assess2/gbloadassess.php:259 course/testquestion2.php:429
 #: assess2/gbloadassess.php:264 assess2/gbloadassess.php:280
 #: course/testquestion2.php:445 assess2/gbloadassess.php:279
-#: course/testquestion2.php:565
+#: course/testquestion2.php:565 course/testquestion2.php:568
 msgid "to report problems"
 msgstr "um Probleme zu melden"
 
@@ -17121,6 +17175,7 @@ msgstr "um Probleme zu melden"
 #: course/testquestion2.php:426 course/testquestion2.php:427
 #: course/testquestion2.php:430 course/testquestion2.php:433
 #: course/testquestion2.php:449 course/testquestion2.php:569
+#: course/testquestion2.php:572
 #, php-format
 msgid "Author:"
 msgstr "Autor:"
@@ -17129,7 +17184,7 @@ msgstr "Autor:"
 #: course/testquestion2.php:428 course/testquestion2.php:429
 #: course/testquestion2.php:432 course/testquestion2.php:435
 #: course/testquestion.php:323 course/testquestion2.php:452
-#: course/testquestion2.php:572
+#: course/testquestion2.php:572 course/testquestion2.php:575
 msgid "Last Modified:"
 msgstr "Zuletzt modifiziert:"
 
@@ -17137,7 +17192,7 @@ msgstr "Zuletzt modifiziert:"
 #: course/testquestion2.php:430 course/testquestion2.php:431
 #: course/testquestion2.php:434 course/testquestion2.php:437
 #: course/testquestion.php:325 course/testquestion2.php:454
-#: course/testquestion2.php:574
+#: course/testquestion2.php:574 course/testquestion2.php:577
 msgid ""
 "This question has been marked for deletion.  This might indicate there is an "
 "error in the question. "
@@ -17149,7 +17204,7 @@ msgstr ""
 #: course/testquestion2.php:431 course/testquestion2.php:432
 #: course/testquestion2.php:435 course/testquestion2.php:438
 #: course/testquestion.php:326 course/testquestion2.php:455
-#: course/testquestion2.php:575
+#: course/testquestion2.php:575 course/testquestion2.php:578
 msgid "It is recommended you discontinue use of this question when possible"
 msgstr ""
 "Es wird empfohlen, dass Sie diese Frage nicht mehr verwenden, falls möglich"
@@ -17158,7 +17213,7 @@ msgstr ""
 #: course/testquestion2.php:434 course/testquestion2.php:435
 #: course/testquestion2.php:438 course/testquestion2.php:441
 #: course/testquestion.php:329 course/testquestion2.php:458
-#: course/testquestion2.php:578
+#: course/testquestion2.php:578 course/testquestion2.php:581
 #, php-format
 msgid ""
 "This message has been marked as deprecated, and it is recommended you use "
@@ -17173,7 +17228,7 @@ msgstr ""
 #: course/testquestion2.php:437 course/testquestion2.php:438
 #: course/testquestion2.php:441 course/testquestion2.php:444
 #: course/testquestion.php:332 course/testquestion2.php:461
-#: course/testquestion2.php:581
+#: course/testquestion2.php:581 course/testquestion2.php:584
 msgid ""
 "This question has been marked as broken.  This indicates there might be an "
 "error with this question.  Use with caution."
@@ -17185,7 +17240,7 @@ msgstr ""
 #: course/testquestion2.php:437 course/testquestion2.php:438
 #: course/testquestion2.php:441 course/testquestion2.php:444
 #: course/testquestion.php:332 course/testquestion2.php:461
-#: course/testquestion2.php:581
+#: course/testquestion2.php:581 course/testquestion2.php:584
 msgid "Unmark as broken"
 msgstr "Markierung als fehlerhaft aufheben"
 
@@ -17193,7 +17248,7 @@ msgstr "Markierung als fehlerhaft aufheben"
 #: course/testquestion2.php:444 course/testquestion2.php:445
 #: course/testquestion2.php:448 course/testquestion2.php:451
 #: course/testquestion.php:339 course/testquestion2.php:468
-#: course/testquestion2.php:588
+#: course/testquestion2.php:588 course/testquestion2.php:591
 msgid "Other Attribution: "
 msgstr "Zusätzliche Bedingungen: "
 
@@ -17201,7 +17256,7 @@ msgstr "Zusätzliche Bedingungen: "
 #: course/testquestion2.php:448 course/testquestion2.php:449
 #: course/testquestion2.php:452 course/testquestion2.php:455
 #: course/testquestion.php:343 course/testquestion2.php:472
-#: course/testquestion2.php:611
+#: course/testquestion2.php:611 course/testquestion2.php:614
 msgid "Question is in these libraries:"
 msgstr "Die Frage ist in diesen Bibliotheken:"
 
@@ -17209,7 +17264,7 @@ msgstr "Die Frage ist in diesen Bibliotheken:"
 #: course/testquestion2.php:464 course/testquestion2.php:465
 #: course/testquestion2.php:468 course/testquestion2.php:471
 #: course/testquestion.php:356 course/testquestion2.php:507
-#: course/testquestion2.php:647
+#: course/testquestion2.php:647 course/testquestion2.php:650
 msgid "Derived from:"
 msgstr "Abgeleitet von:"
 
@@ -17217,7 +17272,7 @@ msgstr "Abgeleitet von:"
 #: course/testquestion2.php:466 course/testquestion2.php:467
 #: course/testquestion2.php:470 course/testquestion2.php:473
 #: course/testquestion.php:358 course/testquestion2.php:509
-#: course/testquestion2.php:649
+#: course/testquestion2.php:649 course/testquestion2.php:652
 msgid "Created by: "
 msgstr "Angelegt von: "
 
@@ -17225,7 +17280,7 @@ msgstr "Angelegt von: "
 #: course/testquestion2.php:470 course/testquestion2.php:471
 #: course/testquestion2.php:474 course/testquestion2.php:477
 #: course/testquestion.php:362 course/testquestion2.php:513
-#: course/testquestion2.php:653
+#: course/testquestion2.php:653 course/testquestion2.php:656
 msgid "Derived from work by: "
 msgstr "Abgeleitet von Fragen von: "
 
@@ -17233,7 +17288,7 @@ msgstr "Abgeleitet von Fragen von: "
 #: course/testquestion2.php:473 course/testquestion2.php:474
 #: course/testquestion2.php:477 course/testquestion2.php:480
 #: course/testquestion.php:365 course/testquestion2.php:516
-#: course/testquestion2.php:656
+#: course/testquestion2.php:656 course/testquestion2.php:659
 msgid "UniqueID: "
 msgstr "Eindeutige ID: "
 
@@ -17248,21 +17303,21 @@ msgstr "In neuer Oberfläche testen"
 #: course/testquestion2.php:353 course/testquestion2.php:386
 #: course/testquestion2.php:387 course/testquestion2.php:390
 #: course/testquestion2.php:393 course/testquestion2.php:404
-#: course/testquestion2.php:524
+#: course/testquestion2.php:524 course/testquestion2.php:527
 msgid "Show steps"
 msgstr "Schritte anzeigen"
 
 #: course/testquestion2.php:355 course/testquestion2.php:388
 #: course/testquestion2.php:389 course/testquestion2.php:392
 #: course/testquestion2.php:395 course/testquestion2.php:406
-#: course/testquestion2.php:526
+#: course/testquestion2.php:526 course/testquestion2.php:529
 msgid "Show all parts"
 msgstr "Alle Teile anzeigen"
 
 #: course/testquestion2.php:358 course/testquestion2.php:391
 #: course/testquestion2.php:392 course/testquestion2.php:395
 #: course/testquestion2.php:398 course/testquestion2.php:409
-#: course/testquestion2.php:529
+#: course/testquestion2.php:529 course/testquestion2.php:532
 msgid "New Version"
 msgstr "Neue Version"
 
@@ -17292,6 +17347,7 @@ msgstr "In alter Oberfläche testen"
 #: mathquill/mqedlayout.js:698 multiembedq2.php:408 assess2/index.php:82
 #: course/drillassess.php:489 course/testquestion2.php:669 embedq2.php:463
 #: mathquill/mqedlayout.js:717 multiembedq2.php:424
+#: course/testquestion2.php:672
 msgid "[more..]"
 msgstr "[mehr..]"
 
@@ -17506,7 +17562,7 @@ msgstr "Anmelden und Einschreiben"
 
 #: directaccess.php:219 loginpage.php:60 directaccess.php:225
 #: directaccess.php:246 directaccess.php:247 directaccess.php:249
-#: directaccess.php:254 directaccess.php:256
+#: directaccess.php:254 directaccess.php:256 loginpage.php:61
 msgid "Forgot Password"
 msgstr "Passwort vergessen"
 
@@ -17546,32 +17602,34 @@ msgstr "Punkte für letzte Frage:"
 msgid "New Student Signup"
 msgstr "Als Student registrieren"
 
-#: forms.php:51 forms.php:59 forms.php:60 forms.php:61
+#: forms.php:51 forms.php:59 forms.php:60 forms.php:61 forms.php:64
 msgid "I have read and agree to the Terms of Use (below)"
 msgstr ""
 "Ich habe die Nutzungsbedingungen und die Datenschutzerklärung (s. u.) "
 "gelesen und akzeptiere sie"
 
-#: forms.php:53 forms.php:61 forms.php:62 forms.php:63
+#: forms.php:53 forms.php:61 forms.php:62 forms.php:63 forms.php:66
 msgid "Terms of Use"
 msgstr "Nutzungsbedingungen und Datenschutzerklärung"
 
-#: forms.php:55 forms.php:63 forms.php:64 forms.php:65
+#: forms.php:55 forms.php:63 forms.php:64 forms.php:65 forms.php:68
 #, php-format
 msgid "I have read and agree to the %s"
 msgstr "Ich habe %s  gelesen und akzeptiere sie"
 
 #: forms.php:67 forms.php:330 forms.php:92 forms.php:388 forms.php:437
-#: forms.php:93 forms.php:469 forms.php:94 forms.php:481
+#: forms.php:93 forms.php:469 forms.php:94 forms.php:481 forms.php:97
+#: forms.php:484
 msgid "Select the course you'd like to enroll in"
 msgstr "Wählen Sie den Kurs in den Sie sich einschreiben möchten"
 
 #: forms.php:69 forms.php:332 forms.php:94 forms.php:390 forms.php:439
-#: forms.php:95 forms.php:471 forms.php:96 forms.php:483
+#: forms.php:95 forms.php:471 forms.php:96 forms.php:483 forms.php:99
+#: forms.php:486
 msgid "My teacher gave me a course ID (enter below)"
 msgstr "Mein Dozent hat mir eine Kurs-ID gegeben (unten eintragen)"
 
-#: forms.php:80 forms.php:113 forms.php:114 forms.php:115
+#: forms.php:80 forms.php:113 forms.php:114 forms.php:115 forms.php:118
 msgid ""
 "If you already know your course ID, you can enter it now.  Otherwise, leave "
 "this blank and you can enroll later."
@@ -17580,17 +17638,19 @@ msgstr ""
 "lassen Sie das Feld frei und schreiben sich später ein."
 
 #: forms.php:83 forms.php:347 forms.php:128 forms.php:405 forms.php:454
-#: forms.php:129 forms.php:486 forms.php:130 forms.php:498
+#: forms.php:129 forms.php:486 forms.php:130 forms.php:498 forms.php:133
+#: forms.php:501
 msgid "Enrollment Key"
 msgstr "Kurs-Passwort"
 
 #: forms.php:86 forms.php:350 forms.php:131 forms.php:408 forms.php:457
-#: forms.php:132 forms.php:489 forms.php:133 forms.php:501
+#: forms.php:132 forms.php:489 forms.php:133 forms.php:501 forms.php:136
+#: forms.php:504
 msgid "Warning: You have selected a non-credit self-study course. "
 msgstr ""
 "Warnung: Sie haben einen unbewerteten Kurs für das Selbststudium gewählt. "
 
-#: forms.php:87 forms.php:132 forms.php:133 forms.php:134
+#: forms.php:87 forms.php:132 forms.php:133 forms.php:134 forms.php:137
 #, php-format
 msgid ""
 "If you are using %s with an instructor-led course, this is NOT what you "
@@ -17605,20 +17665,21 @@ msgstr ""
 "Dozenten erhalten haben."
 
 #: forms.php:94 forms.php:364 forms.php:139 forms.php:422 forms.php:471
-#: forms.php:141 forms.php:503 forms.php:142 forms.php:515
+#: forms.php:141 forms.php:503 forms.php:142 forms.php:515 forms.php:145
+#: forms.php:518
 msgid "Sign Up"
 msgstr "Einschreiben"
 
 #: forms.php:103 index.php:370 forms.php:148 index.php:378 forms.php:154
-#: index.php:382 forms.php:155 index.php:358
+#: index.php:382 forms.php:155 index.php:358 forms.php:158
 msgid "Change Password"
 msgstr "Passwort ändern"
 
-#: forms.php:105 forms.php:150 forms.php:156 forms.php:157
+#: forms.php:105 forms.php:150 forms.php:156 forms.php:157 forms.php:160
 msgid "Change Your Password"
 msgstr "Passwort ändern"
 
-#: forms.php:107 forms.php:152 forms.php:158 forms.php:159
+#: forms.php:107 forms.php:152 forms.php:158 forms.php:159 forms.php:162
 msgid ""
 "To ensure the security of your account, we are requiring a password change. "
 "Please select a new password."
@@ -17626,45 +17687,53 @@ msgstr ""
 "Zur Sicherung Ihrer Kennung ist ein Passwortwechsel erforderlich. Bitte "
 "wählen Sie ein neues Passwort."
 
-#: forms.php:112 forms.php:157 forms.php:164 forms.php:165
+#: forms.php:112 forms.php:157 forms.php:164 forms.php:165 forms.php:168
 msgid "Enter old password"
 msgstr "Altes Passwort"
 
 #: forms.php:113 forms.php:395 forms.php:158 forms.php:453 forms.php:502
-#: forms.php:168 forms.php:533 forms.php:169 forms.php:545
+#: forms.php:168 forms.php:533 forms.php:169 forms.php:545 forms.php:172
+#: forms.php:548
 msgid "Enter new password"
 msgstr "Neues Passwort"
 
 #: forms.php:114 forms.php:396 forms.php:159 forms.php:454 forms.php:503
-#: forms.php:169 forms.php:534 forms.php:170 forms.php:546
+#: forms.php:169 forms.php:534 forms.php:170 forms.php:546 forms.php:173
+#: forms.php:549
 msgid "Verify new password"
 msgstr "Neues Passwort wiederholen"
 
 #: forms.php:131 forms.php:176 forms.php:205 forms.php:230 forms.php:231
+#: forms.php:234
 msgid "Modify User Profile"
 msgstr "Benutzerspezifische Einstellungen bearbeiten"
 
 #: forms.php:133 forms.php:178 forms.php:207 forms.php:232 forms.php:233
+#: forms.php:236
 msgid "User Profile"
 msgstr "Benutzer-Einstellungen"
 
 #: forms.php:135 forms.php:186 forms.php:215 forms.php:240 forms.php:241
+#: forms.php:244
 msgid "Profile Settings"
 msgstr "Persönliche Einstellungen"
 
 #: forms.php:136 forms.php:187 lti/show_postback_form.php:93
 #: lti/show_postback_form.php:135 forms.php:216 forms.php:243
 #: lti/show_postback_form.php:94 lti/show_postback_form.php:136 forms.php:244
+#: forms.php:247
 msgid "Enter First Name"
 msgstr "Vorname"
 
 #: forms.php:137 forms.php:188 lti/show_postback_form.php:94
 #: lti/show_postback_form.php:136 forms.php:217 forms.php:244
 #: lti/show_postback_form.php:95 lti/show_postback_form.php:137 forms.php:245
+#: forms.php:248
 msgid "Enter Last Name"
 msgstr "Nachname"
 
 #: forms.php:144 forms.php:195 forms.php:224 forms.php:251 forms.php:253
+#: forms.php:256
 msgid "Change Password?"
 msgstr "Passwort ändern?"
 
@@ -17673,10 +17742,12 @@ msgid "Enter old password:"
 msgstr "Altes Passwort:"
 
 #: forms.php:147 forms.php:198 forms.php:226 forms.php:254 forms.php:255
+#: forms.php:258
 msgid "Enter new password:"
 msgstr "Neues Passwort:"
 
 #: forms.php:148 forms.php:199 forms.php:227 forms.php:255 forms.php:256
+#: forms.php:259
 msgid "Verify new password:"
 msgstr "Neues Passwort wiederholen:"
 
@@ -17685,46 +17756,57 @@ msgid "Enable 2-factor authentication for admin actions"
 msgstr "2-Faktor-Authentifizierung für Administrator-Aktionen aktivieren"
 
 #: forms.php:169 forms.php:220 forms.php:231 forms.php:263 forms.php:264
+#: forms.php:267
 msgid "Disable"
 msgstr "Ausschalten"
 
 #: forms.php:178 forms.php:229 forms.php:276 forms.php:308 forms.php:314
+#: forms.php:317
 msgid "Push notifications:"
 msgstr "Push-Benachrichtigungen:"
 
 #: forms.php:182 forms.php:233 forms.php:280 forms.php:312 forms.php:324
+#: forms.php:327
 msgid "Picture:"
 msgstr "Bild:"
 
 #: forms.php:193 forms.php:244 forms.php:291 forms.php:323 forms.php:335
+#: forms.php:338
 msgid "No Pic "
 msgstr "Kein Bild "
 
 #: forms.php:196 forms.php:247 forms.php:294 forms.php:326 forms.php:338
+#: forms.php:341
 msgid "Messages/Posts per page:"
 msgstr "Nachrichten pro Seite:"
 
 #: forms.php:217 forms.php:268 forms.php:315 forms.php:347 forms.php:359
+#: forms.php:362
 msgid "New messages widget"
 msgstr "Neue Nachrichten"
 
 #: forms.php:221 forms.php:272 forms.php:319 forms.php:351 forms.php:363
+#: forms.php:366
 msgid "New forum posts widget"
 msgstr "Neue Forum-Beiträge"
 
 #: forms.php:227 forms.php:278 forms.php:325 forms.php:357 forms.php:369
+#: forms.php:372
 msgid "New messages notes on course list"
 msgstr "Neue Nachrichten in Kursliste anzeigen"
 
 #: forms.php:231 forms.php:282 forms.php:329 forms.php:361 forms.php:373
+#: forms.php:376
 msgid "New posts notes on course list"
 msgstr "Neue Forum-Beiträge in Kursliste anzeigen"
 
 #: forms.php:234 forms.php:285 forms.php:332 forms.php:364 forms.php:376
+#: forms.php:379
 msgid "Show on home page:"
 msgstr "Zeige auf der Start-Seite:"
 
 #: forms.php:272 forms.php:323 forms.php:370 forms.php:402 forms.php:414
+#: forms.php:417
 msgid "Instructor Options"
 msgstr "Einstellungen für Dozenten"
 
@@ -17734,10 +17816,12 @@ msgstr ""
 "Neue Aufgaben standardmäßig privat lassen<br/>(empfohlen für neue Benutzer)"
 
 #: forms.php:297 forms.php:348 forms.php:396 forms.php:428 forms.php:440
+#: forms.php:443
 msgid "Default question library"
 msgstr "Standard-Fragenbibliothek"
 
 #: forms.php:298 forms.php:349 forms.php:397 forms.php:429 forms.php:441
+#: forms.php:444
 msgid "Select Library"
 msgstr "Bibliothek wählen"
 
@@ -17748,6 +17832,7 @@ msgstr ""
 "werden?"
 
 #: forms.php:304 forms.php:355 forms.php:403 forms.php:435 forms.php:447
+#: forms.php:450
 msgid ""
 "Default question library is used for all local (assessment-only) copies of "
 "questions created when you edit a question (that's not yours) in an "
@@ -17765,14 +17850,17 @@ msgstr ""
 "in Ihre Standard-Bibliothek aufgenommen werden."
 
 #: forms.php:315 forms.php:366 forms.php:414 forms.php:446 forms.php:458
+#: forms.php:461
 msgid "Update Info"
 msgstr "Information aktualisieren"
 
 #: forms.php:343 forms.php:401 forms.php:450 forms.php:482 forms.php:494
+#: forms.php:497
 msgid "Enter the course ID provided by your teacher."
 msgstr "Geben Sie die Kurs-ID ein, die Sie von Ihrem Dozenten erhalten haben."
 
 #: forms.php:351 forms.php:409 forms.php:458 forms.php:490 forms.php:502
+#: forms.php:505
 #, php-format
 msgid ""
 "If you are using %s with an instructor-led course, this is NOT what you "
@@ -17787,10 +17875,12 @@ msgstr ""
 "Dozenten erhalten haben."
 
 #: forms.php:368 forms.php:426 forms.php:475 forms.php:507 forms.php:519
+#: forms.php:522
 msgid "Course ID not specified"
 msgstr "Kurs-ID fehlt"
 
 #: forms.php:374 forms.php:432 forms.php:481 forms.php:513 forms.php:525
+#: forms.php:528
 msgid ""
 "Are you SURE you want to unenroll from this course?  All assessment attempts "
 "will be deleted."
@@ -17799,14 +17889,17 @@ msgstr ""
 "werden gelöscht."
 
 #: forms.php:376 forms.php:434 forms.php:483 forms.php:515 forms.php:527
+#: forms.php:530
 msgid "Really Unenroll"
 msgstr "Wirklich austragen"
 
 #: forms.php:394 forms.php:452 forms.php:501 forms.php:532 forms.php:544
+#: forms.php:547
 msgid "Please select a new password"
 msgstr "Bitte wählen Sie ein neues Passwort"
 
 #: forms.php:400 forms.php:458 forms.php:507 forms.php:538 forms.php:560
+#: forms.php:563
 msgid ""
 "Invalid reset code.  If you have requested a password reset multiple times, "
 "you need the link from the most recent email."
@@ -17816,6 +17909,7 @@ msgstr ""
 "aktuellsten Mail verwenden."
 
 #: forms.php:403 forms.php:461 forms.php:510 forms.php:541 forms.php:563
+#: forms.php:566
 msgid ""
 "Enter your User Name below and click Submit.  An email will be sent to your "
 "email address on file.  A link in that email will reset your password."
@@ -17825,18 +17919,22 @@ msgstr ""
 "setzt Ihr Passwort zurück."
 
 #: forms.php:404 forms.php:462 forms.php:511 forms.php:542 forms.php:564
+#: forms.php:567
 msgid "User Name"
 msgstr "Benutzername"
 
 #: forms.php:420 forms.php:478 forms.php:527 forms.php:562 forms.php:584
+#: forms.php:587
 msgid "Username Lookup"
 msgstr "Benutzername suchen"
 
 #: forms.php:422 forms.php:480 forms.php:529 forms.php:564 forms.php:586
+#: forms.php:589
 msgid "Lookup Username"
 msgstr "Benutzername suchen"
 
 #: forms.php:424 forms.php:482 forms.php:531 forms.php:566 forms.php:588
+#: forms.php:591
 msgid ""
 "If you can't remember your username, enter your email address below.  An "
 "email will be sent to your email address with your username. "
@@ -17847,10 +17945,12 @@ msgstr ""
 
 #: forms.php:442 forms.php:444 forms.php:500 forms.php:502 forms.php:549
 #: forms.php:551 forms.php:589 forms.php:591 forms.php:611 forms.php:613
+#: forms.php:614 forms.php:616
 msgid "Forum Widget Settings"
 msgstr "Einstellungen für die Anzeige von Forumsbeiträgen"
 
 #: forms.php:445 forms.php:503 forms.php:552 forms.php:592 forms.php:614
+#: forms.php:617
 msgid ""
 "The most recent 10 posts from each course show in the New Forum Posts "
 "widget.  Select the courses you want to show in the widget."
@@ -17923,6 +18023,7 @@ msgstr "Hinweise zum Verfassen von Beiträgen"
 #: forums/thread.php:414 forums/posthandler.php:501 forums/posthandler.php:500
 #: course/report-a11y.php:75 forums/posthandler.php:506 forums/thread.php:533
 #: course/report-a11y.php:150 forums/posthandler.php:519 forums/thread.php:537
+#: course/report-a11y.php:174
 msgid "Reply Instructions"
 msgstr "Hinweise zum Beantworten von Beiträgen"
 
@@ -18458,12 +18559,12 @@ msgstr "Keine neuen Nachrichten"
 
 #: index.php:624 msgs/viewmsg.php:123 index.php:632 index.php:645
 #: msgs/viewmsg.php:124 msgs/msglist.php:845 index.php:621 msgs/msglist.php:866
-#: msgs/viewmsg.php:127
+#: msgs/viewmsg.php:127 msgs/msglist.php:872
 msgid "From"
 msgstr "Von"
 
 #: index.php:624 index.php:632 index.php:645 msgs/msglist.php:847 index.php:621
-#: msgs/msglist.php:868
+#: msgs/msglist.php:868 msgs/msglist.php:874
 msgid "Sent"
 msgstr "Gesendet"
 
@@ -18476,7 +18577,7 @@ msgstr "Kein Betreff"
 #: msgs/viewmsg.php:128 index.php:654 msgs/msglist.php:821 msgs/msglist.php:827
 #: msgs/msglist.php:828 index.php:667 msgs/msglist.php:911 msgs/viewmsg.php:130
 #: msgs/msglist.php:918 index.php:643 msgs/msglist.php:939
-#: msgs/newmsglist.php:109 msgs/viewmsg.php:133
+#: msgs/newmsglist.php:109 msgs/viewmsg.php:133 msgs/msglist.php:945
 msgid "[System Message]"
 msgstr "[System-Nachricht]"
 
@@ -18484,7 +18585,7 @@ msgstr "[System-Nachricht]"
 #: msgs/viewmsg.php:130 index.php:656 msgs/msglist.php:823 msgs/msglist.php:829
 #: msgs/msglist.php:830 index.php:669 msgs/msglist.php:913 msgs/viewmsg.php:132
 #: msgs/msglist.php:920 index.php:645 msgs/msglist.php:941
-#: msgs/newmsglist.php:111 msgs/viewmsg.php:135
+#: msgs/newmsglist.php:111 msgs/viewmsg.php:135 msgs/msglist.php:947
 msgid "[Deleted]"
 msgstr "[Gelöscht]"
 
@@ -18523,7 +18624,8 @@ msgstr "Anonym"
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:1347
 #: javascript/AMhelpers2.js:1869 javascript/AMhelpers2.js:2213
 #: javascript/AMhelpers2.js:1348 javascript/AMhelpers2.js:1871
-#: javascript/AMhelpers2.js:2214
+#: javascript/AMhelpers2.js:2214 javascript/AMhelpers2.js:1872
+#: javascript/AMhelpers2.js:2217
 msgid "Invalid use of a comma."
 msgstr "Verwende einen Dezimalpunkt, kein Komma!."
 
@@ -18555,7 +18657,8 @@ msgstr "Verwende einen Dezimalpunkt, kein Komma!."
 #: javascript/AMhelpers.js:636 javascript/AMhelpers.js:640
 #: javascript/AMhelpers.js:800 javascript/AMhelpers2.js:2069
 #: javascript/AMhelpers2.js:2349 javascript/AMhelpers2.js:2366
-#: javascript/AMhelpers2.js:2370
+#: javascript/AMhelpers2.js:2370 javascript/AMhelpers2.js:2072
+#: javascript/AMhelpers2.js:2352 javascript/AMhelpers2.js:2373
 msgid "syntax incomplete"
 msgstr "Syntax unvollständig"
 
@@ -18643,6 +18746,7 @@ msgstr "Syntax OK"
 #: javascript/AMhelpers2.js:1940 javascript/AMhelpers.js:1086
 #: javascript/AMhelpers.js:1100 javascript/AMhelpers.js:1103
 #: javascript/AMhelpers.js:1111 javascript/AMhelpers2.js:1944
+#: javascript/AMhelpers2.js:1947
 msgid "syntax error"
 msgstr "Syntaxfehler"
 
@@ -18661,7 +18765,7 @@ msgstr "Warnung"
 #: javascript/AMhelpers.js:1189 javascript/AMhelpers2.js:2231
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:2253
 #: javascript/AMhelpers.js:1122 javascript/AMhelpers.js:1196
-#: javascript/AMhelpers2.js:2254
+#: javascript/AMhelpers2.js:2254 javascript/AMhelpers2.js:2257
 msgid "Your answer contains an unrecognized symbol"
 msgstr "Ihre Antwort enthält ein unbekanntes Symbol"
 
@@ -18674,6 +18778,7 @@ msgstr "Ihre Antwort enthält ein unbekanntes Symbol"
 #: javascript/AMhelpers.js:1119 javascript/AMhelpers2.js:1891
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:1907
 #: javascript/AMhelpers.js:1126 javascript/AMhelpers2.js:1909
+#: javascript/AMhelpers2.js:1912
 msgid "syntax error: this is not an equation"
 msgstr "Syntaxfehler: Das ist keine Gleichung"
 
@@ -18686,6 +18791,7 @@ msgstr "Syntaxfehler: Das ist keine Gleichung"
 #: javascript/AMhelpers.js:1120 javascript/AMhelpers2.js:1881
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:1897
 #: javascript/AMhelpers.js:1127 javascript/AMhelpers2.js:1899
+#: javascript/AMhelpers2.js:1902
 msgid "syntax error: you gave an equation, not an expression"
 msgstr "Syntaxfehler: Sie haben eine Gleichung eingegeben, keinen Ausdruck"
 
@@ -18698,6 +18804,7 @@ msgstr "Syntaxfehler: Sie haben eine Gleichung eingegeben, keinen Ausdruck"
 #: javascript/AMhelpers.js:1161 javascript/AMhelpers2.js:2199
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:2221
 #: javascript/AMhelpers.js:1168 javascript/AMhelpers2.js:2222
+#: javascript/AMhelpers2.js:2225
 msgid " invalid entry format"
 msgstr " Ungültiges Eingabeformat"
 
@@ -18710,6 +18817,7 @@ msgstr " Ungültiges Eingabeformat"
 #: javascript/AMhelpers.js:1167 javascript/AMhelpers2.js:2205
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:2227
 #: javascript/AMhelpers.js:1174 javascript/AMhelpers2.js:2228
+#: javascript/AMhelpers2.js:2231
 msgid "not a valid fraction"
 msgstr "Kein gültiger Bruch"
 
@@ -18722,6 +18830,7 @@ msgstr "Kein gültiger Bruch"
 #: javascript/AMhelpers.js:1171 javascript/AMhelpers2.js:2209
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:2231
 #: javascript/AMhelpers.js:1178 javascript/AMhelpers2.js:2232
+#: javascript/AMhelpers2.js:2235
 msgid "not a valid mixed number"
 msgstr "keine gültige gemischte Zahl"
 
@@ -18734,6 +18843,7 @@ msgstr "keine gültige gemischte Zahl"
 #: javascript/AMhelpers.js:1179 javascript/AMhelpers2.js:2217
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:2239
 #: javascript/AMhelpers.js:1186 javascript/AMhelpers2.js:2240
+#: javascript/AMhelpers2.js:2243
 msgid "not valid scientific notation"
 msgstr "keine gültige wissenschaftliche Schreibweise"
 
@@ -18746,6 +18856,7 @@ msgstr "keine gültige wissenschaftliche Schreibweise"
 #: javascript/AMhelpers.js:1181 javascript/AMhelpers2.js:2219
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:2241
 #: javascript/AMhelpers.js:1188 javascript/AMhelpers2.js:2242
+#: javascript/AMhelpers2.js:2245
 msgid "not valid decimal or scientific notation"
 msgstr "keine gültige Dezimal- oder wissenschaftliche Schreibweise"
 
@@ -18758,6 +18869,7 @@ msgstr "keine gültige Dezimal- oder wissenschaftliche Schreibweise"
 #: javascript/AMhelpers.js:1186 javascript/AMhelpers2.js:2224
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:2246
 #: javascript/AMhelpers.js:1193 javascript/AMhelpers2.js:2247
+#: javascript/AMhelpers2.js:2250
 msgid " not a valid integer or decimal number"
 msgstr " keine ganze Zahl oder Dezimalzahl"
 
@@ -18770,6 +18882,7 @@ msgstr " keine ganze Zahl oder Dezimalzahl"
 #: javascript/AMhelpers.js:1197 javascript/AMhelpers2.js:2239
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:2261
 #: javascript/AMhelpers.js:1204 javascript/AMhelpers2.js:2262
+#: javascript/AMhelpers2.js:2265
 msgid "no trig functions allowed"
 msgstr "Trigonometrische Funktionen (sin, cos, etc.) sind nicht erlaubt"
 
@@ -18782,6 +18895,7 @@ msgstr "Trigonometrische Funktionen (sin, cos, etc.) sind nicht erlaubt"
 #: javascript/AMhelpers.js:1199 javascript/AMhelpers2.js:2241
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:2263
 #: javascript/AMhelpers.js:1206 javascript/AMhelpers2.js:2264
+#: javascript/AMhelpers2.js:2267
 msgid "no decimals allowed"
 msgstr "Dezimalwerte sind nicht erlaubt"
 
@@ -18794,6 +18908,7 @@ msgstr "Dezimalwerte sind nicht erlaubt"
 #: javascript/AMhelpers.js:1202 javascript/AMhelpers2.js:2244
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:2266
 #: javascript/AMhelpers.js:1209 javascript/AMhelpers2.js:2267
+#: javascript/AMhelpers2.js:2270
 msgid "mixed numbers are not allowed"
 msgstr "Gemischte Zahlen sind nicht erlaubt"
 
@@ -18806,6 +18921,7 @@ msgstr "Gemischte Zahlen sind nicht erlaubt"
 #: javascript/AMhelpers.js:1219 javascript/AMhelpers2.js:2263
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:2285
 #: javascript/AMhelpers.js:1226 javascript/AMhelpers2.js:2286
+#: javascript/AMhelpers2.js:2289
 msgid "unmatched parens"
 msgstr "Klammerfehler"
 
@@ -18818,6 +18934,7 @@ msgstr "Klammerfehler"
 #: javascript/AMhelpers.js:1222 javascript/AMhelpers2.js:2266
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:2288
 #: javascript/AMhelpers.js:1229 javascript/AMhelpers2.js:2289
+#: javascript/AMhelpers2.js:2292
 msgid "unmatched absolute value bars"
 msgstr "Die Striche für den Absolutbetrag passen nicht"
 
@@ -18830,6 +18947,7 @@ msgstr "Die Striche für den Absolutbetrag passen nicht"
 #: javascript/AMhelpers.js:1231 javascript/AMhelpers2.js:2275
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:2297
 #: javascript/AMhelpers.js:1238 javascript/AMhelpers2.js:2298
+#: javascript/AMhelpers2.js:2301
 msgid "use function notation"
 msgstr "Funktionsschreibweise verwenden"
 
@@ -18842,6 +18960,7 @@ msgstr "Funktionsschreibweise verwenden"
 #: javascript/AMhelpers.js:1231 javascript/AMhelpers2.js:2275
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:2297
 #: javascript/AMhelpers.js:1238 javascript/AMhelpers2.js:2298
+#: javascript/AMhelpers2.js:2301
 msgid "use $1 instead of $2"
 msgstr "Benutze $1 statt $2"
 
@@ -18855,6 +18974,7 @@ msgstr "Benutze $1 statt $2"
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:2308
 #: javascript/AMhelpers2.js:2315 javascript/AMhelpers.js:1243
 #: javascript/AMhelpers2.js:2309 javascript/AMhelpers2.js:2316
+#: javascript/AMhelpers2.js:2312 javascript/AMhelpers2.js:2319
 msgid " Check your variables - you might be using an incorrect one"
 msgstr " Überprüfen Sie Ihre Variablen! Verwenden Sie nur zulässige Variable"
 
@@ -18867,6 +18987,7 @@ msgstr " Überprüfen Sie Ihre Variablen! Verwenden Sie nur zulässige Variable"
 #: javascript/AMhelpers.js:1243 javascript/AMhelpers2.js:2289
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:2324
 #: javascript/AMhelpers.js:1250 javascript/AMhelpers2.js:2325
+#: javascript/AMhelpers2.js:2328
 msgid ""
 " You may want to use abs(x) instead of |x| for absolute values to avoid "
 "ambiguity"
@@ -18883,6 +19004,7 @@ msgstr ""
 #: javascript/AMhelpers.js:1249 javascript/AMhelpers2.js:2295
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:2333
 #: javascript/AMhelpers.js:1256 javascript/AMhelpers2.js:2334
+#: javascript/AMhelpers2.js:2337
 msgid " Do not use the percent symbol, %"
 msgstr " Benutzen Sie nicht das Prozentzeichen %"
 
@@ -18994,6 +19116,7 @@ msgstr "Ungültiges Format der Matrix"
 #: javascript/AMhelpers2.js:1574 javascript/AMhelpers2.js:1587
 #: javascript/AMhelpers2.js:1867 javascript/assess2_min.js:1
 #: javascript/AMhelpers2.js:1883 javascript/AMhelpers2.js:1885
+#: javascript/AMhelpers2.js:1886
 msgid "syntax error: you gave an inequality, not an equation"
 msgstr "Syntaxfehler: Sie haben eine Ungleichung eingegeben, keine Gleichung"
 
@@ -19004,6 +19127,7 @@ msgstr "Syntaxfehler: Sie haben eine Ungleichung eingegeben, keine Gleichung"
 #: javascript/AMhelpers2.js:1576 javascript/AMhelpers2.js:1589
 #: javascript/AMhelpers2.js:1869 javascript/assess2_min.js:1
 #: javascript/AMhelpers2.js:1885 javascript/AMhelpers2.js:1887
+#: javascript/AMhelpers2.js:1888
 msgid "syntax error: you gave an inequality, not an expression"
 msgstr "Syntaxfehler: Sie haben eine Ungleichung eingegeben, keinen Ausdruck"
 
@@ -19014,6 +19138,7 @@ msgstr "Syntaxfehler: Sie haben eine Ungleichung eingegeben, keinen Ausdruck"
 #: javascript/AMhelpers2.js:1579 javascript/AMhelpers2.js:1592
 #: javascript/AMhelpers2.js:1872 javascript/assess2_min.js:1
 #: javascript/AMhelpers2.js:1888 javascript/AMhelpers2.js:1890
+#: javascript/AMhelpers2.js:1891
 msgid "syntax error: your inequality should only contain one inequality symbol"
 msgstr ""
 "Syntaxfehler: Ihre Ungleichung sollte nur ein Vergleichssymbol enthalten"
@@ -19025,6 +19150,7 @@ msgstr ""
 #: javascript/AMhelpers2.js:1584 javascript/AMhelpers2.js:1597
 #: javascript/AMhelpers2.js:1879 javascript/assess2_min.js:1
 #: javascript/AMhelpers2.js:1895 javascript/AMhelpers2.js:1897
+#: javascript/AMhelpers2.js:1900
 msgid "syntax error: you gave an equation, not an inequality"
 msgstr "Syntaxfehler: Sie haben eine Gleichung eingegeben, keine Ungleichung"
 
@@ -19035,6 +19161,7 @@ msgstr "Syntaxfehler: Sie haben eine Gleichung eingegeben, keine Ungleichung"
 #: javascript/AMhelpers2.js:1588 javascript/AMhelpers2.js:1601
 #: javascript/AMhelpers2.js:1883 javascript/assess2_min.js:1
 #: javascript/AMhelpers2.js:1899 javascript/AMhelpers2.js:1901
+#: javascript/AMhelpers2.js:1904
 msgid "syntax error: your equation should only contain one equal sign"
 msgstr ""
 "Syntaxfehler: Ihre Gleichung sollte nur ein Gleichheitszeichen enthalten"
@@ -19046,6 +19173,7 @@ msgstr ""
 #: javascript/AMhelpers2.js:1594 javascript/AMhelpers2.js:1607
 #: javascript/AMhelpers2.js:1893 javascript/assess2_min.js:1
 #: javascript/AMhelpers2.js:1909 javascript/AMhelpers2.js:1911
+#: javascript/AMhelpers2.js:1914
 msgid "syntax error: this is not an inequality"
 msgstr "Syntaxfehler: Das ist keine Ungleichung"
 
@@ -19177,7 +19305,8 @@ msgstr " Ersetzen"
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:2459
 #: javascript/AMhelpers2.js:2471 javascript/AMhelpers2.js:2436
 #: javascript/AMhelpers2.js:2448 javascript/addqsort.js:1211
-#: javascript/addqsort2.js:1311
+#: javascript/addqsort2.js:1311 javascript/AMhelpers2.js:2439
+#: javascript/AMhelpers2.js:2451
 msgid "Collapse"
 msgstr "Schließen"
 
@@ -19189,7 +19318,8 @@ msgstr "Schließen"
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:2459
 #: javascript/AMhelpers2.js:2467 javascript/AMhelpers2.js:2436
 #: javascript/AMhelpers2.js:2444 javascript/addqsort.js:1220
-#: javascript/addqsort2.js:1320
+#: javascript/addqsort2.js:1320 javascript/AMhelpers2.js:2439
+#: javascript/AMhelpers2.js:2447
 msgid "Expand"
 msgstr "Öffnen"
 
@@ -19202,6 +19332,7 @@ msgstr "Öffnen"
 #: msgs/msglist.php:840 course/assessselect.php:91 javascript/addqsort.js:1234
 #: javascript/addqsort2.js:1335 javascript/qsearch.js:284
 #: javascript/rubric.js:21 javascript/rubric_min.js:1 msgs/msglist.php:861
+#: msgs/msglist.php:867
 msgid "Select"
 msgstr "Auswählen"
 
@@ -19915,7 +20046,8 @@ msgstr "Hilfe zur Frage"
 #: javascript/general.js:854 javascript/general.js:782
 #: javascript/general.js:851 javascript/general.js:793
 #: javascript/general.js:826 javascript/general.js:914
-#: javascript/general.js:947
+#: javascript/general.js:947 javascript/general.js:915
+#: javascript/general.js:948
 msgid "Hide video"
 msgstr "Video ausblenden"
 
@@ -19928,7 +20060,8 @@ msgstr "Video ausblenden"
 #: javascript/general.js:855 javascript/general.js:783
 #: javascript/general.js:852 javascript/general.js:794
 #: javascript/general.js:827 javascript/general.js:915
-#: javascript/general.js:948
+#: javascript/general.js:948 javascript/general.js:916
+#: javascript/general.js:949
 msgid "Hide embedded video"
 msgstr "Eingebettetes Video ausblenden"
 
@@ -19941,7 +20074,8 @@ msgstr "Eingebettetes Video ausblenden"
 #: javascript/general.js:867 javascript/general.js:789
 #: javascript/general.js:864 javascript/general.js:800
 #: javascript/general.js:886 javascript/general.js:921
-#: javascript/general.js:1013
+#: javascript/general.js:1013 javascript/general.js:922
+#: javascript/general.js:1014
 msgid "Watch video here"
 msgstr "Video hier ansehen"
 
@@ -19967,6 +20101,7 @@ msgstr "Video hier einbetten"
 #: javascript/general.js:948 javascript/general.js:949
 #: javascript/general.js:1037 javascript/general.js:1038
 #: javascript/general.js:1075 javascript/general.js:1076
+#: javascript/general.js:1039 javascript/general.js:1077
 msgid "Preview file"
 msgstr "Dateivorschau"
 
@@ -19979,7 +20114,8 @@ msgstr "Dateivorschau"
 #: javascript/general.js:966 javascript/general.js:916
 #: javascript/general.js:963 javascript/general.js:942
 #: javascript/general.js:992 javascript/general.js:1069
-#: javascript/general.js:1119
+#: javascript/general.js:1119 javascript/general.js:1070
+#: javascript/general.js:1120
 msgid "Hide preview"
 msgstr "Vorschau ausblenden"
 
@@ -19988,6 +20124,7 @@ msgstr "Vorschau ausblenden"
 #: javascript/general.js:871 javascript/general.js:882
 #: javascript/general.js:920 javascript/general.js:917
 #: javascript/general.js:943 javascript/general.js:1070
+#: javascript/general.js:1071
 msgid "Hide file preview"
 msgstr "Dateivorschau ausblenden"
 
@@ -20004,7 +20141,7 @@ msgstr "Die Datei ist zu groß - maximale Größe 10MB"
 #: javascript/general.js:1467 javascript/general.js:1477
 #: javascript/general.js:1508 javascript/general.js:1546
 #: javascript/general.js:1543 javascript/general.js:1640
-#: javascript/general.js:1784
+#: javascript/general.js:1784 javascript/general.js:1785
 msgid "Evaluate"
 msgstr "Auswerten"
 
@@ -20013,6 +20150,7 @@ msgstr "Auswerten"
 #: javascript/general.js:1400 javascript/general.js:1431
 #: javascript/general.js:1469 javascript/general.js:1466
 #: javascript/general.js:1553 javascript/general.js:1695
+#: javascript/general.js:1696
 msgid "Navigation breadcrumbs"
 msgstr "Brotkrumennavigation"
 
@@ -20021,6 +20159,7 @@ msgstr "Brotkrumennavigation"
 #: javascript/general.js:1401 javascript/general.js:1432
 #: javascript/general.js:1470 javascript/general.js:1467
 #: javascript/general.js:1554 javascript/general.js:1696
+#: javascript/general.js:1697
 msgid "Control link group"
 msgstr "Gruppe von Kontroll-Links"
 
@@ -20091,7 +20230,8 @@ msgstr "Speichern..."
 #: javascript/general.js:868 javascript/general.js:790
 #: javascript/general.js:865 javascript/general.js:801
 #: javascript/general.js:887 javascript/general.js:922
-#: javascript/general.js:1014
+#: javascript/general.js:1014 javascript/general.js:923
+#: javascript/general.js:1015
 msgid "Embed video"
 msgstr "Video einbetten"
 
@@ -20192,7 +20332,7 @@ msgstr ""
 "Konnte keine Sitzung einrichten.  Überprüfen Sie, dass ihr Browser Cookies "
 "erlaubt"
 
-#: loginpage.php:61
+#: loginpage.php:61 loginpage.php:62
 msgid "Forgot Username"
 msgstr "Benutzername vergessen"
 
@@ -20471,39 +20611,43 @@ msgstr ""
 "in Ihrem LMS sind, so %s Klicken Sie hier %s."
 
 #: msgs/msglist.php:316 msgs/msglist.php:317 msgs/msglist.php:381
-#: msgs/msglist.php:393
+#: msgs/msglist.php:393 msgs/msglist.php:399
 msgid "Re: "
 msgstr "Wg: "
 
 #: msgs/msglist.php:318 msgs/msglist.php:319 msgs/msglist.php:383
-#: msgs/msglist.php:395
+#: msgs/msglist.php:395 msgs/msglist.php:401
 msgid "In reply to:"
 msgstr "Antwort auf:"
 
 #: msgs/msglist.php:410 msgs/msglist.php:465 msgs/msglist.php:424
 #: msgs/msglist.php:479 msgs/msglist.php:430 msgs/msglist.php:485
 #: msgs/msglist.php:431 msgs/msglist.php:486 msgs/msglist.php:496
-#: msgs/msglist.php:566 msgs/msglist.php:583
+#: msgs/msglist.php:566 msgs/msglist.php:583 msgs/msglist.php:589
 msgid "Select an individual"
 msgstr "Wählen Sie einen Namen aus"
 
 #: msgs/msglist.php:461 msgs/msglist.php:475 msgs/msglist.php:481
 #: msgs/msglist.php:482 msgs/msglist.php:562 msgs/msglist.php:579
+#: msgs/msglist.php:585
 msgid "Select a course"
 msgstr "Kurs auswählen"
 
 #: msgs/msglist.php:482 msgs/msglist.php:496 msgs/msglist.php:502
 #: msgs/msglist.php:503 msgs/msglist.php:583 msgs/msglist.php:600
+#: msgs/msglist.php:606
 msgid "Mark original message unread"
 msgstr "Kennzeichne die Originalnachricht als ungelesen"
 
 #: msgs/msglist.php:549 msgs/msglist.php:563 msgs/msglist.php:569
 #: msgs/msglist.php:570 msgs/msglist.php:650 msgs/msglist.php:669
+#: msgs/msglist.php:675
 msgid "Tagged Messages"
 msgstr "Markierte Nachrichten"
 
 #: msgs/msglist.php:551 msgs/msglist.php:565 msgs/msglist.php:571
 #: msgs/msglist.php:572 msgs/msglist.php:652 msgs/msglist.php:671
+#: msgs/msglist.php:677
 msgid "New Messages"
 msgstr "Neue Nachrichten"
 
@@ -20511,7 +20655,7 @@ msgstr "Neue Nachrichten"
 #: msgs/msglist.php:868 msgs/msglist.php:593 msgs/msglist.php:874
 #: msgs/msglist.php:594 msgs/msglist.php:875 msgs/msglist.php:675
 #: msgs/msglist.php:958 msgs/msglist.php:965 msgs/msglist.php:694
-#: msgs/msglist.php:986
+#: msgs/msglist.php:986 msgs/msglist.php:700 msgs/msglist.php:992
 msgid "Send New Message"
 msgstr "Neue Nachricht senden"
 
@@ -21344,6 +21488,7 @@ msgstr "URL"
 #: course/testquestion2.php:456 course/testquestion2.php:457
 #: course/testquestion2.php:460 course/testquestion2.php:463
 #: course/testquestion2.php:493 course/testquestion2.php:633
+#: course/testquestion2.php:636
 msgid "Remove all questions in this library added by this person"
 msgstr ""
 "Alle Fragen aus dieser Bibliothek entfernen, die von dieser Person "
@@ -21351,7 +21496,7 @@ msgstr ""
 
 #: directaccess.php:288 forms.php:56 directaccess.php:309 directaccess.php:310
 #: directaccess.php:312 directaccess.php:319 forms.php:57 directaccess.php:321
-#: forms.php:58
+#: forms.php:58 forms.php:61
 msgid "I am 13 years old or older"
 msgstr "Ich bin 13 Jahre oder älter"
 
@@ -21362,7 +21507,7 @@ msgid "Try a similar question"
 msgstr "Versuche eine ähnliche Frage"
 
 #: forms.php:102 forms.php:115 forms.php:103 forms.php:116 forms.php:104
-#: forms.php:117
+#: forms.php:117 forms.php:107 forms.php:120
 msgid "Enter the course ID and Key provided by your teacher below"
 msgstr ""
 "Geben Sie unten die Kurs-ID und das Passwort ein, die Sie von Ihrem Dozenten "
@@ -22388,6 +22533,7 @@ msgstr "Das ist keine ganze Zahl oder Dezimalzahl."
 #: javascript/AMhelpers2.js:1864 javascript/AMhelpers2.js:1877
 #: javascript/AMhelpers2.js:2246 javascript/assess2_min.js:1
 #: javascript/AMhelpers2.js:2268 javascript/AMhelpers2.js:2269
+#: javascript/AMhelpers2.js:2272
 msgid "no degree symbols allowed"
 msgstr "Grad-Symbole sind nicht erlaubt"
 
@@ -24082,6 +24228,7 @@ msgstr ""
 "Ihr Kurs in der Lernplattform ist zurzeit mit %s Kurs-ID %d verbunden. "
 
 #: actions.php:752 actions.php:813 actions.php:814 actions.php:842
+#: actions.php:844
 msgid "Password verification failed."
 msgstr "Falsches Passwort."
 
@@ -24222,49 +24369,49 @@ msgstr "In diesem Zeitintervall wurde nichts eingereicht"
 msgid "Score"
 msgstr "Punkte"
 
-#: forms.php:201 forms.php:226 forms.php:227
+#: forms.php:201 forms.php:226 forms.php:227 forms.php:230
 msgid "Cleared"
 msgstr "Gelöscht"
 
-#: forms.php:229 forms.php:257 forms.php:258
+#: forms.php:229 forms.php:257 forms.php:258 forms.php:261
 msgid "2-factor Authentication"
 msgstr "2-Faktor Authentifizierung"
 
-#: forms.php:233 forms.php:265 forms.php:266
+#: forms.php:233 forms.php:265 forms.php:266 forms.php:269
 msgid "Enable for admin actions"
 msgstr "Für Aktionen zur Systemverwaltung aktivieren"
 
-#: forms.php:234 forms.php:266 forms.php:267
+#: forms.php:234 forms.php:266 forms.php:267 forms.php:270
 msgid "Enable for login and admin actions"
 msgstr "Für Anmeldung und Systemverwaltung aktivieren"
 
-#: forms.php:236 forms.php:268 forms.php:269
+#: forms.php:236 forms.php:268 forms.php:269 forms.php:272
 msgid "Enable"
 msgstr "Aktivieren"
 
-#: forms.php:257 forms.php:289 forms.php:290
+#: forms.php:257 forms.php:289 forms.php:290 forms.php:293
 msgid "2-factor authentication trusted devices"
 msgstr "Vertrauenswürdige Geräte zur 2-Faktor Authentifizierung"
 
-#: forms.php:258 forms.php:290 forms.php:291
+#: forms.php:258 forms.php:290 forms.php:291 forms.php:294
 msgid "Clear trusted devices"
 msgstr "Vertrauenswürdige Geräte löschen"
 
-#: forms.php:265 forms.php:297 forms.php:298
+#: forms.php:265 forms.php:297 forms.php:298 forms.php:301
 msgid "The changes you are making require additional security verification."
 msgstr ""
 "Die Änderungen, die Sie vornehmen, erfordern eine zusätzliche "
 "Sicherheitsbestätigung."
 
-#: forms.php:266 forms.php:298 forms.php:299
+#: forms.php:266 forms.php:298 forms.php:299 forms.php:302
 msgid "Enter current password:"
 msgstr "Geben Sie das aktuelle Passwort ein:"
 
-#: forms.php:268 forms.php:300 forms.php:301
+#: forms.php:268 forms.php:300 forms.php:301 forms.php:304
 msgid "Enter 2-factor Authentication code:"
 msgstr "Geben Sie den Code für die 2-Faktor Authentifizierung ein:"
 
-#: forms.php:596 forms.php:636 forms.php:658
+#: forms.php:596 forms.php:636 forms.php:658 forms.php:661
 msgid ""
 "For security, this site requires all admin-level accounts to enable Two-"
 "Factor Authentication. "
@@ -24272,7 +24419,7 @@ msgstr ""
 "Diese Website erfordert aus Sicherheitsgründen dass alle Administrator-"
 "Kennungen die 2-Faktor Authentifizierung aktivieren. "
 
-#: forms.php:597 forms.php:637 forms.php:659
+#: forms.php:597 forms.php:637 forms.php:659 forms.php:662
 #, php-format
 msgid ""
 "Please visit the <a href=\"%s\">user profile page</a> and enable 2-factor "
@@ -24334,7 +24481,7 @@ msgstr ""
 msgid "Also enable the Org Unit Information."
 msgstr "Aktiviere auch die Information der Organisationseinheit."
 
-#: actions.php:467 actions.php:495
+#: actions.php:467 actions.php:495 actions.php:497
 msgid ""
 "The account(s) using this email have been updated to not send email "
 "notifications of new messages.  You can re-enable email notifications by "
@@ -24562,6 +24709,7 @@ msgstr "Geben Sie ein n-Tupel an, dessen Elemente durch Terme definert werden"
 #: assess2/questions/answerboxes/CalculatedMatrixAnswerBox.php:176
 #: assess2/questions/answerboxes/FunctionExpressionAnswerBox.php:106
 #: assess2/questions/answerboxes/CalculatedMatrixAnswerBox.php:184
+#: assess2/questions/answerboxes/FunctionExpressionAnswerBox.php:109
 msgid "Your answer can contain complex numbers."
 msgstr "Ihre Antwort darf komplexe Zahlen enthalten."
 
@@ -26273,6 +26421,7 @@ msgstr "Führe Tests zusammen"
 #: course/coursereports.php:38 course/coursereports.php:39
 #: course/report-a11y.php:150 course/report-ungraded.php:126
 #: course/report-a11y.php:347 course/report-missingwork.php:114
+#: course/report-a11y.php:375
 msgid "Course Reports"
 msgstr "Kurs-Report"
 
@@ -26297,7 +26446,7 @@ msgid "Withdrawn Questions Report"
 msgstr "Überblick über zurückgezogene Fragen"
 
 #: course/coursereports.php:49 course/report-a11y.php:146
-#: course/report-a11y.php:343
+#: course/report-a11y.php:343 course/report-a11y.php:371
 msgid "Accessibility Report"
 msgstr "Bericht über Barrierefreiheit"
 
@@ -26668,33 +26817,41 @@ msgid "Hints &amp; Videos &amp; Examples"
 msgstr "Hinweise &amp; Videos &amp; Beispiele"
 
 #: course/report-a11y.php:24 course/report-a11y.php:29
+#: course/report-a11y.php:53
 msgid "Missing alt text"
 msgstr "Fehlender Alternativ-text"
 
 #: course/report-a11y.php:26 course/report-a11y.php:112
 #: course/report-a11y.php:139 course/report-a11y.php:31
 #: course/report-a11y.php:258 course/report-a11y.php:299
+#: course/report-a11y.php:55 course/report-a11y.php:286
+#: course/report-a11y.php:327
 msgid "Blank alt text"
 msgstr "Leerer Alternativ-Text"
 
 #: course/report-a11y.php:33 course/report-a11y.php:38
+#: course/report-a11y.php:62
 msgid "Likely useless auto-generated alt text from showasciisvg"
 msgstr "Vermutlich nutzloser Alternativ-text aus showasciisvg"
 
 #: course/report-a11y.php:51 course/report-a11y.php:126
+#: course/report-a11y.php:150
 msgid "Intro or Between-question text"
 msgstr "Einführung oder Text zwischen Fragen"
 
 #: course/report-a11y.php:65 course/report-a11y.php:66
 #: course/report-a11y.php:140 course/report-a11y.php:141
+#: course/report-a11y.php:164 course/report-a11y.php:165
 msgid "Link item"
 msgstr "Link-Ziel"
 
 #: course/report-a11y.php:74 course/report-a11y.php:149
+#: course/report-a11y.php:173
 msgid "Post Instructions"
 msgstr "Instruktionen für Posts"
 
 #: course/report-a11y.php:83 course/report-a11y.php:158
+#: course/report-a11y.php:182
 msgid "Sticky post"
 msgstr "Post fixieren"
 
@@ -26702,26 +26859,32 @@ msgstr "Post fixieren"
 #: course/report-a11y.php:123 course/report-a11y.php:126
 #: course/report-a11y.php:182 course/report-a11y.php:233
 #: course/report-a11y.php:282 course/report-a11y.php:286
+#: course/report-a11y.php:206 course/report-a11y.php:259
+#: course/report-a11y.php:310 course/report-a11y.php:314
 #, php-format
 msgid "Question ID %d"
 msgstr "Fragen-IF %d"
 
 #: course/report-a11y.php:97 course/report-a11y.php:126
 #: course/report-a11y.php:233 course/report-a11y.php:286
+#: course/report-a11y.php:259 course/report-a11y.php:314
 msgid "Uncaptioned video"
 msgstr "Video ohne Beschreibung"
 
 #: course/report-a11y.php:112 course/report-a11y.php:139
 #: course/report-a11y.php:258 course/report-a11y.php:299
+#: course/report-a11y.php:286 course/report-a11y.php:327
 #, php-format
 msgid "Question ID %d image variable %s"
 msgstr "Frage-ID %d Variable %s für Bild"
 
 #: course/report-a11y.php:158 course/report-a11y.php:356
+#: course/report-a11y.php:384
 msgid "This report scans questions you own for accessibility issues."
 msgstr "Barrierefreiheit Ihrer Fragen."
 
 #: course/report-a11y.php:160 course/report-a11y.php:358
+#: course/report-a11y.php:386
 msgid "This report scans items in your course for accessibility issues."
 msgstr "Barrierefreiheit der Fragen in Ihrem Kurs."
 
@@ -26736,6 +26899,7 @@ msgstr ""
 "YouTube-Links werden nicht überprüft."
 
 #: course/report-a11y.php:163 course/report-a11y.php:365
+#: course/report-a11y.php:393
 msgid ""
 "Note: Blank alt text can be valid, but should only be used to indicate a "
 "decorative image, one that does not add information to the page. For "
@@ -26843,6 +27007,7 @@ msgid "Edit Page"
 msgstr "Seite bearbeiten"
 
 #: course/testquestion2.php:435 course/testquestion2.php:555
+#: course/testquestion2.php:558
 msgid ""
 "Note: Instructor Notes only show in the gradebook for instructors. They will "
 "not display to students ever."
@@ -26851,6 +27016,7 @@ msgstr ""
 "Dozenten angezeigt. Sie sind niemals für Studierende sichtbar."
 
 #: course/testquestion2.php:440 course/testquestion2.php:560
+#: course/testquestion2.php:563
 msgid "Generated in "
 msgstr "Erzeugt in "
 
@@ -26859,11 +27025,11 @@ msgstr "Erzeugt in "
 msgid "You can only continue on the original diagnostic, %s"
 msgstr "Sie können n ur die ursprüngliche Diagnostik fortsetzen, %s"
 
-#: forms.php:166 forms.php:167
+#: forms.php:166 forms.php:167 forms.php:170
 msgid "Enter 2-factor Authentication code"
 msgstr "Geben Sie den 2-Faktor-Authentifizierungscode ein"
 
-#: forms.php:216 forms.php:217
+#: forms.php:216 forms.php:217 forms.php:220
 msgid ""
 "The changes you are making require additional security verification. Re-"
 "enter your password later in the form."
@@ -26954,31 +27120,31 @@ msgstr "Es sollte kein Element der Matrix leer sein."
 
 #: javascript/AMhelpers2.js:1874 javascript/AMhelpers2_min.js:1
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:1890
-#: javascript/AMhelpers2.js:1892
+#: javascript/AMhelpers2.js:1892 javascript/AMhelpers2.js:1895
 msgid "syntax error: your inequality should have expressions on both sides"
 msgstr "Syntax-Fehler: Ihre Ungleichung sollte auf beiden Seiten Terme haben"
 
 #: javascript/AMhelpers2.js:1885 javascript/AMhelpers2_min.js:1
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:1901
-#: javascript/AMhelpers2.js:1903
+#: javascript/AMhelpers2.js:1903 javascript/AMhelpers2.js:1906
 msgid "syntax error: your equation should have expressions on both sides"
 msgstr "Syntax-Fehler: Ihre Gleichung sollt auf beiden Seiten terme haben"
 
 #: javascript/AMhelpers2.js:1889 javascript/AMhelpers2_min.js:1
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:1905
-#: javascript/AMhelpers2.js:1907
+#: javascript/AMhelpers2.js:1907 javascript/AMhelpers2.js:1910
 msgid "syntax error: this is not an equation or inequality"
 msgstr "Syntax-Fehler: Dies ist keine Gleichung oder Ungleichung"
 
 #: javascript/AMhelpers2.js:2228 javascript/AMhelpers2_min.js:1
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:2250
-#: javascript/AMhelpers2.js:2251
+#: javascript/AMhelpers2.js:2251 javascript/AMhelpers2.js:2254
 msgid " not an integer number"
 msgstr " keine ganze Zahl"
 
 #: javascript/AMhelpers2.js:2298 javascript/AMhelpers2_min.js:1
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:2336
-#: javascript/AMhelpers2.js:2337
+#: javascript/AMhelpers2.js:2337 javascript/AMhelpers2.js:2340
 msgid "You gave an equation, not an expression"
 msgstr "Sie haben eine Gleichung angegeben, keinen Term"
 
@@ -27045,7 +27211,7 @@ msgid "Fixed Scoreboxes"
 msgstr "Fixierte Punktanzeige"
 
 #: javascript/general.js:1464 javascript/assessment_min.js:1
-#: javascript/general.js:1605
+#: javascript/general.js:1605 javascript/general.js:1606
 msgid "Preparing file..."
 msgstr "Bereite Datei vor..."
 
@@ -27221,19 +27387,20 @@ msgstr ""
 
 #: msgs/msglist.php:288 msgs/msglist.php:320 msgs/msglist.php:497
 #: msgs/msglist.php:567 msgs/msglist.php:297 msgs/msglist.php:331
-#: msgs/msglist.php:514 msgs/msglist.php:584
+#: msgs/msglist.php:514 msgs/msglist.php:584 msgs/msglist.php:520
+#: msgs/msglist.php:590
 msgid "Select a recipient..."
 msgstr "Suche einen Empfänger..."
 
-#: msgs/msglist.php:539 msgs/msglist.php:556
+#: msgs/msglist.php:539 msgs/msglist.php:556 msgs/msglist.php:562
 msgid "Search for a student..."
 msgstr "Suche eine(n) Studierende(n)..."
 
-#: msgs/msglist.php:554 msgs/msglist.php:571
+#: msgs/msglist.php:554 msgs/msglist.php:571 msgs/msglist.php:577
 msgid "Search for:"
 msgstr "Suche nach:"
 
-#: msgs/msglist.php:693 msgs/msglist.php:712
+#: msgs/msglist.php:693 msgs/msglist.php:712 msgs/msglist.php:718
 msgid "Delete old messages"
 msgstr "Lösche alte Nachrichten"
 
@@ -27489,6 +27656,7 @@ msgstr ""
 
 #: javascript/AMhelpers2.js:2330 javascript/AMhelpers2_min.js:1
 #: javascript/assess2_min.js:1 javascript/AMhelpers2.js:2331
+#: javascript/AMhelpers2.js:2334
 msgid " Empty function input or parentheses"
 msgstr " Leeres Funktionsargument oder Klammern"
 
@@ -27508,19 +27676,19 @@ msgstr "Gib zwei Punkte auf der gestrichelten Linie ein"
 msgid "State not found"
 msgstr "Zustand nicht gefunden"
 
-#: msgs/msglist.php:842 msgs/msglist.php:863
+#: msgs/msglist.php:842 msgs/msglist.php:863 msgs/msglist.php:869
 msgid "Replied"
 msgstr "Beantwortet"
 
-#: msgs/msglist.php:843 msgs/msglist.php:864
+#: msgs/msglist.php:843 msgs/msglist.php:864 msgs/msglist.php:870
 msgid "Image"
 msgstr "Bild"
 
-#: msgs/msglist.php:844 msgs/msglist.php:865
+#: msgs/msglist.php:844 msgs/msglist.php:865 msgs/msglist.php:871
 msgid "Flag"
 msgstr "Kennzeichnung"
 
-#: actions.php:1012
+#: actions.php:1012 actions.php:1014
 msgid ""
 "You may need to refresh the page to have new accessiblity settings applied."
 msgstr ""
@@ -27562,7 +27730,7 @@ msgstr "Nachricht beim Einschreiben"
 #: admin/importitems.php:718 admin/importitems2.php:130 admin/importlib.php:601
 #: course/coursetolibrary.php:21 course/managelibs.php:557
 #: course/moddataset.php:1172 course/reviewlibrary.php:326 forms.php:430
-#: javascript/qsearch.js:662 util/coursetolibs.php:187
+#: javascript/qsearch.js:662 util/coursetolibs.php:187 forms.php:433
 msgid "Library Select"
 msgstr "Bibliotheksauswahl"
 
@@ -27642,6 +27810,7 @@ msgid ", with %d - %d decimal places"
 msgstr ", mit %d - %d Dezimalstellen"
 
 #: assess2/questions/scorepart/FunctionExpressionScorePart.php:418
+#: assess2/questions/scorepart/FunctionExpressionScorePart.php:436
 msgid ""
 "Debug info: $answer function evaled to Not-a-number at all test points.  "
 "Check $domain"
@@ -28423,18 +28592,22 @@ msgid "Use accessible alternative"
 msgstr "Verwende eine barrierefreie Alternative"
 
 #: course/moddataset.php:1414 course/testquestion2.php:593
+#: course/testquestion2.php:596
 msgid "no"
 msgstr "nein"
 
 #: course/moddataset.php:1414 course/testquestion2.php:593
+#: course/testquestion2.php:596
 msgid "visual alt"
 msgstr "visuelle Alternative"
 
 #: course/moddataset.php:1414 course/testquestion2.php:593
+#: course/testquestion2.php:596
 msgid "mouse alt"
 msgstr "Maus-Alternative"
 
 #: course/moddataset.php:1414 course/testquestion2.php:593
+#: course/testquestion2.php:596
 msgid "visual or mouse alt"
 msgstr "visuelle oder Maus-Alternative"
 
@@ -28465,39 +28638,39 @@ msgid "%% per try</label> <label>after %s full-credit tries</label>"
 msgstr ""
 "%% je Versuch</label> <label>nach %s Versuchen mit voller Punktzahl</label>"
 
-#: course/report-a11y.php:45
+#: course/report-a11y.php:45 course/report-a11y.php:69
 msgid "Potential issue: textonimage used without replacealttext"
 msgstr "Mögliches Problem: textonimage ohne replacealttext verwendet"
 
-#: course/report-a11y.php:52
+#: course/report-a11y.php:52 course/report-a11y.php:76
 msgid "Potential issue: [AB] in textonimage used without readerlabel"
 msgstr "Mögliches Problem: [AB] in textonimage ohne readerlabel verwendet"
 
-#: course/report-a11y.php:56
+#: course/report-a11y.php:56 course/report-a11y.php:80
 msgid "Potential issue: question may use jsxgraph; check for accessible alt"
 msgstr ""
 "Mögliches Problem: Die Frage verwendet möglicherweise jsxgraph; erwägen Sie "
 "eine barrierefreie Alternative als alt"
 
-#: course/report-a11y.php:60
+#: course/report-a11y.php:60 course/report-a11y.php:84
 msgid "Potential issue: question may use geogebra; check for accessible alt"
 msgstr ""
 "Mögliches Problem: Die Frage verwendet vielleicht Geogebra; erwägen Sie eine "
 "barrierefreie Alternative als alt"
 
-#: course/report-a11y.php:73
+#: course/report-a11y.php:73 course/report-a11y.php:97
 msgid "Negative accessibility reviews"
 msgstr "Negative Kommentare zur Barrierefreiheit"
 
-#: course/report-a11y.php:86
+#: course/report-a11y.php:86 course/report-a11y.php:110
 msgid "Insufficient color contrast"
 msgstr "Unzureichender Farbkontrast"
 
-#: course/report-a11y.php:87
+#: course/report-a11y.php:87 course/report-a11y.php:111
 msgid "title text and background"
 msgstr "Titeltext und Hintergrund"
 
-#: course/report-a11y.php:317
+#: course/report-a11y.php:317 course/report-a11y.php:345
 #, php-format
 msgid ""
 "Potentially uncaptioned video (ID %s; this video will be scanned in the next "
@@ -28506,17 +28679,17 @@ msgstr ""
 "Video eventuell ohne Beschreibung ID %s; dieses Video wird in den nächsten "
 "Tagen auf das Vorhandensein einer Beschreibung überprüft)"
 
-#: course/report-a11y.php:323
+#: course/report-a11y.php:323 course/report-a11y.php:351
 #, php-format
 msgid "Missing/broken video (ID %s)"
 msgstr "Fehlendes/defektes Video (ID %s)"
 
-#: course/report-a11y.php:326
+#: course/report-a11y.php:326 course/report-a11y.php:354
 #, php-format
 msgid "Uncaptioned video (ID %s)"
 msgstr "Video ohne Beschreibung (ID %s)"
 
-#: course/report-a11y.php:361
+#: course/report-a11y.php:361 course/report-a11y.php:389
 msgid ""
 "Currently it will only identify images that are missing alt text, some "
 "potential question issues that need manual review, and YouTube videos that "
@@ -28537,7 +28710,7 @@ msgstr ""
 "Verfügung stehen. Schauen Sie deshaln in etwa einer Woche nochmal nach "
 "diesem Report."
 
-#: course/report-a11y.php:363
+#: course/report-a11y.php:363 course/report-a11y.php:391
 msgid ""
 "Currently it will only identify images that are missing alt text, some "
 "potential question issues that need manual review, and YouTube videos added "
@@ -28549,7 +28722,7 @@ msgstr ""
 "als Hilfe zu Fragen hinzugefügt wurden und eventuell keine Beschreibung "
 "haben. Andere YouTube-Links werden nicht überprüft."
 
-#: course/report-a11y.php:368
+#: course/report-a11y.php:368 course/report-a11y.php:406
 msgid ""
 "The questions in these issues have accessibility reviews indicating they may "
 "\"need work\", suggesting they are likely legitimate issues."
@@ -28557,7 +28730,7 @@ msgstr ""
 "Diese Fragen haben Barrierefreiheitsanmerkungen \"Zu bearbeiten\", so dass "
 "es sich dabei wahrscheinlich um echte Probleme handelt."
 
-#: course/report-a11y.php:372
+#: course/report-a11y.php:372 course/report-a11y.php:410
 msgid ""
 "These are content issues or issues in questions with no accessibilty "
 "reviews. You should review these issues."
@@ -28565,7 +28738,7 @@ msgstr ""
 "Dies sind Probleme mit Inhaltenoder Fragen ohne Kommentare zur "
 "Barrierefreiheit. Sie sollten diese Probleme überprüfen."
 
-#: course/report-a11y.php:376
+#: course/report-a11y.php:376 course/report-a11y.php:414
 msgid ""
 "These are potential issues in questions with \"looks good\" accessibilty "
 "reviews, so these questions may be fine."
@@ -28573,19 +28746,19 @@ msgstr ""
 "Dies sind Probleme in Fragen mit Kommentaren \"Sieht gut aus\" zur "
 "Barrierefreiheit, es könnte also sein, dass diese Fragen in Ordnung sind."
 
-#: course/report-a11y.php:384
+#: course/report-a11y.php:384 course/report-a11y.php:422
 msgid "Issue"
 msgstr "Problem"
 
-#: course/report-a11y.php:385
+#: course/report-a11y.php:385 course/report-a11y.php:423
 msgid "Location"
 msgstr "Stelle"
 
-#: course/report-a11y.php:387
+#: course/report-a11y.php:387 course/report-a11y.php:425
 msgid "Item Type"
 msgstr "Art des Eintrags"
 
-#: course/report-a11y.php:429
+#: course/report-a11y.php:429 course/report-a11y.php:467
 msgid ""
 "Videos marked as \"Missing/broken\" that seem to be available are likely "
 "unlisted videos, preventing lookup of caption data."
@@ -28642,49 +28815,49 @@ msgstr "Lizenz für die Frage"
 msgid "List library"
 msgstr "Bibliothek auflisten"
 
-#: course/testquestion2.php:594
+#: course/testquestion2.php:594 course/testquestion2.php:597
 #, php-format
 msgid "Uses accessible alternative for %s"
 msgstr "Verwenden Sie eine barrierefreie Alternative für %s"
 
-#: course/testquestion2.php:599
+#: course/testquestion2.php:599 course/testquestion2.php:602
 msgid "Accessibility Reviews: "
 msgstr "Kommentare zur Barrierefreiheit: "
 
-#: course/testquestion2.php:600
+#: course/testquestion2.php:600 course/testquestion2.php:603
 #, php-format
 msgid "%d \"looks good\", %d \"needs work\". "
 msgstr "%d \"Sieht gut aus\", %d \"Zu überarbeiten\". "
 
-#: course/testquestion2.php:603
+#: course/testquestion2.php:603 course/testquestion2.php:606
 msgid "Your review: "
 msgstr "Ihr Kommentar: "
 
-#: course/testquestion2.php:604
+#: course/testquestion2.php:604 course/testquestion2.php:607
 msgid "Looks good"
 msgstr "Sieht gut aus"
 
-#: course/testquestion2.php:604
+#: course/testquestion2.php:604 course/testquestion2.php:607
 msgid "Needs work"
 msgstr "Zu überarbeiten"
 
-#: course/testquestion2.php:605
+#: course/testquestion2.php:605 course/testquestion2.php:608
 msgid "Remove Review"
 msgstr "Kommentar löschen"
 
-#: course/testquestion2.php:607
+#: course/testquestion2.php:607 course/testquestion2.php:610
 msgid "Review"
 msgstr "Kommentar"
 
-#: course/testquestion2.php:658
+#: course/testquestion2.php:658 course/testquestion2.php:661
 msgid "Test with accessibility settings"
 msgstr "Test mit Einstellungen zur Barrierefreiheit"
 
-#: course/testquestion2.php:661
+#: course/testquestion2.php:661 course/testquestion2.php:664
 msgid "Mouse alt"
 msgstr "Maus-Alternative"
 
-#: course/testquestion2.php:662
+#: course/testquestion2.php:662 course/testquestion2.php:665
 msgid "Visual and mouse alt"
 msgstr "Visuelle und Maus-Alternative"
 
@@ -28737,26 +28910,27 @@ msgstr ""
 msgid "Save Preferences"
 msgstr "Einstellungen speichern"
 
-#: forms.php:56 forms.php:305
+#: forms.php:56 forms.php:305 forms.php:59 forms.php:308
 msgid "Notifications:"
 msgstr "Benachrichtigungen:"
 
-#: forms.php:443
+#: forms.php:443 forms.php:446
 msgid "Use on template"
 msgstr "Verwende bei Fragen-Vorlage"
 
-#: forms.php:446
+#: forms.php:446 forms.php:449
 msgid "Use default question library for all templated questions"
 msgstr ""
 "Verwende die Standard-Fragenbibliothek für alle Fragen auf der Basis einer "
 "Vorlage"
 
-#: forms.php:553
+#: forms.php:553 forms.php:556
 msgid "Verify email, and fix if needed"
 msgstr "Überprüfen Sie die Email und korrigieren Sie falls nötig"
 
 #: forums/flaggedthreads.php:83 forums/forums.php:279 forums/newthreads.php:149
 #: forums/posts.php:533 forums/thread.php:813 msgs/msglist.php:957
+#: msgs/msglist.php:963
 msgid "Tag post"
 msgstr "Beitrag mit Etikett versehen"
 
@@ -28943,7 +29117,7 @@ msgstr ""
 "Gib den Wendepunkt der Tangente an, dann einen Punkt auf einer vertikalen "
 "Asymptote, dann einen Punkt auf dem Graphen"
 
-#: javascript/general.js:1612
+#: javascript/general.js:1612 javascript/general.js:1613
 msgid "This file is too large - maximum size is 15MB"
 msgstr "Die Datei ist zu groß - Maximalgröße 10MB"
 
@@ -29037,16 +29211,16 @@ msgstr "Geben Sie eine positive Anzahl für das Alter in jahren an."
 msgid "Error:"
 msgstr "Fehler:"
 
-#: msgs/msglist.php:513
+#: msgs/msglist.php:513 msgs/msglist.php:519
 msgid "Select the recipient"
 msgstr "Wählen Sie den Empfänger"
 
-#: msgs/msglist.php:604
+#: msgs/msglist.php:604 msgs/msglist.php:610
 msgid "Student-to-student messages may be monitored by your instructor"
 msgstr ""
 "Nachrichten zwischen Studierenden können von Ihren Dozenten gelesen werden"
 
-#: msgs/msglist.php:856
+#: msgs/msglist.php:856 msgs/msglist.php:862
 msgid "Are you SURE you want to delete these messages?"
 msgstr "Sind Sie SICHER, dass Sie diese Nachrichten löschen wollen?"
 
@@ -29213,3 +29387,35 @@ msgstr "User Lookup"
 #: util/utils.php:507
 msgid "Admin Utilities"
 msgstr "Admin Utilities"
+
+#: assess2/questions/answerboxes/FunctionExpressionAnswerBox.php:101
+msgid "Enter a compound algebraic inequality"
+msgstr "Gib eine Ungleichungskette ein"
+
+#: assess2/questions/answerboxes/FunctionExpressionAnswerBox.php:102
+msgid "Enter your answer as a compound inequality.  Example: 5<2x+1<3"
+msgstr "Gib deine Antwort als Ungleichungskette ein. Beispiel: 5<2x+1<3"
+
+#: course/report-a11y.php:400
+#, php-format
+msgid ""
+"%d questions were found using uncaptioned videos. As a quick fix, you can "
+"disable showing videos on those questions."
+msgstr ""
+"%d Fragen wurd gefunden, die Videos ohne Beschreibung verwenden. Sie können "
+"die Anzeige dieser Videos in diesen Fragen abschalten."
+
+#: course/report-a11y.php:401
+msgid "Disable videos on these questions"
+msgstr "Videos in diesen Fragen abschalten"
+
+#: javascript/AMhelpers2.js:1893 javascript/AMhelpers2_min.js:1
+#: javascript/assess2_min.js:1
+msgid "syntax error: your inequality should contain two inequality symbols"
+msgstr ""
+"Syntax-Fehler: Ihre Ungleichungskette muss mindestens zwei Vergleichssymbole "
+"enthalten"
+
+#: msgs/msglist.php:390
+msgid "No courses available to send messages through."
+msgstr "Es gibt keine Kurse über die Nachrichten gesendet werden könnten."

@@ -196,7 +196,8 @@
     "need_relaunch": "Benötigte Informationen fehlen. Bitte gehen Sie zurück in Ihr Lernmanagementsystem und öffnen Sie den Test erneut.",
     "ytnotready": "YouTube ist nicht bereit. Bitte warten Sie einige Sekunden.",
     "file_upload_error": "Fehler beim Hochladen einer Datei",
-    "file_toolarge": "Fehler beim Hochladen einer Datei - Datei ist zu groß. Maximale Dateigröße 8MB"
+    "file_toolarge": "Fehler beim Hochladen einer Datei - Datei ist zu groß. Maximale Dateigröße 8MB",
+    "file_invalidtype": "Fehler beim Hochladen - Dateityp nicht erlaubt"
   },
   "confirm": {
     "ok": "OK",
