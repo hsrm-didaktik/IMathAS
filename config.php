@@ -66,7 +66,7 @@ $CFG['GEN']['livepollpassword'] = "y99v7aDPOIU";
 //if you want to allow people to create guest accounts by just logging in with username "guest",
   //provide an arrary of course ids to automatically enroll them in
 $CFG['GEN']['guesttempaccts'] = array();
-$CFG['GEN']['filewhitelist'] = [ ".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic", ".tiff", ".bmp", ".svg", ".docx", ".xlsx", ".pptx", ".doc", ".xls", ".ppt", ".pdf", ".rtf", ".txt", ".odt", ".ods", ".odp", ".pages", ".numbers", ".key", ".nb", ".nbp", ".mw", ".mws", ".m", ".mat", ".mlx", ".tex", ".zip", ".rar", ".7z", ".tar.gz", ".mp4", ".mov", ".avi", ".mkv", ".mp3", ".m4a"];
+$CFG['GEN']['filewhitelist'] = [ ".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic", ".tiff", ".bmp", ".svg", ".docx", ".xlsx", ".pptx", ".doc", ".xls", ".ppt", ".pdf", ".rtf", ".txt", ".odt", ".ods", ".odp", ".pages", ".numbers", ".key", ".nb", ".nbp", ".mw", ".mws", ".m", ".mat", ".mlx", ".tex", ".zip", ".rar", ".7z", ".tar.gz", ".mp4", ".mov", ".avi", ".mkv", ".mp3", ".m4a", ".imas"];
 
 //should non-admins be allowed to create new non-group libraries?
 //on a single-school install, set to true; for larger installs that plan to
@@ -280,7 +280,7 @@ $colorshift = true;
   /* Connecting, selecting database */
   // MySQL with PDO_MYSQL
   try {
-    $DBH = new PDO("mysql:host=$dbserver;dbname=$dbname", $dbusername, $dbpassword);
+    $DBH = new PDO("mysql:host=$dbserver;dbname=$dbname;charset=latin1", $dbusername, $dbpassword);
     $DBH->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT );
     $GLOBALS["DBH"] = $DBH;
   } catch(PDOException $e) {
