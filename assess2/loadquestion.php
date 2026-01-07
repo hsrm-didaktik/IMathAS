@@ -232,6 +232,7 @@ if (!empty($_POST['autosave-tosaveqn'])) {
         $assess_info->loadQuestionSettings($toloadqids, false, false);
         if ($assess_record->checkVerification($verification)) {
             // autosave the requested parts
+            $err = '';
             foreach ($qns as $qn=>$parts) {
                 if (!isset($timeactive[$qn])) {
                     $timeactive[$qn] = 0;
@@ -239,12 +240,21 @@ if (!empty($_POST['autosave-tosaveqn'])) {
                 $ok_to_save = $assess_record->isSubmissionAllowed($qn, $qids[$qn], $parts);
                 foreach ($parts as $part) {
                     if ($ok_to_save === true || !empty($ok_to_save[$part])) {
-                     $assess_record->setAutoSave($now, $timeactive[$qn], $qn, $part);
+                      $res = $assess_record->setAutoSave($now, $timeactive[$qn], $qn, $part);
+                      if ($res !== '') {
+                          $err = $res;
+                      }
                     }
                 }
                 if (isset($_POST['sw' . $qn])) {  //autosaving work
-                    $assess_record->setAutoSave($now, $timeactive[$qn], $qn, 'work');
+                    $res = $assess_record->setAutoSave($now, $timeactive[$qn], $qn, 'work');
+                    if ($res !== '') {
+                        $err = $res;
+                    }
                 }
+            }
+            if ($err !== '') {
+              $assessInfoOut['warning'] = $err;
             }
             $assessInfoOut['saved_autosaves'] = true;
         }
