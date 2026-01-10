@@ -35,8 +35,7 @@ intro = Einführung / Anleitung
 next = Nächste
 previous = Vorherige
 question_n = Frage {$n}
-# checkme
-extracredit = Extra-Punkte
+extracredit = Zusatzpunkte
 jumptocontent = Navigation überspringen
 
 # Launch section
@@ -47,10 +46,9 @@ launch-timewarning = Dieser Test hat eine Zeitbegrenzung. Wenn Sie den Test star
 launch-resetmsg = Dozenten: Sie können Ihre Versuche dieses Tests zurücksetzen.
 launch-doreset = Test zurücksetzen
 launch-view_as_stu = Wie Student: {$name}
-# checkme these 3
-launch-scorelist = Liste der Punkte
-launch-itemanalysis = Detail-Analyse
-launch-gblinks = Punkteübersicht Links
+launch-scorelist = Punkteübersicht
+launch-itemanalysis = Einzel-Analyse
+launch-gblinks = Links zurPunkteübersicht
 
 # Closed section
 closed-hidden = Dieser Test ist derzeit nicht verfügbar.
@@ -109,8 +107,7 @@ setlist-latepass_used =
     }
 setlist-extension = Ihnen wurde eine Verlängerung gewährt.
 setlist-penalty = Ein Punktabzug von {$p}% wird angewendet.
-# checkme 2
-setlist-penalty_after = Nach dem {$date} wird eine Strafe von {$p}% fällig.
+setlist-penalty_after = Nach dem {$date} wird ein Punktabzug von {$p}% fällig.
 setlist-earlybonus = Ein Bonus von {$p}% wird bis zum {$date} gewährt.
 setlist-take = 
     { $n ->
@@ -134,23 +131,19 @@ setlist-time_expires_wgrace = Die Zeitbegrenzung für diesen Test läuft am {$da
 setlist-time_expired = Die Zeit für den Test ist am {$date} abgelaufen.
 setlist-time_grace_expires = Die Zeit für den Test ist am {$date} abgelaufen und die Kulanzzeit endet am {$grace}.
 setlist-timelimit = Zeitbegrenzung: {$time}.
-# checkme 2
 setlist-timelimit_wgrace = Zeitbegrenzung: {$time}, mit einer Kulanzzeit von {$grace}.
 setlist-timelimit_wgrace_penalty = Zeitbegrenzung: {$time}, mit einer Kulanzzeit von {$grace} bei einem Punktabzug von {$penalty}%.
 setlist-timelimit_extend = Erweitert gegenüber der ursprünglichen Zeit von {$time}.
 setlist-timelimit_restricted = Abgabe bald fällig. Die Zeit läuft ab bei Fälligkeit, {$due}.
-# checkme 2
 setlist-timelimit_wgrace_restricted = Zeitbegrenzung: {$time}, mit einer Kulanzzeit bis {$due}. Bei Nutzung der Kulanzzeit gibt es einen Punktabzug von {$penalty}%.
 setlist-timelimit_wgrace_restricted_penalty = Zeitbegrenzung: {$time}, mit einer Kulanzzeit bis {$due}.
-# checkme 2
 setlist-timelimit_ext = Ihnen wurde eine Verlängerung der Zeitbegrenzung um {$n} Minuten gewährt
 setlist-timelimit_ext_used = Sie haben eine Zeitverlängerung von {$n} Minuten genutzt
 setlist-excused = Sie können diesen Test überspringen. Dies ändert nichts an Ihrer Note.
-# checkme
 setlist-latepass_needed = 
     { $n ->
-        [one] Sie können einen LatePass einlösen, um das Fälligkeitsdatum auf {$date} zu verlängern
-        *[other] Sie können {$n} LatePasses einlösen, um das Fälligkeitsdatum auf den {$date} zu verlängern
+        [one] Sie können ein Kulanzguthaben einlösen, um das Fälligkeitsdatum auf {$date} zu verlängern
+        *[other] Sie können {$n} Kulanzguthaben einlösen, um das Fälligkeitsdatum auf den {$date} zu verlängern
     }
 
 # Group
@@ -199,9 +192,8 @@ question-withdrawn = Diese Frage wurde vom Dozenten zurückgezogen. Sie brauchen
 question-jump_to_answer = Gehe zur Antwort
 question-jump_warn = Dies verbraucht alle übrigen Versuche für diese Version der Frage.
 question-showwork = Hier können Sie Ihre ausführliche Lösung einreichen. Sie können auch ein Foto Ihrer Notizen in diesen Bereich ziehen oder über das Büroklammer-Symbol hochladen.
-# checkme 5
-question-showwork_n = Arbeit für Frage {$n}
-question-uploadwork = Fügen Sie Ihre Arbeit hier als Datei oder Bild an
+question-showwork_n = Lösungsweg für Frage {$n}
+question-uploadwork = Fügen Sie Ihren Lösungsweg hier als Datei oder Bild an
 question-uploading = Wird hochgeladen...
 question-intronext = Wählen Sie zunächst eine Frage aus, indem Sie die Auswahlfunktion oder die Schaltfläche „> Weiter“ oben verwenden.
 question-firstq = Erste Frage
@@ -222,13 +214,11 @@ header-pts =
 header-details = Details
 header-warn_unattempted = Es scheint eine unbeantwortete Frage zu geben. Sind Sie sicher, dass Sie jetzt einreichen wollen?
 header-withdrawn = Frage zurückgezogen
-# checkme
 header-use_mq = Formeleditor verwenden
 header-enable_mq = Formeleditor einschalten
 header-disable_mq = Formeleditor ausschalten
 header-work_save = Arbeit speichern
 header-work_saved = Arbeit gespeichert
-# checkme
 header-work_save_avail = Schaltfläche zum Speichern des Fortschritts verfügbar
 header-work_saving = Speichere...
 header-confirm_assess_submit = Nach dem Einreichen können Sie Ihre Antworten in dieser Version des Tests nicht mehr ändern. Wollen Sie einreichen?
@@ -255,9 +245,8 @@ error-not_ready = Diese Aktion ist für diesen Test zurzeit nicht zulässig
 error-not_practice = Dieser Test ist nicht mehr im Übungsmodus. Gehen Sie zurück und öffnen Sie den Test noch einmal.
 error-timelimit_expired = Zeitbegrenzung abgelaufen
 error-timesup_submitting = Die Zeitbegrenzung ist abgelaufen. Es wird jetzt eingereicht.
-#checkme 2
-error-workafter_expired = Die Frist für das Hinzufügen weiterer Arbeiten ist abgelaufen.
-error-workafter_submitting = Die Frist für das Hinzufügen weiterer Aufgaben ist abgelaufen. Die Daten werden jetzt gespeichert.
+error-workafter_expired = Die Frist für das Hinzufügen weiterer Lösungen ist abgelaufen.
+error-workafter_submitting = Die Frist für das Hinzufügen weiterer Lösungen ist abgelaufen. Die Daten werden jetzt gespeichert.
 error-out_of_regens = Keine weiteren Versuche für eine ähnliche Frage möglich
 error-need_group = Sie können diesen test nicht starten, bevor Sie zu einer Gruppe hinzugefügt wurden
 error-out_of_attempts = Sie haben alle möglichen Versuche für diesen Test aufgebraucht
@@ -272,7 +261,6 @@ error-parseerror = Der Server hat eine ungültige Antwort gesendet
 error-livepoll_wrongquestion = Die eingereichte Frage ist nicht die aktuelle Frage.
 error-livepoll_notopen = Keine Einreichung zu dieser Frage möglich.
 error-need_relaunch = Benötigte Informationen fehlen. Bitte gehen Sie zurück in Ihr Lernmanagementsystem und öffnen Sie den Test erneut.
-#checkme 4
 error-ytnotready = YouTube ist noch nicht bereit. Bitte haben Sie einen Moment Geduld.
 error-file_upload_error = Fehler beim Hochladen der Datei
 error-file_toolarge = Fehler beim Hochladen der Datei – die Datei ist zu groß. Die Dateigröße darf 15 MB nicht überschreiten.
@@ -295,23 +283,20 @@ scoreresult-scorelast = Punkte beim letzten Versuch:
 scoreresult-submitted = Frage eingereicht.
 scoreresult-see_details = Mehr unter Details.
 scoreresult-manual_grade = Die Frage enthält Teile, die Ihr Dozent bewerten muss. Bis sie bewertet wurden werden 0 Punkte angezeigt.
-#checkme 4
-scoreresult-jumptoincorrect = Springe zum ersten veränderbaren fehlerhaften Teil.
+scoreresult-jumptoincorrect = Springe zum ersten fehlerhaften Teil, der verändert werden kann.
 scoreresult-jumptolast = Zum zuletzt eingereichten Teil springen
 scoreresult-allpartscorrect = Alle eingereichten Teile sind korrekt.
 scoreresult-onepartincorrect = Mindestens ein bewerteter Teil ist falsch.
 
 # Summary
 summary-no_total = Ihr Test wurde eingereicht.
-#checkme 2
 summary-viewwork_work = Sie können Ihre Arbeit in der Notenübersicht ansehen.
 summary-viewwork_work_after = Sie können Ihre Arbeit nach der Fälligkeit des Tests in der Notenübersicht ansehen.
 summary-viewwork_immediately = Sie können Ihre Arbeit und Ihre Punkte in der Notenübersicht ansehen.
 summary-viewwork_after_due = Sie können Ihre Arbeit und Ihre Punkte nach der Fälligkeit des Tests in der Notenübersicht ansehen.
-#checkme 3
-summary-viewwork_work_scores_after = Sie können Ihre Arbeit im Notenbuch und die Bewertungen nach dem Abgabetermin einsehen.
-summary-viewwork_work_after_lp = Sie können Ihre Arbeit nach Ablauf der Nachfrist im Notenbuch einsehen.
-summary-viewwork_after_lp = Sie können Ihre Arbeiten und Noten nach Ablauf der Nachfrist im Notenbuch einsehen.
+summary-viewwork_work_scores_after = Sie können Ihre Arbeit und die Bewertungen nach dem Abgabetermin in der Notenübersicht einsehen.
+summary-viewwork_work_after_lp = Sie können Ihre Arbeit nach Ablauf der Nachfrist in der Notenübersicht einsehen.
+summary-viewwork_after_lp = Sie können Ihre Arbeiten und Noten nach Ablauf der Nachfrist in der Notenübersicht einsehen.
 summary-viewwork_never = 
 summary-score = Punkte
 summary-recordedscore = Gespeicherter Punktestand
@@ -356,8 +341,7 @@ penalties-retry = Abzug für neuen Versuch
 penalties-regen = Abzug für erneute Durchführung des Tests
 penalties-trysimilar = Abzug für den Versuch einer ähnlichen Frage
 penalties-late = Abzug für verspätete Arbeit
-#checkme
-penalties-early = Frühbucherbonus
+penalties-early = Bonus für vorzeitiges Einreichen
 penalties-overtime = Abzug für Zeitüberschreitung
 
 # Question details
@@ -372,7 +356,6 @@ qdetails-gbscore = Gespeicherte Punkte
 qdetails-bestpractice = Höchste erreichte Punktzahl
 qdetails-lastscore = Punkte im letzten Versuch
 qdetails-license = Lizenz
-#checkme
 qdetails-extracredit = Diese Frage ist eine Zusatzaufgabe.
 
 # Timer
@@ -523,12 +506,10 @@ gradebook-keep_best = Die Note wird aufgrund des besten Test-Versuchs berechnet
 gradebook-keep_avg = Die Note wird aufgrund des Mittels aller Test-Versuche berechnet
 gradebook-keep_last = Die Note wird aufgrund des letzten Test-Versuchs berechnet
 gradebook-full_credit_parts = Volle Punkte für alle Teile
-#checkme
 gradebook-full_manual_parts = Volle Punktzahl für alle manuell bewerteten Teile.
 gradebook-full_credit = Volle Punktzahl
 gradebook-add_feedback = Rückmeldung hinzufügen
 gradebook-feedback = Rückmeldung
-#checkme
 gradebook-feedback_for = Rückmeldung für {$name}
 gradebook-general_feedback = Allgemeine Rückmeldung
 gradebook-use_in_msg = Verwendung in Nachricht
@@ -541,26 +522,22 @@ gradebook-seed = Initialwert
 gradebook-msg_owner = Den Eigentümer über Probleme informieren
 gradebook-had_help = Hilfe verfügbar
 gradebook-save = Änderungen speichern
-#checkme
-gradebook-savenext = Speichern und zum nächsten Schüler wechseln
+gradebook-savenext = Speichern und zum nächsten Studierenden wechseln
 gradebook-return = Zurück zur Notenübersicht
 gradebook-gb_score = Punkte in der Notenübersicht
 gradebook-override = Punkte korrigieren
 gradebook-overridden = Vom Dozenten korrigiert
 gradebook-view_as_stu = Als Student ansehen
 gradebook-print = Druckversion
-#checkme 2
 gradebook-filters = Filter und Optionen
-gradebook-hide = Verstecken
+gradebook-hide = Verbergen
 gradebook-hide_perfect = Fragen mit voller Punktzahl ausblenden
-#checkme 5
 gradebook-hide_100 = Ergebnis ≥ 100 % (nach Abzügen)
 gradebook-hide_nonzero = 0 < Punktzahl < 100 % (vor Abzügen)
 gradebook-hide_zero = Punktzahl = 0
-gradebook-hide_fb = Fragen mit Feedback
-gradebook-hide_nowork = Fragen ohne Arbeit
-# checkme
-gradebook-hide_unans = Unbeantwortete Fragen
+gradebook-hide_fb = Fragen mit Rückmeldung
+gradebook-hide_nowork = Fragen ohne Lösungsweg
+gradebook-hide_unans = Unbeantwortete Fragen ausblenden
 gradebook-show_unans = Unbeantwortete Fragen einblenden
 gradebook-quick_grade = Schnell-Bewertung
 gradebook-saving = Speichere...
@@ -587,25 +564,21 @@ gradebook-autosave_info = Ergebnisse des Studierenden wurden automatisch gespeic
 gradebook-autosave_byassess = Automatisch gespeicherte Ergebnisse werden nach Einreichen des Tests bewertet.
 gradebook-view_edit = Frage ansehen/bearbeiten
 gradebook-show_all_ans = Alle Antworten anzeigen
-#checkme
-gradebook-show_all_work = Alle Arbeitsschritte anzeigen
+gradebook-show_all_work = Alle Lösungswege anzeigen
 gradebook-no_versions = Noch keine Test-Versuche anzuzeigen
 gradebook-minutes = Minuten
 gradebook-avail_never = Die Noten sind zurzeit vom Dozenten nicht freigegeben.
-#checkme
-gradebook-avail_manual = Die Note wird derzeit vom Lehrer ausgeblendet.
+gradebook-avail_manual = Die Note wird derzeit vom Dozenten ausgeblendet.
 gradebook-avail_after_take = Wird angezeigt, wenn Sie einen Test-Versuch einreichen.
 gradebook-avail_after_due = Wird nach Fälligkeit angezeigt.
-#checkme
-gradebook-avail_after_lp = Wird nach Ablauf der LatePass-Periode angezeigt.
+gradebook-avail_after_lp = Wird nach Ablauf der Kulanz-Periode angezeigt.
 gradebook-latepass_blocked_practice = Verspätetes Einreichen ist blockiert, weil der Studierende den Test im Übungs-Modus angesehen hat.
-#checkme 6
-gradebook-latepass_blocked_gb = Die Verwendung eines LatePass ist derzeit gesperrt, da der Schüler die Antworten der Bewertung im Notenbuch eingesehen hat.
-gradebook-latepass_blocked_lpcutoff = Die Verwendung eines LatePass ist derzeit blockiert, da das Ablaufdatum für den LatePass überschritten wurde.
-gradebook-latepass_blocked_courseend = Die Nutzung eines LatePass ist derzeit blockiert, da das Kursende bereits überschritten ist.
-gradebook-latepass_blocked_pastdue = Die Verwendung eines LatePass ist derzeit blockiert, da das Fälligkeitsdatum überschritten ist und LatePässe so eingestellt sind, dass sie nur vor dem Fälligkeitsdatum verwendet werden können.
-gradebook-latepass_blocked_toolate = Die Verwendung eines LatePass ist derzeit blockiert, da der Abgabetermin so weit überschritten ist, dass eine erneute Abgabe mithilfe der erlaubten Anzahl von LatePasses nicht mehr möglich ist.
-gradebook-latepass_blocked_toofew = Die Verwendung eines LatePass ist derzeit blockiert, da der Student nicht über genügend LatePässe verfügt.
+gradebook-latepass_blocked_gb = Die Verwendung eines Kulanzguthabens ist derzeit gesperrt, da der/die Studierende die Bewertung in der Notenübersicht eingesehen hat.
+gradebook-latepass_blocked_lpcutoff = Die Verwendung eines Kulanzguthabens ist derzeit blockiert, da das Ablaufdatum für das Kulanzguthaben überschritten wurde.
+gradebook-latepass_blocked_courseend = Die Nutzung von Kulanzguthaben ist derzeit blockiert, da das Kursende bereits überschritten ist.
+gradebook-latepass_blocked_pastdue = Die Verwendung von Kulanzguthaben ist derzeit blockiert, da das Fälligkeitsdatum überschritten wurde und der Test so eingestellt ist, dass Kulanzguthaben nur vor dem Fälligkeitsdatum verwendet werden können.
+gradebook-latepass_blocked_toolate = Die Verwendung von Kulanzguthaben ist derzeit blockiert, da der Abgabetermin so weit überschritten ist, dass eine erneute Abgabe mithilfe der erlaubten Anzahl von Kulanzguthaben nicht mehr möglich ist.
+gradebook-latepass_blocked_toofew = Die Verwendung von Kulanzguthaben ist derzeit blockiert, da der/die Studierende nicht über genügend Kulanzguthaben verfügt.
 gradebook-clear_latepass_block = Block leeren
 gradebook-showwork = Lösung anzeigen
 gradebook-hidework = Lösung ausblenden
@@ -614,38 +587,35 @@ gradebook-hide_excused = Tests, die Sie nicht bearbeiten müssen, ausblenden
 gradebook-excused_list = Aufgrund der bisherigen Ergebnisse in diesem Test müssen Sie die folgenden Tests nicht bearbeiten:
 gradebook-show_endmsg = Endnachricht anzeigen
 gradebook-hide_endmsg = Endnachricht ausblenden
-#checkme 20 
 gradebook-has_timeext = Eine Verlängerung der Zeitbegrenzung um {$n} Minuten ist verfügbar.
 gradebook-used_timeext = Es wurde eine Zeitverlängerung von {$n} Minuten genutzt.
 gradebook-attemptext = Ausnahme für {$n} zusätzliche Versionen gewährt.
 gradebook-preview_files = Alle Dateien in der Vorschau anzeigen
 gradebook-introtexts = Einleitung und Text zwischen den Fragen
-gradebook-floating_scoreboxes = Schwimmende Punktekästen
+gradebook-floating_scoreboxes = Bewegliche Punktanzeigen
 gradebook-sidebyside = Nebeneinander
 gradebook-no_edit = Sie befinden sich in der Notenübersicht. Sie können von hier aus keine Antworten bearbeiten oder Fragen einreichen.
 gradebook-activitylog = Aktivitätsprotokoll
 gradebook-nextq = Nächste Frage
 gradebook-prevq = Vorherige Frage
-gradebook-oneatatime = Einer nach dem anderen
-gradebook-a11yalt = Zugängliche Alternative
+gradebook-oneatatime = Eine nach der anderen
+gradebook-a11yalt = Barrierefreie Alternative
 gradebook-set_as_last = An das Ende verschieben
 gradebook-setaslast_warn = Dadurch wird dieser Versuch zum letzten Versuch und somit zum gewerteten Versuch.
-gradebook-manualstatus0 = Die Note wurde dem Schüler noch nicht mitgeteilt.
+gradebook-manualstatus0 = Die Note wurde der/dem Studierenden noch nicht mitgeteilt.
 gradebook-manualbutton0 = Freigabestufe
-gradebook-manualstatus1 = Die Note wurde dem Schüler mitgeteilt.
+gradebook-manualstatus1 = Die Note wurde der/dem Studierenden mitgeteilt.
 gradebook-manualbutton1 = Nicht freigegebene Version
-gradebook-release_on_save = Bewertung nach dem Speichern für den Schüler freigeben.
+gradebook-release_on_save = Bewertung nach dem Speichern für die/den Studierenden freigeben.
 
 # Work
 work-add = Lösung hinzufügen
 work-hide = Lösungseingabe ausblenden
 work-noquestions = Alle Fragen bearbeitet
 work-save = Lösung speichern
-#checkme
 work-duein = Die Arbeit muss bis zum {$date} eingereicht werden.
 work-save_continue = Lösung speichern und weiter
 work-add_prev = Sie können noch Ihre Lösung für den aktuellsten Versuch einreichen
-#checkme
 work-remove = Sind Sie sicher, dass Sie diese Datei entfernen möchten?
 
 # Regions
@@ -657,18 +627,16 @@ regions-qvidnav = Video- und Fragen-Navigation
 regions-aheader = Test-Info
 
 # Links
-# checkme 2
 links-settings = Einstellungen
 links-questions = Fragen
 
 # LatePass reasons
-# checkme all
-latepass-reason0 = Späte Anmeldungen sind nicht aktiviert.
-latepass-reason2 = LatePasses können nicht verwendet werden, da die Frist für die Nutzung von LatePasses abgelaufen ist.
-latepass-reason3 = LatePasses können nicht verwendet werden, da das Kursende bereits überschritten ist.
-latepass-reason4 = LatePässe können nicht verwendet werden, da das Enddatum der Bewertung überschritten ist und LatePässe vor diesem Datum verwendet werden müssen.
-latepass-reason5 = LatePasses können nicht verwendet werden, da der Abgabetermin für die zulässige Anzahl an LatePasses bereits zu lange überschritten ist, um die Abgabefrist erneut zu verlängern.
-latepass-reason6 = LatePasses können nicht verwendet werden, da Sie nicht genügend LatePasses besitzen, um diese Bewertung erneut zu öffnen.
-latepass-reason7 = LatePässe können nicht verwendet werden, da Sie diese Bewertung im Übungsmodus geöffnet haben, und dies die Verwendung von LatePässen blockiert.
-latepass-reason8 = LatePässe können nicht verwendet werden, da Sie diese Bewertung im Notenbuch bereits eingesehen haben, und dies die Verwendung von LatePässen blockiert.
-latepass-reason9 = LatePässe können nicht verwendet werden, da Sie keine Versuche mehr übrig haben.
+latepass-reason0 = Verspätete Anmeldungen sind nicht erlaubt.
+latepass-reason2 = Kulanzguthaben können nicht verwendet werden, da die Frist für die Nutzung von Kulanzguthaben abgelaufen ist.
+latepass-reason3 = Kulanzguthaben können nicht verwendet werden, da das Kursende bereits überschritten ist.
+latepass-reason4 = Kulanzguthaben können nicht verwendet werden, da das Enddatum für die Bewertung überschritten ist und Kulanzguthaben nur vor diesem Zeitpunkt verwendet werden können.
+latepass-reason5 = KUlanzguthaben können nicht verwendet werden, da der Abgabetermin für die zulässige Anzahl an Kulanzguthaben bereits zu lange überschritten ist, um die Abgabefrist erneut zu verlängern.
+latepass-reason6 = Kulanzguthaben können nicht verwendet werden, da Sie nicht genügend Kulanzguthaben besitzen, um dies erneut zu öffnen.
+latepass-reason7 = Kulanzguthaben können nicht verwendet werden, da Sie diese Bewertung im Übungsmodus geöffnet haben. In diesem Modus können Kulanzguthaben nicht genutzt werden.
+latepass-reason8 = LatePässe können nicht verwendet werden, da Sie diese Bewertung in der Notenübersicht bereits eingesehen haben, und dies die Verwendung von Kulanzguthaben blockiert.
+latepass-reason9 = Kulanzguthaben können nicht verwendet werden, da Sie keine Versuche mehr übrig haben.
