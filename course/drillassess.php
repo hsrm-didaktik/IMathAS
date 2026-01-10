@@ -247,13 +247,13 @@ $useeqnhelper = isset($CFG['AMS']['eqnhelper'])?$CFG['AMS']['eqnhelper']:0;
 $flexwidth = true;
 if ($courseUIver > 1) {
     $placeinhead = '<link rel="stylesheet" type="text/css" href="'.$staticroot.'/assessment/mathtest.css" />';
-    $placeinhead .= '<link rel="stylesheet" type="text/css" href="'.$staticroot.'/assess2/vue/css/index.css?v='.$lastvueupdate.'" />';
+    $placeinhead .= '<link rel="stylesheet" type="text/css" href="'.$staticroot.'/assess2/vue/css/style.css?v='.$lastvueupdate.'" />';
     $placeinhead .= '<link rel="stylesheet" type="text/css" href="'.$staticroot.'/assess2/print.css?v='.$lastvueupdate.'" media="print">';
-    $placeinhead .= '<script src="'.$staticroot.'/mathquill/mathquill.min.js?v=101825" type="text/javascript"></script>';
+    $placeinhead .= '<script src="'.$staticroot.'/mathquill/mathquill.min.js?v=010926 type="text/javascript"></script>';
     $placeinhead .= '<script src="'.$staticroot.'/javascript/assess2_min.js?v='.$lastvueupdate.'" type="text/javascript"></script>';
     $placeinhead .= '<script src="'.$staticroot.'/javascript/assess2supp.js?v='.$lastvueupdate.'" type="text/javascript"></script>';
-    $placeinhead .= '<link rel="stylesheet" type="text/css" href="'.$staticroot.'/mathquill/mathquill-basic.css?v=021823">
-        <link rel="stylesheet" type="text/css" href="'.$staticroot.'/mathquill/mqeditor.css">';
+    $placeinhead .= '<link rel="stylesheet" type="text/css" href="'.$staticroot.'/mathquill/mathquill-basic.css?v=010726">
+        <link rel="stylesheet" type="text/css" href="'.$staticroot.'/mathquill/mqeditor.css?v=010726">';
     $placeinhead .= '<style>form > hr { border: 0; border-bottom: 1px solid #ddd;}</style>';
     require_once "../header.php";
 } else {

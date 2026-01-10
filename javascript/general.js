@@ -566,7 +566,7 @@ function initeditor(edmode,edids,css,inline,setupfunction,extendsetup){
 		selector: selectorstr,
 		inline: inlinemode,
 		license_key: 'gpl',
-		cache_suffix: '?v=112325',
+		cache_suffix: '?v=010826',
 		plugins: "lists advlist autolink image charmap anchor searchreplace code link media table rollups asciimath asciisvg attach snippet emoticons accordion ableplayer",
 		menubar: false,
 		toolbar1: "myEdit myInsert styles | bold italic underline subscript superscript | forecolor backcolor | snippet code | saveclose",
@@ -1876,6 +1876,7 @@ function setCookie(name, value, expires) {
       if (!$parent.hasClass('open')) return
 
       if (e && e.type == 'click' && /input|textarea/i.test(e.target.tagName) && $.contains($parent[0], e.target)) return
+	  if (e && e.type == 'click' && e.target.tagName != 'A' && $(e.target).closest('.dropdown-menu').length) return
 
       $parent.trigger(e = $.Event('hide.bs.dropdown', relatedTarget))
 

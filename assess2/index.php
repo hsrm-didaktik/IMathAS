@@ -30,12 +30,12 @@ if ($isltilimited || $inTreeReader) {
 $placeinhead = '<script type="text/javascript">var APIbase = "'.$GLOBALS['basesiteurl'].'/assess2/";';
 $placeinhead .= 'var inTreeReader = ' . ($inTreeReader ? 1 : 0) . ';';
 $placeinhead .= '</script>';
-$placeinhead .= '<link rel="stylesheet" type="text/css" href="'.$staticroot.'/assess2/vue/css/index.css?v='.$lastvueupdate.'" />';
+$placeinhead .= '<link rel="stylesheet" type="text/css" href="'.$staticroot.'/assess2/vue/css/style.css?v=D6p7phBG" />';
 $placeinhead .= '<link rel="stylesheet" type="text/css" href="'.$staticroot.'/assess2/print.css?v='.$lastvueupdate.'" media="print">';
-$placeinhead .= '<script src="'.$staticroot.'/mathquill/mathquill.min.js?v=101825" type="text/javascript"></script>';
+$placeinhead .= '<script src="'.$staticroot.'/mathquill/mathquill.min.js?v=010926 type="text/javascript"></script>';
 $placeinhead .= '<script src="'.$staticroot.'/javascript/assess2_min.js?v='.$lastvueupdate.'" type="text/javascript"></script>';
-$placeinhead .= '<link rel="stylesheet" type="text/css" href="'.$staticroot.'/mathquill/mathquill-basic.css?v=021823">
-  <link rel="stylesheet" type="text/css" href="'.$staticroot.'/mathquill/mqeditor.css?v=081122">';
+$placeinhead .= '<link rel="stylesheet" type="text/css" href="'.$staticroot.'/mathquill/mathquill-basic.css?v=010726">
+  <link rel="stylesheet" type="text/css" href="'.$staticroot.'/mathquill/mqeditor.css?v=010726">';
 if ($isltilimited || $inTreeReader) {
   $placeinhead .= '<script>var exiturl = "";</script>';
 } else if ($isdiag) {
@@ -69,12 +69,8 @@ if ((!$isltilimited || $_SESSION['ltirole']!='learner') && !$inTreeReader && !$i
 </noscript>
 <div id="app"></div>
 
-<script defer="defer" type="module" src="<?php echo $staticroot;?>/assess2/vue/js/chunk-vendors.js?v=<?php echo $lastvueupdate;?>"></script>
-<script defer="defer" type="module" src="<?php echo $staticroot;?>/assess2/vue/js/chunk-common.js?v=<?php echo $lastvueupdate;?>"></script>
-<script defer="defer" type="module" src="<?php echo $staticroot;?>/assess2/vue/js/index.js?v=<?php echo $lastvueupdate;?>"></script>
-<script defer="defer" nomodule src="<?php echo $staticroot;?>/assess2/vue/js/chunk-vendors.legacy.js?v=<?php echo $lastvueupdate;?>"></script>
-<script defer="defer" nomodule src="<?php echo $staticroot;?>/assess2/vue/js/chunk-common.legacy.js?v=<?php echo $lastvueupdate;?>"></script>
-<script defer="defer" nomodule src="<?php echo $staticroot;?>/assess2/vue/js/index.legacy.js?v=<?php echo $lastvueupdate;?>"></script>
+<script defer="defer" type="module" src="<?php echo $staticroot;?>/assess2/vue/js/index.js?v=wRhuczv6-Z-o"></script>
+<script defer="defer" nomodule src="<?php echo $staticroot;?>/assess2/vue/js/index-legacy.js?v=Dj_1Vsjs"></script>
 
 <?php
 $placeinfooter = '<div id="ehdd" class="ehdd" style="display:none;">

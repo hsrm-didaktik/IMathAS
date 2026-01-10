@@ -373,8 +373,7 @@
 	$useeditor='review';
 	$placeinhead = '<script type="text/javascript" src="'.$staticroot.'/javascript/rubric_min.js?v=101025"></script>';
 	$placeinhead .= '<script type="text/javascript" src="'.$staticroot.'/javascript/gb-scoretools.js?v=060724"></script>';
-	$placeinhead .= '<link rel="stylesheet" type="text/css" href="'.$staticroot.'/assess2/vue/css/index.css?v='.$lastvueupdate.'" />';
-	$placeinhead .= '<link rel="stylesheet" type="text/css" href="'.$staticroot.'/assess2/vue/css/gbviewassess.css?v='.$lastvueupdate.'" />';
+	$placeinhead .= '<link rel="stylesheet" type="text/css" href="'.$staticroot.'/assess2/vue/css/style.css?v='.$lastvueupdate.'" />';
 	$placeinhead .= '<link rel="stylesheet" type="text/css" href="'.$staticroot.'/assess2/print.css?v='.$lastvueupdate.'" media="print">';
     if (!empty($CFG['assess2-use-vue-dev'])) {
         $placeinhead .= '<script src="'.$staticroot.'/mathquill/mathquill.js?v=112124" type="text/javascript"></script>';
@@ -385,12 +384,12 @@
         $placeinhead .= '<script src="'.$staticroot.'/mathquill/mqeditor.js?v=041920" type="text/javascript"></script>';
         $placeinhead .= '<script src="'.$staticroot.'/mathquill/mqedlayout.js?v=041920" type="text/javascript"></script>';
     } else {
-        $placeinhead .= '<script src="'.$staticroot.'/mathquill/mathquill.min.js?v=101825" type="text/javascript"></script>';
+        $placeinhead .= '<script src="'.$staticroot.'/mathquill/mathquill.min.js?v=010926 type="text/javascript"></script>';
         $placeinhead .= '<script src="'.$staticroot.'/javascript/assess2_min.js?v='.$lastvueupdate.'" type="text/javascript"></script>';
     }
     
-	$placeinhead .= '<link rel="stylesheet" type="text/css" href="'.$staticroot.'/mathquill/mathquill-basic.css?v=021823">
-	  <link rel="stylesheet" type="text/css" href="'.$staticroot.'/mathquill/mqeditor.css">';
+	$placeinhead .= '<link rel="stylesheet" type="text/css" href="'.$staticroot.'/mathquill/mathquill-basic.css?v=010726">
+	  <link rel="stylesheet" type="text/css" href="'.$staticroot.'/mathquill/mqeditor.css?v=010726">';
 
 	$placeinhead .= "<script type=\"text/javascript\">";
 	$placeinhead .= 'function jumptostu() { ';
