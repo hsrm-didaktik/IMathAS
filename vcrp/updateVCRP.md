@@ -12,4 +12,13 @@
 * After backing up, generate `/i18n/locale/de/messages.js` with `php i18n/extractjsfrompo.php de` WARNING: Check resulting file for empty translations.
 * Translate Vue files from `assess2/vue-src/locales/en.json` into `assess2/vue-src/locales/de.json` using https://netmath.vcrp.de/services/translator/ 
 * Rebuild Vue files with `npm run build` as described in `assess2/vue-src/translations.md`.
-* Run `php upgrade.php` in IMathAS
+
+## After any update:
+* Run `php upgrade.php` in IMathAS or call `IMathAS/upgrade.php`in the browser.
+
+# About the branch tc/vcrp
+This branch is generated on the base of feature_vcrp to integrate and check technology changes without affecting feature_vcrp.
+
+After completing the integration, tc/vcrp should be merged into feature_vcrp.
+
+Note: When technological changes have been made in the master branch, the master branch should no longer be integrated into feature_vcrp as long as tc/vcrp has not been merged
