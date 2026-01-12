@@ -1,0 +1,1 @@
+[12-Jan-2026 18:39:49 Europe/Berlin] Caught error by QuestionGenerator in /var/www/html/IMathAS/assess2/questions/QuestionHtmlGenerator.php(265) : eval()'d code in QSID 38:1 -- Use of undefined constant error - assumed 'error' (this will throw an Error in a future version of PHP)
