@@ -1,0 +1,122 @@
+{
+  "_i18n-legacy.js?v=C56fD5RK": {
+    "file": "js/i18n-legacy.js?v=C56fD5RK",
+    "name": "i18n",
+    "dynamicImports": [
+      "src/locales/de-legacy.ftl?raw"
+    ]
+  },
+  "_i18n.js?v=BOXAjr78": {
+    "file": "js/i18n.js?v=BOXAjr78",
+    "name": "i18n",
+    "dynamicImports": [
+      "src/locales/de.ftl?raw"
+    ]
+  },
+  "gbviewassess-legacy.html": {
+    "file": "js/gbviewassess-legacy.js?v=CdEwpr75",
+    "name": "gbviewassess",
+    "src": "gbviewassess-legacy.html",
+    "isEntry": true,
+    "imports": [
+      "_i18n-legacy.js?v=C56fD5RK"
+    ]
+  },
+  "gbviewassess.html": {
+    "file": "js/gbviewassess.js?v=DwB4jaX5",
+    "name": "gbviewassess",
+    "src": "gbviewassess.html",
+    "isEntry": true,
+    "imports": [
+      "_i18n.js?v=BOXAjr78"
+    ]
+  },
+  "index-legacy.html": {
+    "file": "js/index-legacy.js?v=DuprkJTC",
+    "name": "index",
+    "src": "index-legacy.html",
+    "isEntry": true,
+    "imports": [
+      "_i18n-legacy.js?v=C56fD5RK"
+    ],
+    "dynamicImports": [
+      "src/views/Videocued-legacy.vue",
+      "src/views/Livepoll-legacy.vue"
+    ]
+  },
+  "index.html": {
+    "file": "js/index.js?v=B3OQtyhc",
+    "name": "index",
+    "src": "index.html",
+    "isEntry": true,
+    "imports": [
+      "_i18n.js?v=BOXAjr78"
+    ],
+    "dynamicImports": [
+      "src/views/Videocued.vue",
+      "src/views/Livepoll.vue"
+    ]
+  },
+  "src/locales/de-legacy.ftl?raw": {
+    "file": "js/de-legacy.js?v=DZaSso4g",
+    "name": "de",
+    "src": "src/locales/de-legacy.ftl?raw",
+    "isDynamicEntry": true
+  },
+  "src/locales/de.ftl?raw": {
+    "file": "js/de.js?v=CMivUCdE",
+    "name": "de",
+    "src": "src/locales/de.ftl?raw",
+    "isDynamicEntry": true
+  },
+  "src/views/Livepoll-legacy.vue": {
+    "file": "js/Livepoll-legacy.js?v=Durw2r7C",
+    "name": "Livepoll",
+    "src": "src/views/Livepoll-legacy.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index-legacy.html",
+      "_i18n-legacy.js?v=C56fD5RK"
+    ]
+  },
+  "src/views/Livepoll.vue": {
+    "file": "js/Livepoll.js?v=DxJKOvIj",
+    "name": "Livepoll",
+    "src": "src/views/Livepoll.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_i18n.js?v=BOXAjr78"
+    ]
+  },
+  "src/views/Videocued-legacy.vue": {
+    "file": "js/Videocued-legacy.js?v=qK_3iZEp",
+    "name": "Videocued",
+    "src": "src/views/Videocued-legacy.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index-legacy.html",
+      "_i18n-legacy.js?v=C56fD5RK"
+    ]
+  },
+  "src/views/Videocued.vue": {
+    "file": "js/Videocued.js?v=BsmqO52-",
+    "name": "Videocued",
+    "src": "src/views/Videocued.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_i18n.js?v=BOXAjr78"
+    ]
+  },
+  "style.css": {
+    "file": "css/style.css?v=D6p7phBG",
+    "src": "style.css"
+  },
+  "vite/legacy-polyfills-legacy": {
+    "file": "js/polyfills-legacy.js?v=CEYyf5OG",
+    "name": "polyfills",
+    "src": "vite/legacy-polyfills-legacy",
+    "isEntry": true
+  }
+}
