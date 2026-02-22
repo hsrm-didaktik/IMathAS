@@ -174,8 +174,19 @@ if ($myrights<20) {
     }
     $res = $a2->scoreQuestion($qn, $parts_to_score);
 
-		$score = implode('~', $res['scores']);
-		$page_scoreMsg =  "<p>"._("Score on last answer: ").Sanitize::encodeStringForDisplay($score)."/1</p>\n";
+	$scoretot = round(array_sum($res['scores']), 2);
+	$score = $scoretot . '/1';
+	if (count($res['scores'])>1) {
+		$weightTot = array_sum($res['answeights']);
+		$scaledWeights = array_map(function($w) use ($weightTot) {
+			return $weightTot>0 ? round($w/$weightTot,4) : 0;
+		}, $res['answeights']);
+		$score .= ' (' . implode(', ', array_map(function($score, $weight) {
+			return "$score/$weight";
+		}, $res['scores'], $scaledWeights)) . ')';
+	} 
+	$page_scoreMsg =  "<p>"._("Score on last answer: ").Sanitize::encodeStringForDisplay($score)."</p>\n";
+
     if (!empty($res['errors'])) {
       $page_scoreMsg .= '<ul class="small">';
       foreach ($res['errors'] as $err) {
@@ -231,11 +242,11 @@ $_SESSION['coursetheme'] = $coursetheme;
 $flexwidth = true; //tells header to use non _fw stylesheet
 $nologo = true;
 
-$useeqnhelper = $eqnhelper;
+$useeqnhelper = $eqnhelper ?? 0;
 $placeinhead = '<link rel="stylesheet" type="text/css" href="'.$staticroot.'/assess2/vue/css/style.css?v='.$lastvueupdate.'" />';
 $placeinhead .= '<link rel="stylesheet" type="text/css" href="'.$staticroot.'/assess2/print.css?v='.$lastvueupdate.'" media="print">';
 if (!empty($CFG['assess2-use-vue-dev'])) {
-  $placeinhead .= '<script src="'.$staticroot.'/mathquill/mathquill.js?v=101825" type="text/javascript"></script>';
+  $placeinhead .= '<script src="'.$staticroot.'/mathquill/mathquill.min.js?v=101825" type="text/javascript"></script>';
   $placeinhead .= '<script src="'.$staticroot.'/javascript/drawing.js?v=041920" type="text/javascript"></script>';
   $placeinhead .= '<script src="'.$staticroot.'/javascript/AMhelpers2.js?v=071122" type="text/javascript"></script>';
   $placeinhead .= '<script src="'.$staticroot.'/javascript/eqntips.js?v=041920" type="text/javascript"></script>';
@@ -243,13 +254,13 @@ if (!empty($CFG['assess2-use-vue-dev'])) {
   $placeinhead .= '<script src="'.$staticroot.'/mathquill/mqeditor.js?v=021121" type="text/javascript"></script>';
   $placeinhead .= '<script src="'.$staticroot.'/mathquill/mqedlayout.js?v=071122" type="text/javascript"></script>';
 } else {
-  $placeinhead .= '<script src="'.$staticroot.'/mathquill/mathquill.min.js?v=011026" type="text/javascript"></script>';
+  $placeinhead .= '<script src="'.$staticroot.'/mathquill/mathquill.min.js?v=020326" type="text/javascript"></script>';
   $placeinhead .= '<script src="'.$staticroot.'/javascript/assess2_min.js?v='.$lastvueupdate.'" type="text/javascript"></script>';
 }
 
 $placeinhead .= '<script src="'.$staticroot.'/javascript/assess2supp.js?v=041522" type="text/javascript"></script>';
 $placeinhead .= '<link rel="stylesheet" type="text/css" href="'.$staticroot.'/mathquill/mathquill-basic.css?v=010726">
-  <link rel="stylesheet" type="text/css" href="'.$staticroot.'/mathquill/mqeditor.css?v=010726">';
+  <link rel="stylesheet" type="text/css" href="'.$staticroot.'/mathquill/mqeditor.css?v=020226">';
 $placeinhead .= '<style>form > hr { border: 0; border-bottom: 1px solid #ddd;}</style>';
 $placeinhead .= '<script>
   function loadNewVersion() {

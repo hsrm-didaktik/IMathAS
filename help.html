@@ -23,8 +23,6 @@
 	<li><a href="#questionsetmanagement">Question Set Management</a>
 		<ul>
 		<li><a href="#managequestionset">Manage Question Set</a></li>
-		<li><a href="#exportquestionset">Export Question Set</a></li>
-		<li><a href="#importquestionset">Import Question Set</a></li>
 		</ul></li>
 	<li><a href="#librarymanagement">Library Management</a>
 		<ul>
@@ -73,8 +71,6 @@
 	<li><a href="#questionsetmanagementcm">Question Set Management</a>
 		<ul>
 		<li><a href="#managequestionsetcm">Manage Question Set</a></li>
-		<li><a href="#exportquestionsetcm">Export Question Set</a></li>
-		<li><a href="#importquestionsetcm">Import Question Set</a></li>
 		</ul></li>
 	<li><a href="#librarymanagementcm">Library Management</a>
 		<ul>
@@ -303,34 +299,6 @@ to remove the question from the assigned library</p>
 
 
 </div> <!-- h3 -->
-<div class=h3>
-<h3 id="exportquestionset">Export Question Set</h3>
-
-Use the &quot;Export Question Set&quot; feature to export a portion of the Question Set
-for backup or sharing.  Use the search feature with the checkboxes to select
-questions for inclusion in the export.  Clicking the &quot;Finalize&quot; button, you
-will be asked for a Library Description.
-
-
-</div> <!-- h3 -->
-<div class=h3>
-<h3 id="importquestionset">Import Question Set</h3>
-<p>
-Use the &quot;Import Question Set&quot; feature to import a Question Set that you or
-someone else had exported from IMathAS.  Be sure to only import question sets from
-trusted sources.  After specifying an import file, you will be given a chance
-to select specific questions from the set to be imported.
-</p>
-<p>
-Imported questions will have ownership assigned to the importer.  Select the
-userights you want to apply to all imported questions.  You also can import
-the questions directly into an existing or new question library</p>
-
-<p>If any questions (identified by a unique id) already exist in your system, you
-will be asked if you want to update the existing questions, or add as new questions.
-If you have modified questions previously imported, you may want to add as new. </p>
-
-</div> <!-- h3 -->
 </div> <!-- h2 -->
 <div class=h2>
 <h2 id="librarymanagement">Library Management</h2>
@@ -387,7 +355,8 @@ at the same level.
 <div class=h3>
 <h3 id="importlibraries">Import Libraries</h3>
 <p>Use the &quot;Import Libraries&quot; feature to import an entire library or tree
-of libraries.  After selecting a file, the tree of libraries in the import file
+of libraries.  Note this feature may be restricted to admin users only.
+After selecting a file, the tree of libraries in the import file
 will be shown, and you can deselect libraries you do not want to import.  Note that
 if a parent library is not selected, NONE of the children libraries will be added,
 regardless of whether they're checked or not.</p>
@@ -1013,35 +982,6 @@ The options available in the question set manager are:
 to remove the question from the assigned library</p>
 
 </div> <!-- h3 -->
-<div class=h3>
-<h3 id="exportquestionsetcm">Export Question Set</h3>
-
-Use the &quot;Export Question Set&quot; feature to export a portion of the Question Set
-for backup or sharing.  Use the search feature with the checkboxes to select
-questions for inclusion in the export.  Clicking the &quot;Finalize&quot; button, you
-will be asked for a Library Description.
-
-
-</div> <!-- h3 -->
-<div class=h3>
-<h3 id="importquestionsetcm">Import Question Set</h3>
-<p>
-Use the &quot;Import Question Set&quot; feature to import a Question Set that you or
-someone else had exported from IMathAS.  Be sure to only import question sets from
-trusted sources.  After specifying an import file, you will be given a chance
-to select specific questions from the set to be imported.
-</p>
-<p>
-Imported questions will have ownership assigned to the importer.  Select the
-userights you want to apply to all imported questions.  You can import
-the questions directly into an existing library, or into the Unassigned library
-for later assignment.</p>
-
-<p>If any questions (identified by a unique id) already exist in your system, you
-will be asked if you want to update the existing questions, or add as new questions.
-If you have modified questions previously imported, you may want to add as new. </p>
-
-</div> <!-- h3 -->
 </div> <!-- h2 -->
 <div class=h2>
 <h2 id="librarymanagementcm">Library Management</h2>
@@ -1097,7 +1037,8 @@ at the same level.
 <div class=h3>
 <h3 id="importlibrariescm">Import Libraries</h3>
 <p>Use the &quot;Import Libraries&quot; feature to import an entire library or tree
-of libraries.  After selecting a file, the tree of libraries in the import file
+of libraries.  Note this feature may be restricted to admin users only.
+After selecting a file, the tree of libraries in the import file
 will be shown, and you can deselect libraries you do not want to import.  Note that
 if a parent library is not selected, NONE of the children libraries will be added,
 regardless of whether they're checked or not.</p>
@@ -2384,6 +2325,10 @@ The following macros create graphs or tables:
   	when adding to a graph generated by another function.  The grid and border from the first
   	graph is used. To avoid weird behavior, try to ensure all plots were drawn using the same
   	grid.</li>
+<li><strong>invertplot($plot)</strong>: Inverts any drawing on the plot, swapping x and y coordinates of 
+	every point. Useful in a case where a function can't handle x= function well, this way you can draw it
+	using y= function then invert it. Note you should use replacealttext with this, since any auto-generated 
+	alt text won't be accurate anymore.</li>
 <li><strong>addfractionaxislabels(plot,step,[axis])</strong>:  Adds labels along the horizontal axis in steps of step to a plot created with showplot.
       Step is a fraction like "1/4", or a pi multiple, like "pi/4" or "2pi".  When using this, make sure to set the showplot x-axis label
       spacing larger than the domain to prevent the default labels from showing.  Set axis to "y" to add fraction axis labels on the y-axis.</li>
@@ -2568,15 +2513,18 @@ These macros are for working with arrays:
 <ul>
 <li><strong>listtoarray(list, [tonum])</strong>:  Converts a list, like "1,2,3,4" or "cat,dog,rabbit" to an array. 
 	If the list is decimal or integer numbers, set tonum to true to ensure they're treated like numbers.</li>
-<li><strong>explode(symbol, string)</strong>:  Converts a string to an array, breaking it apart on the given symbol.</li>
-<li><strong>arraytolist(array)</strong>:  Converts an array to a list</li>
 <li><strong>calclisttoarray(list)</strong>:  Converts a list of calculations, like "2^2,3^5,7/2" to an array, evaluating the calculations
     along the way.</li>
+<li><strong>explode(symbol, string)</strong>:  Converts a string to an array, breaking it apart on the given symbol.</li>
+<li><strong>arraytolist(array, [space])</strong>:  Converts an array to a list. Set the second argument to <code>true</code> to add spaces after the commas.</li>
+<li><strong>joinarray(array,[symbol,ksort])</strong>:  Convert an array to a string, joining elements with the given symbol (default comma). Set ksort to true to sort the array by key before joining, useful if elements were defined out of order.</li>
 <li><strong>stringtoarray(string, [tonum])</strong>: Converts a text string to an array of characters. 
 	If the characters are all numbers, set tonum to true to ensure they're treated as numbers.</li>
 <li><strong>fillarray(value,num,[start])</strong>:  Creates an array with num entries, all of which are the same given value.  Array indexing
     starts at 0 unless specified. Alternatively, num can be an array of indices, in which case the array will
 	only be defined to the value at those indices.</li>
+<li><strong>consecutive(min,max,[step])</strong>:  Creates an array of consecutive numbers, starting at min and ending at max, in increments of
+    step.  Step is optional; it defaults to 1.</li>
 <li><strong>arraysetvalues(array,keyarray,value/valuearray)</strong>:
 	Sets values on an existing array, at the keys specified in the keyarray. If value is a single value,
 	that value is set at all the keys. This is similar to fillarray with an array for num, but this function 
@@ -2590,8 +2538,6 @@ These macros are for working with arrays:
     give the optional second parameter as "keyfill". In this case you can optionally provide a third 
     argument for the max key to fill the array with.</li>
 <li><strong>jointsort(array,array,[array,...])</strong>:  Jointly reorders two or more arrays based on a lowest-to-highest sort of values in the first array</li>
-<li><strong>consecutive(min,max,[step])</strong>:  Creates an array of consecutive numbers, starting at min and ending at max, in increments of
-    step.  Step is optional; it defaults to 1.</li>
 <li><strong>calconarray(array,calculation)</strong>:  Returns an array, performing the given calculation on each element of the given array.  Use
     "x" as the variable to represent each element of the array.  Example: $b = calconarray($a,"x^2") will create an array that is the
     square each element of the array $a.</li>
@@ -2611,7 +2557,6 @@ These macros are for working with arrays:
 	 </ul>
 	 </li>
 <li><strong>splicearray(array,offset,length,[replacement])</strong>: Removes the elements designated by offset and length from the given array, and replaces them with the elements of the replacement array, if supplied.</li>
-<li><strong>joinarray(array,[symbol,ksort])</strong>:  Convert an array to a string, joining elements with the given symbol (default comma). Set ksort to true to sort the array by key before joining, useful if elements were defined out of order.</li>
 <li><strong>mergearrays(array,array,[array,...])</strong>:  Combines two or more arrays into one long array</li>
 <li><strong>unionarrays(array,array)</strong>:  Unions two arrays, preventing duplicates, into a new array</li>
 <li><strong>intersectarrays(array,array)</strong>:  Finds the intersection of two arrays</li>
@@ -2692,6 +2637,26 @@ These macros are fairly general purpose:
 	</li>
   </ul>
   </li>
+<li><strong>scoreperiodic(answer, stuanswer, variable, [tolerance])</strong>: This helps scoring of "all solutions"
+	periodic answers, like "pi/6+2pik" by redefining the $answer if the student's answer is equivalent but 
+	with a different base value, like "-11pi/6+2pik". It works for a single expression or list of solutions.
+	The function returns a value that should replace $answer, so make sure you separately define $showanswer so 
+	a "nice" answer gets displayed in the key. Here's a couple examples of use:
+	<ul>
+		<li>Single part: (algebraic expression type)<br/>
+			<code>$answerformat = "list"</code><br/>
+			<code>$variables = "k"</code><br/>
+			<code>$answer = "pi/6 + 2pik, pi/3+2pik"</code><br/>
+			<code>$showanswer = "`$answer`"</code><br/>
+			<code>$answer = scoreperiodic($answer, $stuanswers[$thisq], "k")</code>
+		</li>
+		<li>Multipart part (suppose part index 3 is "numfunc"):<br/>
+			<code>$answer[3] = "pi/12 + pi/3n</code><br/>
+			<code>$variables[3] = "n"</code><br/>
+			<code>$showanswer[3] = "`$answer[3]`"</code><br/>
+			<code>$answer[3] = scoreperiodic($answer[3], getstuans($stuanswers,$thisq,3), "n")</code>
+		</li>
+	</ul>
 </ul>
 </div> <!-- h2 -->
 <div class=h2>
@@ -2744,10 +2709,12 @@ These macros are used to test various conditions.  They typically return true or
     using stuansready as the condition.  It is advisable to pass $anstypes as a 4th input, which 
     allows the function to handle special cases like matrices better. $answerformat can be added 
     as an optional 5th input, which will check the student answer meets the answerformat (currently 
-    only checks Calculated questions, and no lists). Or you can put 'checknumeric' for the answerformat 
-    and it will check that "number" and "calculated" answers are numeric (must use $stuanswersval for calculated in this case).
+    only checks Calculated and Calculated N-tuple questions, and no lists). Or you can put 'checknumeric' for the answerformat 
+    and it will check that "number", "calculated", "ntuple", and "calcntuple" answers are numeric 
+	(must use $stuanswersval for calculated and calcntuplein this case).
     Note this won't work for list answers, only single numbers, and that it won't recognize answers 
-    with commas like "2,345" as numeric.</li>
+    with commas like "2,345" as numeric. For calcmatrix, it's best to pass $stuanswersval, as that will 
+	allow stuansready to confirm all elements evaluate to a value.</li>
 <li><strong>comparenumbers(a,b,[tol])</strong>:  Compares numbers or numerical expressions a and b to see if there are equivalent to the specified
   tolerance.  Set tol to specify the relative tolerance (defaults to .001), or prefix with | for an absolute tolerance.</li>
 <li><strong>comparenumberswithunits(a,b,[tol])</strong>:  Compares numbers-with-units a and b to see if they are equivalent to the specified tolerance. Set tol to 
@@ -4112,7 +4079,8 @@ or if the question type gives away critical info to the student.</dd>
             "allowjcomplex" allows for use of j instead of i as the imaginary unit.<br/>
         The other options require each component of the answer to be a single fraction (like 10/6), a reduced fraction (like 5/3), a reduced mixed number (like 2_1/2), scientific notation (like 2.3*10^4), a single fraction or decimal, an answer
         without decimals (also disallows 10^-2 and 3E-2), or
-        an answer without trig functions (sin,cos,tan,sec,csc,cot).  Multiple options can be specified like $answerformat="nodecimal,notrig".<br/>
+        an answer without trig functions (sin,cos,tan,sec,csc,cot).  Multiple options can be specified like $answerformat="nodecimal,notrig".
+		Note that component-based answerformats won't be checked for sloppycomplex or generalcomplex.<br/>
         $answerformat = "nosoln" or "nosolninf" adds a list radio buttons for "no solutions" and optionally "infinite solutions". $ansprompt can override the default statements like this:
         $ansprompt = "One value, x=;No values;Many values"
         </dd>
@@ -4812,6 +4780,7 @@ or if the question type gives away critical info to the student.</dd>
 
 <p>
 A student is asked to upload a file.  <strong>The file upload type is not automatically graded</strong>.
+The file must be an allowed file type, one of these extensions: @whitelist@.
 </p>
 
 <p><strong>Required Variables</strong></p>

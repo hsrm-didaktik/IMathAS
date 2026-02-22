@@ -305,7 +305,7 @@ summary-viewwork_after_due = You can view your work and scores in the gradebook 
 summary-viewwork_work_scores_after = You can view your work in the gradebook, and scores after the due date.
 summary-viewwork_work_after_lp = You can view your work in the gradebook after the LatePass period.
 summary-viewwork_after_lp = You can view your work and scores in the gradebook after the LatePass period.
-summary-viewwork_never = 
+summary-viewwork_never = { " " }
 summary-score = Score
 summary-recordedscore = Recorded Score
 summary-use_override = Instructor grade override is recorded
@@ -499,9 +499,9 @@ gradebook-detail_title = Review Assessment Attempts
 gradebook-started = Started
 gradebook-lastchange = Last Changed
 gradebook-time_onscreen = 
-    { $all ->
-        [true] Total time questions were on-screen (all attempts)
-        *[other] Total time questions were on-screen
+    { $n ->
+        [one] Total time questions were on-screen
+        *[other] Total time questions were on-screen (all attempts)
     }
 gradebook-time_on_version = Time spent on this version
 gradebook-due = Due Date
@@ -529,6 +529,7 @@ gradebook-feedback = Feedback
 gradebook-feedback_for = Feedback for {$name}
 gradebook-general_feedback = General feedback
 gradebook-use_in_msg = Use in Message
+gradebook-msg_student = Message Student
 gradebook-clear_hdr = Delete confirmation
 gradebook-clear_all = Delete all attempts
 gradebook-clear_attempt = Delete this attempt

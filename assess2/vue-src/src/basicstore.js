@@ -130,7 +130,6 @@ export const actions = {
         // overwrite properties with those from response
         response = this.processSettings(response);
         store.assessInfo = Object.assign({}, store.assessInfo, response);
-
         // clear out trackers, in case we're retaking
         store.autosaveQueue = {};
         store.autosaveTimeactive = {};
@@ -268,7 +267,7 @@ export const actions = {
     if (typeof window.tinyMCE !== 'undefined') { window.tinyMCE.triggerSave(); }
   },
   submitAssessment () {
-    let warnMsg = 'header.confirm_assess_submit';
+    let warnMsg = 'header-confirm_assess_submit';
     if (store.assessInfo.submitby === 'by_assessment') {
       let qAttempted = 0;
       const changedQuestions = this.getChangedQuestions();
@@ -286,7 +285,7 @@ export const actions = {
       }
       const nQuestions = store.assessInfo.questions.length;
       if (qAttempted !== nQuestions) {
-        warnMsg = 'header.confirm_assess_unattempted_submit';
+        warnMsg = 'header-confirm_assess_unattempted_submit';
       }
       store.confirmObj = {
         body: warnMsg,

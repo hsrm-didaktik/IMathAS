@@ -73,7 +73,8 @@ function showarrays() {
     if ($caption != '') {
         $out .= '<caption>' . Sanitize::encodeStringForDisplay($caption) . '</caption>';
     } else if ($hashdr) {
-        $out .= '<caption class="sr-only">' . _('Data Table for ') .Sanitize::encodeStringForDisplay(implode(', ', $hdrtexts)). '</caption>';
+        $cleanhdr = preg_replace('/\[AB(\d+)?\]/', 'Answer box',strip_tags(implode(', ', $hdrtexts)));
+        $out .= '<caption class="sr-only">' . _('Data Table for ') .Sanitize::encodeStringForDisplay($cleanhdr). '</caption>';
     } else {
         $out .= '<caption class="sr-only">' . _('Data Table') . '</caption>';
     }

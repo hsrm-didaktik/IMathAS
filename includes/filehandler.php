@@ -90,7 +90,12 @@ function relocatefileifneeded($file, $key, $sec="public") {
 	}
 }
 
-function getS3endpoint() {
+function getS3endpoint($key) {
+	if (isset($GLOBALS['CFG']['S3']['altendpoint']) && 
+		!preg_match('/(html|htm|xhtml|xml)$/', $key)
+	) {
+		return 'https://'.$GLOBALS['CFG']['S3']['altendpoint'];
+	}
 	$endpoint = 'https://'.$GLOBALS['AWSbucket'].'.s3';
 	if (isset($GLOBALS['CFG']['S3']['region'])) {
 		$endpoint .= '.' . $GLOBALS['CFG']['S3']['region'];
@@ -103,7 +108,7 @@ function relocategraphfileifneeded($file, $key) {
 	if (getfilehandlertype('filehandlertypecfiles') == 's3') {
 		$s3 = new S3($GLOBALS['AWSkey'],$GLOBALS['AWSsecret']);
 		if ($s3->putObjectFile($file,$GLOBALS['AWSbucket'],'gimgs/'.$key,"public-read")) {
-			return getS3endpoint() . "/gimgs/$key";
+			return getS3endpoint($key) . "/gimgs/$key";
 		} else {
 			return false;
 		}
@@ -114,7 +119,7 @@ function relocategraphfileifneeded($file, $key) {
 function getgraphfileurl($key) {
 	global $imasroot;
 	if (getfilehandlertype('filehandlertypecfiles') == 's3') {
-		return getS3endpoint() . "/gimgs/$key";
+		return getS3endpoint($key) . "/gimgs/$key";
 	} else {
 		return $imasroot.'/filter/graph/imgs/'.$key;
 	}
@@ -953,7 +958,7 @@ function deleteqimage($file) {
 }
 
 function deletefilebykey($key) {
-	$safeFilename = Sanitize::sanitizeFilePathAndCheckBlacklist($file);
+	$safeFilename = Sanitize::sanitizeFilePathAndCheckBlacklist($key);
 	if (getfilehandlertype('filehandlertype') == 's3') {
 		$s3 = new S3($GLOBALS['AWSkey'],$GLOBALS['AWSsecret']);
 		$s3object = $safeFilename;
@@ -1104,7 +1109,7 @@ function getuserfileurl($key) {
 	global $urlmode,$imasroot;
 	$key = Sanitize::rawurlencodePath($key);
 	if (getfilehandlertype('filehandlertype') == 's3') {
-		return getS3endpoint() . "/$key";
+		return getS3endpoint($key) . "/$key";
 	} else {
 		return "$imasroot/filestore/$key";
 	}
@@ -1123,7 +1128,7 @@ function getfopenloc($key) {
 	global $urlmode,$imasroot;
 	$key = Sanitize::rawurlencodePath($key);
 	if (getfilehandlertype('filehandlertype') == 's3') {
-		return getS3endpoint() . "/$key";
+		return getS3endpoint($key) . "/$key";
 	} else {
 		return "../filestore/$key";
 	}
@@ -1134,7 +1139,7 @@ function getcoursefileurl($key,$abs=false) {
 	if ($st == 'http:/' || $st=='https:') {
 		return $key;
 	} else if (getfilehandlertype('filehandlertypecfiles') == 's3') {
-		return getS3endpoint() . "/cfiles/$key";
+		return getS3endpoint($key) . "/cfiles/$key";
 	} else {
 		$key = Sanitize::rawurlencodePath($key);  //shouldn't be needed since filenames sanitized, but better to be safe
 		if ($abs==true) {
@@ -1151,7 +1156,7 @@ function getqimageurl($key,$abs=false) {
 	}
 	$key = Sanitize::rawurlencodePath($key);
 	if (getfilehandlertype('filehandlertypecfiles') == 's3') {
-		return getS3endpoint() . "/qimages/$key";
+		return getS3endpoint($key) . "/qimages/$key";
 	} else {
 		if ($abs==true) {
 			return $GLOBALS['basesiteurl'] . "/assessment/qimages/$key";

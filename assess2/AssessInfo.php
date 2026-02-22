@@ -318,9 +318,9 @@ class AssessInfo
 
         if ($category === '') {
             // do nothing
-        } else if (is_numeric($category)) {
+        } else if (filter_var($category, FILTER_VALIDATE_INT) !== false) {
             if (intval($category) === 0) {
-            $category = $this->assessData['defoutcome'];
+              $category = $this->assessData['defoutcome'];
             }
             $tolookupOutcomes[$qrow['id']] = $category;
         } else if (0==strncmp($category,"AID-",4)) {
@@ -1066,7 +1066,8 @@ class AssessInfo
         'title' => $data[0]
       );
       if (isset($data[1])) {
-        $out['cues'][$cue]['time'] = intval($data[1]);
+        $out['cues'][$cue]['time'] = abs(intval($data[1]));
+        $out['cues'][$cue]['skipseg'] = (is_numeric($data[1]) && $data[1] < 0);
       }
       if (isset($data[2])) {
         $out['cues'][$cue]['qn'] = intval($data[2]);

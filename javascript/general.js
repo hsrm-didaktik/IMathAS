@@ -534,6 +534,9 @@ var allowedImgDomains = [
 	'.amazonaws.com',
 	window.location.hostname
 ];
+if (typeof altfilesendpoint !== "undefined") {
+	allowedImgDomains.push(altfilesendpoint);
+}
 function isAllowedImgSrc(src) {
 	try {
 		var parser = document.createElement('a');
@@ -566,11 +569,11 @@ function initeditor(edmode,edids,css,inline,setupfunction,extendsetup){
 		selector: selectorstr,
 		inline: inlinemode,
 		license_key: 'gpl',
-		cache_suffix: '?v=010826',
+		cache_suffix: '?v=011526',
 		plugins: "lists advlist autolink image charmap anchor searchreplace code link media table rollups asciimath asciisvg attach snippet emoticons accordion ableplayer",
 		menubar: false,
-		toolbar1: "myEdit myInsert styles | bold italic underline subscript superscript | forecolor backcolor | snippet code | saveclose",
-		toolbar2: " alignleft aligncenter alignright | bullist numlist outdent indent  | attach link unlink image | table | asciimath asciimathcharmap asciisvg",
+		toolbar1: "myEdit myInsert styles | bold italic underline subscript superscript | forecolor backcolor | snippet code",
+		toolbar2: " alignleft aligncenter alignright | bullist numlist outdent indent  | attach link unlink image | table | asciimath asciimathcharmap asciisvg | saveclose",
 		extended_valid_elements : 'iframe[src|width|height|name|align|allowfullscreen|frameborder|style|class],param[name|value],@[sscr],asvg[sscr|src|type|style]',
 		custom_elements: 'asvg',
         content_css : staticroot+(cssmode==1?'/assessment/mathtest.css,':'/imascore.css,')+staticroot+'/themes/'+coursetheme,
@@ -668,20 +671,22 @@ function initeditor(edmode,edids,css,inline,setupfunction,extendsetup){
 			]
 			}]
         }
-		
-	if (document.documentElement.clientWidth<385) {
-		edsetup.toolbar1 = "myEdit myInsert styles saveclose";
-		edsetup.toolbar2 = "bullist numlist outdent indent bold italic asciimath asciisvg";
-	} else if (document.documentElement.clientWidth<465) {
-		edsetup.toolbar1 = "myEdit myInsert styles forecolor saveclose";
-		edsetup.toolbar2 = "bullist numlist outdent indent bold italic asciimath asciisvg";
-	} else if (document.documentElement.clientWidth<575) {
-		edsetup.toolbar1 = "myEdit myInsert styles bold italic underline forecolor saveclose";
+	
+	// on smaller start, move bold to bottom for longer retention while resizing
+	if (document.documentElement.clientWidth<465) {
+		edsetup.toolbar1 = "myEdit myInsert styles forecolor backcolor";
+		edsetup.toolbar2 = "bullist numlist outdent indent bold italic asciimath asciisvg saveclose";
+	}
+	// handle these in CSS for better responsiveness
+	/*
+	else if (document.documentElement.clientWidth<575) {
+		edsetup.toolbar1 = "myEdit myInsert styles bold italic forecolor backcolor saveclose";
 		edsetup.toolbar2 = " alignleft aligncenter | bullist numlist outdent indent  | link image | asciimath asciimathcharmap asciisvg";
-	}  else if (document.documentElement.clientWidth<665) {
-		edsetup.toolbar1 = "myEdit myInsert styles bold italic underline subscript superscript forecolor snippet saveclose";
+	} else if (document.documentElement.clientWidth<665) {
+		edsetup.toolbar1 = "myEdit myInsert styles bold italic subscript superscript forecolor backcolor snippet saveclose";
 		edsetup.toolbar2 = " alignleft aligncenter alignright | bullist numlist outdent indent  | attach link image | asciimath asciimathcharmap asciisvg";
 	}
+	*/
 	if (location.href.match(/usealted/)) {
 		delete edsetup.toolbar1;
 		delete edsetup.toolbar2;
@@ -1102,11 +1107,11 @@ function togglefileembed(id, newstate) {
 				id: 'fileiframe' + id,
 				text: 'Converting HEIC file (this may take a while)...'
 			}).insertAfter(toggleel);
-			if (!window.heic2any) {
-				jQuery.getScript(staticroot+'/javascript/heic2any.min.js')
-				 .done(function() { convertheic(href, 'fileiframe' + id); });
+			if (!window.HeicTo) {
+				jQuery.getScript(staticroot+'/javascript/heic-to.min.js')
+				 .done(function() { convertheic2(href, 'fileiframe' + id); });
 			} else {
-				convertheic(href, 'fileiframe' + id);
+				convertheic2(href, 'fileiframe' + id);
 			}
 		} else {
 			jQuery('<div>').append(jQuery('<img/>', {
@@ -1153,6 +1158,20 @@ function convertheic(href, divid) {
   .then(function(res) { return res.blob();})
   .then(function(blob) {
 		return heic2any({blob:blob});
+	})
+  .then(function(conversionResult) {
+    var url = URL.createObjectURL(conversionResult);
+    document.getElementById(divid).innerHTML = '<img src="' + url + '" onclick="rotateimg(this)">';
+  })
+  .catch(function(e) {
+    console.log(e);
+  });
+}
+function convertheic2(href, divid) {
+	fetch(href)
+  .then(function(res) { return res.blob();})
+  .then(async function(blob) {
+		return await HeicTo({blob:blob, type:"image/jpeg", quality: 0.5});
 	})
   .then(function(conversionResult) {
     var url = URL.createObjectURL(conversionResult);
@@ -1580,11 +1599,11 @@ jQuery(document).ready(function($) {
 				if (e.type=="click" || e.which==13) {
 					if ($(this).attr("aria-expanded") == "true") {
 						$(this).attr("aria-expanded", false);
-						$(this).children("img").attr("src", staticroot+"/img/expand.gif");
+						$(this).children("img").attr("src", staticroot+"/img/expand.svg");
 						$(this).next(".blockitems").slideUp();
 					} else {
 						$(this).attr("aria-expanded", true);
-						$(this).children("img").attr("src", staticroot+"/img/collapse.gif");
+						$(this).children("img").attr("src", staticroot+"/img/collapse.svg");
 						$(this).next(".blockitems").slideDown();
 					}
 				}

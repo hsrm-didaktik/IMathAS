@@ -22,7 +22,7 @@ if (isset($CFG['hooks']['init'])) {
 	require_once $CFG['hooks']['init'];
 }
 
-$lastvueupdate = '20260108c';
+$lastvueupdate = '20260207b';
 
 // setup session stuff
 if (!function_exists('disallowsSameSiteNone')) {
@@ -70,7 +70,11 @@ if ((!function_exists('isDevEnvironment') || !isDevEnvironment())
     && !is_numeric($hostparts[count($hostparts)-1])
 ) {
 	$path = $imasroot == '' ? '/' : $imasroot;
-	$sess_cookie_domain = '.'.implode('.',array_slice($hostparts,isset($CFG['GEN']['domainlevel'])?$CFG['GEN']['domainlevel']:-2));
+	if (isset($CFG['GEN']['domainlevel']) && $CFG['GEN']['domainlevel'] == 0) {
+		$sess_cookie_domain = implode('.', $hostparts);
+	} else {
+		$sess_cookie_domain = '.'.implode('.',array_slice($hostparts,isset($CFG['GEN']['domainlevel'])?$CFG['GEN']['domainlevel']:-2));
+	}
 	if (disallowsSameSiteNone()) {
 		session_set_cookie_params(0, $path, $sess_cookie_domain, false, true);
 	} else {

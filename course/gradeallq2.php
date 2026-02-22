@@ -384,12 +384,12 @@
         $placeinhead .= '<script src="'.$staticroot.'/mathquill/mqeditor.js?v=041920" type="text/javascript"></script>';
         $placeinhead .= '<script src="'.$staticroot.'/mathquill/mqedlayout.js?v=041920" type="text/javascript"></script>';
     } else {
-        $placeinhead .= '<script src="'.$staticroot.'/mathquill/mathquill.min.js?v=011026" type="text/javascript"></script>';
+        $placeinhead .= '<script src="'.$staticroot.'/mathquill/mathquill.min.js?v=020326" type="text/javascript"></script>';
         $placeinhead .= '<script src="'.$staticroot.'/javascript/assess2_min.js?v='.$lastvueupdate.'" type="text/javascript"></script>';
     }
     
 	$placeinhead .= '<link rel="stylesheet" type="text/css" href="'.$staticroot.'/mathquill/mathquill-basic.css?v=010726">
-	  <link rel="stylesheet" type="text/css" href="'.$staticroot.'/mathquill/mqeditor.css?v=010726">';
+	  <link rel="stylesheet" type="text/css" href="'.$staticroot.'/mathquill/mqeditor.css?v=020226">';
 
 	$placeinhead .= "<script type=\"text/javascript\">";
 	$placeinhead .= 'function jumptostu() { ';
@@ -492,12 +492,10 @@
 	echo '</div>';
 
 	// convert curqloc to 0-indexed question location in original itemorder
+	// doesn't take into account only showing for 1st of group with n>1, but oh well
 	$curqlocpieces = explode('-', $curqloc);
-	if (count($curqlocpieces) > 1) {
-		$qlocref = $curqlocpieces[0] + $curqlocpieces[1] - 2;
-	} else {
-		$qlocref = $curqlocpieces[0] - 1;
-	}
+	$qlocref = $curqlocpieces[0] - 1;
+	
 	// look up and display interquestion text for this question, if set
 	foreach ($interquestion_text as $data) {
 		if ($qlocref >= $data['displayBefore'] && $qlocref <= $data['displayUntil']) {

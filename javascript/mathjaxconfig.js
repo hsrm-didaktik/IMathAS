@@ -1,6 +1,6 @@
 window.MathJax = {
     loader: {
-        load: ["input/asciimath", "output/chtml", "ui/menu"]
+        load: ["input/asciimath", "output/svg", "ui/menu"]
     },
     options: {
         ignoreHtmlClass: "skipmathrender",
@@ -10,6 +10,11 @@ window.MathJax = {
                 function (math, doc) {MathJax.config.addDataAttr(math, doc)}
             ]
         }
+    },
+    output: {
+        linebreaks: {
+            inline: false
+        },
     },
     addDataAttr: function (math, doc) {
         math.typesetRoot.setAttribute("data-asciimath", math.math);
@@ -24,7 +29,25 @@ window.MathJax = {
         ["arcsec","arccsc","arccot"].forEach(function(v) {
             AM.newsymbol({input:v, tag:"mi", output:v, ttype:AM.TOKEN.UNARY, func:true});
         });
+        if (mathjaxdisp > 8) { // MJ4
+            const {SpeechExplorer} = MathJax._.a11y.explorer.KeyExplorer;
+            Object.assign(SpeechExplorer.prototype, {
+                MouseDown(event) {
+                    this.clicked = true;
+                    if (this.document.infoIcon.contains(event.target)) this.stopEvent(event);
+                },
+                DblClick() {},
+                Click(event) {
+                    this.clicked = null;
+                    if (this.document.infoIcon.contains(event.target)) {
+                        this.stopEvent(event);
+                        this.help();
+                    }
+                }
+            });
+        }
         MathJax.startup.defaultReady();
+        MathJax.startup.promise.then(sendLTIresizemsg);
         }
     }
 };
@@ -32,6 +55,11 @@ window.MathJax = {
 if (mathjaxdisp == 8) {
     window.MathJax.loader.load.push("a11y/semantic-enrich");
     window.MathJax.options['sre'] = {speech:"shallow"};
+} else if (mathjaxdisp > 8) { // MJ4
+    window.MathJax.loader.load.push("a11y/explorer");
+}
+if (uselocaljs) {
+    window.MathJax.output.fontPath = staticroot+'/javascript/mathjax4/mathjax-newcm-font';
 }
 
 var noMathRender = false; var usingASCIIMath = true; var AMnoMathML = true; 

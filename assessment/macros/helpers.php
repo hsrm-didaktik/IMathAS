@@ -822,6 +822,7 @@ function stuansready($stu, $qn, $parts = null, $anstypes = null, $answerformat =
             $anstypes[$parts[0]] = $anstypes[0];
         }
     }
+
     foreach ($parts as $part) {
         $ors = array_map('trim', explode(' or ', $part));
         $partok = false;
@@ -845,22 +846,44 @@ function stuansready($stu, $qn, $parts = null, $anstypes = null, $answerformat =
                     if (!is_numeric($stu[$qn][$v])) {
                         continue;
                     }
-                } else if ($thisaf !== '') {
-                    if ($anstypes[$v] == 'calculated' && !checkanswerformat($stu[$qn][$v], $thisaf)) {
+                } else if ($anstypes[$v] == 'calculated' && $thisaf !== '') {
+                    if (!checkanswerformat($stu[$qn][$v], $thisaf)) {
                         continue;
+                    }
+                } else if ($anstypes[$v] == 'ntuple' || $anstypes[$v] == 'calcntuple') {
+                    $ntuples = parseNtuple($stu[$qn][$v], false, false);
+                    if (!is_array($ntuples) || !isset($ntuples[0])) {
+                        continue;
+                    }
+                    $checknumeric = (strpos($thisaf, 'checknumeric') !== false);
+                    foreach ($ntuples[0]['vals'] as $pv) {
+                        if ($pv === '') {
+                            continue 2;
+                        } else if ($checknumeric) {
+                            if (!is_numeric($pv)) {
+                                continue 2;
+                            }
+                        } else if ($thisaf !== '') {
+                            if (!checkanswerformat($pv, $thisaf)) {
+                                continue 2;
+                            }
+                        }
                     }
                 }
             }
             //echo $stu[$qn][$v];
-            if (
-                $anstypes !== null && ($anstypes[$v] === 'matrix' || $anstypes[$v] === 'calcmatrix') &&
-                isset($stu[$qn][$v]) && ($stu[$qn][$v] === '' || strpos($stu[$qn][$v], '||') !== false ||
-                    $stu[$qn][$v][0] === '|' || $stu[$qn][$v][strlen($stu[$qn][$v]) - 1] === '|' ||
-                    strpos($stu[$qn][$v], 'NaN') !== false ||
-                    ($anstypes[$v] === 'matrix' && strpos($stu[$qn][$v], '|') !== false && preg_match('/[^\d\.\-\+E\s\|]/', $stu[$qn][$v])))
-            ) {
-                // empty looking matrix entry
-                continue;
+            if ($anstypes !== null && ($anstypes[$v] === 'matrix' || $anstypes[$v] === 'calcmatrix')) {
+                if ($stu[$qn][$v] === '') { continue; }
+                $matparts = explode('|', $stu[$qn][$v]);
+                if (in_array('', $matparts)) { continue; }
+                if (in_array('NaN', $matparts)) { continue; }
+                if ($anstypes[$v] === 'matrix') {
+                    foreach ($matparts as $mpart) {
+                        if (!is_numeric($mpart)) {
+                            continue 2;
+                        }
+                    }
+                }
             }
             if ($anstypes !== null && $anstypes[$v] === 'choices' && !$blankok && $stu[$qn][$v] === 'NA') {
                 continue;
@@ -1027,6 +1050,39 @@ function checkreqtimes($tocheck,$rtimes) {
 		}
 	}
 	return 1;
+}
+
+// only check for things like nodecimal and notrig, that can be checked
+// for non-simple-number expressions
+function simplecheckanswerformat($tocheck, $ansformats) {
+    $tocheck = trim($tocheck);
+	$tocheck = str_replace(',','',$tocheck);
+	if (!is_array($ansformats)) {$ansformats = explode(',',$ansformats);}
+	if (strtoupper($tocheck)=='DNE' || $tocheck=='oo' || $tocheck=='+oo' || $tocheck=='-oo') {
+		return true;
+	}
+    if (in_array("notrig",$ansformats)) {
+		if (preg_match('/(sin|cos|tan|cot|csc|sec)/i',$tocheck)) {
+			return false;
+		}
+    }
+	if (in_array("nolongdec",$ansformats)) {
+		if (preg_match('/\.\d{6}/',$tocheck)) {
+			return false;
+		}
+	}
+    if (in_array("nodecimal",$ansformats)) {
+		if (strpos($tocheck,'.')!==false) {
+			return false;
+		}
+		if (strpos($tocheck,'E-')!==false) {
+			return false;
+		}
+		if (preg_match('/10\^\(?\-/',$tocheck)) {
+			return false;
+		}
+	}
+	return true;
 }
 
 //checks the format of a value

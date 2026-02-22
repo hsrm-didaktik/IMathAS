@@ -983,6 +983,7 @@ class AssessRecord
       if (Sanitize::isFilenameBlacklisted($filename)) {
         return [false, 'file_invalidtype'];
       }
+      $filename = Sanitize::sanitizeFilenameAndCheckBlacklist($filename);
       $s3object = "adata/$s3asid/$filename";
       require_once __DIR__."/../includes/filehandler.php";
       if (storeuploadedfile("qn$qref",$s3object)) {
@@ -1657,6 +1658,10 @@ class AssessRecord
         ($ansInGb == 'after_lp'
           && !$this->is_practice
           && time() > $this->assess_info->getSetting('latepass_enddate')
+        ) ||
+        ($ansInGb == 'manual'
+          && !$this->is_practice
+          && $include_scores
         ) ||
         $this->teacherInGb;
       $out['info'] = $generate_html;

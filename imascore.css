@@ -1140,8 +1140,8 @@ span.boxed {
 	padding: 2px 5px;
 }
 a.attach {
-    background: url(tinymce8/plugins/attach/ed_attach.gif) center left no-repeat;
-    padding-left: 20px;
+    background: url(tinymce8/plugins/attach/ed_attach.svg) center left no-repeat;
+    padding-left: 18px;
 }
 a[target=_blank]::after {
     content: "Opens Externally";
@@ -1150,7 +1150,7 @@ a[target=_blank]::after {
     height:1em;
     overflow: hidden;
 	display: inline-block;
-	background: url(img/extlink.png) center right no-repeat;
+	background: url(img/extlink.svg) center right no-repeat;
 }
 body.mce-content-body {
     margin: 5px 10px;
@@ -1550,6 +1550,9 @@ a.dropdown-toggle.arrow-down:hover {
     border: none;
     width: 100%;
 }
+img[src*="cal.svg"] {
+	vertical-align: text-top;
+}
 :not([class="mjx-var"][size="s"]) > [class="mjx-c2032"] {
     vertical-align: 0.513em;
     margin-left: 0.025em;
@@ -1564,3 +1567,98 @@ fieldset.plain {
 fieldset.plain legend {
 	font-weight: normal;
 }
+
+details {
+	border: 1px solid #ccc;
+	padding: 1px 5px;
+}
+details[open] summary {
+	border-bottom: 1px solid #ccc;
+}
+/* override MathJax dark mode colors */
+@media (prefers-color-scheme: dark) {
+	:root {
+		--mjx-fg-black: #000 !important;
+		--mjx-fg-white: #fff !important;
+		--mjx-bg-black: #000 !important;
+		--mjx-bg-white: #fff !important;
+		--mjx-gb-blue: #00F !important;
+	}
+}
+
+@media (max-width: 665px) {
+	.tox-tbtn[data-mce-name="underline"],
+	.tox-tbtn[data-mce-name="unlink"],
+	.tox-tbtn[data-mce-name="code"] {
+		display: none !important;
+	}
+	.tox-toolbar__group {
+		padding: 0 0px !important;
+		border-right: 0px !important;
+	}
+}
+
+@media (max-width: 575px) {
+	.tox-tbtn[data-mce-name="subscript"],
+	.tox-tbtn[data-mce-name="superscript"],
+	.tox-tbtn[data-mce-name="snippet"],
+	.tox-tbtn[data-mce-name="attach"],
+	.tox-tbtn[data-mce-name="table"],
+	.tox-tbtn[data-mce-name="alignright"] {
+		display: none !important;
+	}
+}
+@media (max-width: 455px) {
+	.tox-toolbar:first-of-type .tox-tbtn[data-mce-name="bold"],
+	.tox-toolbar:first-of-type .tox-tbtn[data-mce-name="italic"],
+	.tox-tbtn[data-mce-name="alignleft"],
+	.tox-tbtn[data-mce-name="aligncenter"] {
+		display: none !important;
+	}
+}
+@media (max-width: 380px) {
+	.tox-tbtn[data-mce-name="backcolor"],
+	.tox-tbtn[data-mce-name="backcolor-chevron"],
+	.tox-tbtn[data-mce-name="image"] {
+		display: none !important;
+	}
+}
+@media (max-width: 340px) {
+	.tox-tbtn[data-mce-name="forecolor"],
+	.tox-tbtn[data-mce-name="forecolor-chevron"],
+	.tox-toolbar:first-of-type .tox-tbtn[data-mce-name="bold"],
+	.tox-tbtn[data-mce-name="italic"],
+	.tox-tbtn[data-mce-name="link"] {
+		display: none !important;
+	}
+}
+@media (max-width: 835px) {
+	.tox-tinymce-inline {
+		left: 5px !important;
+		width: auto !important;
+	}
+	.tox-tinymce-inline .tox-editor-header {
+		max-width: 100% !important;
+	}
+}
+/* Handle below in init for alt positioning */
+/*
+@media (max-width: 465px) {
+	.tox-tbtn[data-mce-name="bold"],
+	.tox-tbtn[data-mce-name="italic"],
+	.tox-tbtn[data-mce-name="backcolor"],
+	.tox-tbtn[data-mce-name="backcolor-chevron"],
+	.tox-tbtn[data-mce-name="aligncenter"],
+	.tox-tbtn[data-mce-name="link"],
+	.tox-tbtn[data-mce-name="image"],
+	.tox-tbtn[data-mce-name="asciimathcharmap"],
+	.tox-tbtn[data-mce-name="alignleft"] {
+		display: none !important;
+	}
+}
+@media (max-width: 385px) {
+	.tox-tbtn[data-mce-name="forecolor"],
+	.tox-tbtn[data-mce-name="forecolor-chevron"] {
+		display: none !important;
+	}
+}*/
