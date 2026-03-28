@@ -9,3 +9,4 @@ HTMLPurifier
 /config.php
 /php_error.log
 assess2/vue-src/log.txt
+mathquill/mathquill_min.js
