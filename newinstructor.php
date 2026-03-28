@@ -2,31 +2,25 @@
 
 	require("init_without_validate.php");
 	require_once(__DIR__.'/includes/newusercommon.php');
-	$pagetitle = "Antrag für eine Dozentenkennung";
+	$pagetitle = "New instructor account request";
 	$placeinhead = "<link rel=\"stylesheet\" href=\"$imasroot/infopages.css\" type=\"text/css\">\n";
 	$placeinhead .= '<script type="text/javascript" src="'.$imasroot.'/javascript/jquery.validate.min.js"></script>';
-	/* Für deutsche Meldung von jquery */
 	if (isset($CFG['locale'])) {
-$placeinhead .= '<script type="text/javascript" src="'.$imasroot.'/javascript/jqvalidatei18n/messages_'.substr($CFG['locale'],0,2).'.min.js"></script>';
-}
- /* End Test */
+	  $placeinhead .= '<script type="text/javascript" src="'.$imasroot.'/javascript/jqvalidatei18n/messages_'.substr($CFG['locale'],0,2).'.min.js"></script>';
+	}
 	$nologo = true;
 	require("header.php");
-	$pagetitle = "Antrag für eine Dozentenkennung";
+	$pagetitle = "Instructor Account Request";
 	require("infoheader.php");
-	$extrarequired = array('school','phone','agree');
+	$required = array('SID','firstname','lastname','email','pw1','pw2','school','phone','agree');
 
 	if (isset($_POST['firstname'])) {
 		$error = '';
 		if (!isset($_POST['agree'])) {
-			$error .= "<p>Für die Erteilung einer Dozentenkennung müssen Sie den Nutzungsbedingungen und der Datenschutzerklärung zustimmen</p>";
+			$error .= "<p>You must agree to the Terms and Conditions to set up an account</p>";
 		}
 
-		$error .= checkNewUserValidation($extrarequired);
-
-		if (isset($_POST['email2']) && strlen($_POST['email2']) > 0) {
-			$error .= "<p>Data found!</p>";
-		}
+		$error .= checkNewUserValidation($required);
 
 		if ($error != '') {
 			echo $error;
@@ -63,16 +57,16 @@ $placeinhead .= '<script type="text/javascript" src="'.$imasroot.'/javascript/jq
 
 				$stm = $DBH->query("INSERT INTO imas_students (userid,courseid) VALUES ".implode(',',$valbits)); //known INTs - safe
 			}
-			$headers  = 'MIME-Version: 1.0' . "\r\n";
-			$headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
-			$headers .= "From: $installname <$sendfrom>\r\n";
-			$subject =   "Antrag f&uuml;r eine Dozentenkennung";
+			$subject = "New Instructor Account Request";
 			$message = "Name: {$_POST['firstname']} {$_POST['lastname']} <br/>\n";
 			$message .= "Email: {$_POST['email']} <br/>\n";
 			$message .= "School: {$_POST['school']} <br/>\n";
 			$message .= "Phone: {$_POST['phone']} <br/>\n";
 			$message .= "Username: {$_POST['SID']} <br/>\n";
-			mail($sendfrom,$subject,$message,$headers);
+			
+			require_once("./includes/email.php");
+			
+			send_email($sendfrom, $sendfrom, $subject, $message, array(), array(), 10); 
 
 			$now = time();
 			//DB $query = "INSERT INTO imas_log (time, log) VALUES ($now, 'New Instructor Request: $newuserid:: School: {$_POST['school']} <br/> Phone: {$_POST['phone']} <br/>')";
@@ -84,10 +78,10 @@ $placeinhead .= '<script type="text/javascript" src="'.$imasroot.'/javascript/jq
 			$stm = $DBH->prepare("INSERT INTO imas_instr_acct_reqs (userid,status,reqdate,reqdata) VALUES (?,0,?,?)");
 			$stm->execute(array($newuserid, $now, json_encode($reqdata)));
 
-			$message = "<p>Ihr Antrag f&uuml:r eine Dozentenkennung wurde abgeschickt.</p>  ";
-			$message .= "<p>Ihr Antrag wird gepr&uuml;ft; bitte haben Sie etwas Geduld.</p>";
-			$message1 = $message."<p>Mit freundlichen Gr&uuml;ßen</p><p>Ihr IMathAS-Administrator</p>";
-			mail($_POST['email'],$subject,$message1,$headers);
+			$message = "<p>Your new account request has been sent.</p>  ";
+			$message .= "<p>This request is processed by hand, so please be patient.</p>";
+			
+			send_email($_POST['email'], $sendfrom, $subject, $message, array(), array(), 10); 
 
 			echo $message;
 			require("footer.php");
@@ -96,29 +90,32 @@ $placeinhead .= '<script type="text/javascript" src="'.$imasroot.'/javascript/jq
 		}
 	}
 	if (isset($_POST['firstname'])) {$firstname=Sanitize::encodeStringForDisplay($_POST['firstname']);} else {$firstname='';}
-	if (isset($_POST['lastname'])) {$lasname=Sanitize::encodeStringForDisplay($_POST['lastname']);} else {$lastname='';}
+	if (isset($_POST['lastname'])) {$lastname=Sanitize::encodeStringForDisplay($_POST['lastname']);} else {$lastname='';}
 	if (isset($_POST['email'])) {$email=Sanitize::encodeStringForDisplay($_POST['email']);} else {$email='';}
 	if (isset($_POST['phone'])) {$phone=Sanitize::encodeStringForDisplay($_POST['phone']);} else {$phone='';}
 	if (isset($_POST['school'])) {$school=Sanitize::encodeStringForDisplay($_POST['school']);} else {$school='';}
 	if (isset($_POST['SID'])) {$username=Sanitize::encodeStringForDisplay($_POST['SID']);} else {$username='';}
 
-	echo "<h3>Anforderung einer Dozentenkennung</h3>\n";
+	echo "<h3>New Instructor Account Request</h3>\n";
 	echo "<form method=post id=newinstrform class=limitaftervalidate action=\"newinstructor.php\">\n";
-	echo "<span class=form>Vorname</span><span class=formright><input type=text id=firstname name=firstname value=\"$firstname\" size=40></span><br class=form />\n";
-	echo "<span class=form>Nachname</span><span class=formright><input type=text id=lastname name=lastname value=\"$lastname\" size=40></span><br class=form />\n";
-	echo "<span class=form>Email-Addresse</span><span class=formright><input type=text id=email name=email value=\"$email\" size=40></span><br class=form />\n";
-	/* Empty field for spam prevention */
-	echo "<span id='mail2' class=form>2. Email-Addresse</span><span class=formright><input type=text id=email2 name=email2 value=\"\" size=40></span><br class=form />\n";
-	echo "<span class=form>Telefonnr.</span><span class=formright><input type=text id=phone name=phone value=\"$phone\" size=40></span><br class=form />\n";
-	echo "<span class=form>Hochschule</span><span class=formright><input type=text id=school name=school value=\"$school\" size=40></span><br class=form />\n";
-	echo "<span class=form>Gewünschter Benutzername</span><span class=formright><input type=text id=SID name=SID value=\"$username\" size=40></span><br class=form />\n";
-	echo "<span class=form>Gewünschtes Passwort</span><span class=formright><input type=password id=pw1 name=pw1 size=40></span><br class=form />\n";
-	echo "<span class=form>Passwort wiederholen</span><span class=formright><input type=password id=pw2 name=pw2 size=40></span><br class=form />\n";
-	echo "<span class=form>Die <a href='https://netmath.vcrp.de/downloads/Systeme/NutzungsbedingungenIMathAS.html' target='_blank'>Nutzungsbedingungen</a> und die <a href='https://netmath.vcrp.de/downloads/Systeme/privacyIMathAS.html' target='_blank'>Datenschutzerklärung</a> habe ich gelesen und stimme ihnen zu.</span><span class=formright><input type=checkbox id=agree name=agree></span><br class=form />\n";
-	echo "<div class=submit><input type=submit value=\"Kennung beantragen\"></div>\n";
+	echo "<span class=form>First Name</span><span class=formright><input type=text id=firstname name=firstname value=\"$firstname\" size=40></span><br class=form />\n";
+	echo "<span class=form>Last Name</span><span class=formright><input type=text id=lastname name=lastname value=\"$lastname\" size=40></span><br class=form />\n";
+	echo "<span class=form>Email Address</span><span class=formright><input type=text id=email name=email value=\"$email\" size=40></span><br class=form />\n";
+	echo "<span class=form>Phone Number</span><span class=formright><input type=text id=phone name=phone value=\"$phone\" size=40></span><br class=form />\n";
+	echo "<span class=form>School/College</span><span class=formright><input type=text id=school name=school value=\"$school\" size=40></span><br class=form />\n";
+	echo "<span class=form>Requested Username</span><span class=formright><input type=text id=SID name=SID value=\"$username\" size=40></span><br class=form />\n";
+	echo "<span class=form>Requested Password</span><span class=formright><input type=password id=pw1 name=pw1 size=40></span><br class=form />\n";
+	echo "<span class=form>Retype Password</span><span class=formright><input type=password id=pw2 name=pw2 size=40></span><br class=form />\n";
+	echo "<span class=form>I have read and agree to the Terms of Use (below)</span><span class=formright><input type=checkbox id=agree name=agree></span><br class=form />\n";
+	echo "<div class=submit><input type=submit value=\"Request Account\"></div>\n";
 	echo "</form>\n";
-	/* Hiding spam prevention field */
-	echo "<script>$('#mail2,#email2').hide();</script>";
-	showNewUserValidation('newinstrform',$extrarequired);
+	echo "<h4>Terms of Use</h4>\n";
+	echo "<p><em>This software is made available with <strong>no warranty</strong> and <strong>no guarantees</strong>.  The ";
+	echo "server or software might crash or mysteriously lose all your data.  Your account or this service may be terminated without warning.  ";
+	echo "No official support is provided. </em></p>\n";
+	echo "<p><em>Copyrighted materials should not be posted or used in questions without the permission of the copyright owner.  You shall be solely ";
+	echo "responsible for your own user created content and the consequences of posting or publishing them.  This site expressly disclaims any and all liability in ";
+	echo "connection with user created content.</em></p>";
+	showNewUserValidation('newinstrform',$required);
 	require("footer.php");
 ?>

@@ -1,22 +1,14 @@
 <?php
-  //IMathAS:  Main config file.  Edit this file!
-  //(c) 2006 David Lippman
 //IMathAS Math Config File.  Adjust settings here!
 
-// GROUP: DEVELOPMENT -Comment out for production
-// $CFG['assess2-use-vue-dev'] = true;
-// $CFG['assess2-use-vue-dev-address'] = 'http://localhost:8080';
+//database access settings
+$dbserver = "127.0.0.1";
+$dbname = "IMathAS";
+$dbusername = "IMathAS";
+$dbpassword = "mzpS8u7Cbvrdj26L";
 
-//GROUP: DATABASE ACCESS SETTINGS
-$dbserver = "localhost";  		//database server
-$dbname = "IMathAS";			//database name
-$dbusername = "IMathAS";		//database user
-$dbpassword = "mzpS8u7Cbvrdj26L";	//database user's password
-
-//GROUP ERROR REPORTING
 //error reporting level.  Set to 0 for production servers.
-// ID: In Produktivserver nicht gesetzt, hier in init.php auf 0 gesetzt
-// error_reporting(E_ALL & ~E_NOTICE);
+error_reporting(E_ALL & ~E_NOTICE);
 
 //GROUP: PATH SETTINGS
 //web path to install
@@ -107,176 +99,67 @@ $CFG['nocommathousandsseparator'] = true;
 //The name for this installation.  For personalization
 $installname = "IMathAS";
 
-//the email address to have as the "from" listing on confirmation emails
-//also the address new instructor requests (if you use that page) will be
-//sent to
-$sendfrom = "dahn@vcrp.de";
-
-// GROUP: LTI
-
-//enables use of IMathAS as a BasicLTI producer.
-$enablebasiclti = true;
-$CFG['LTI']['showURLinSettings'] = true;
-
-// GROUP: GENERAL LOOK
-//A small logo to display on the upper right of course pages
-//set = '<img src="/path/to/img.gif">' or = 'Some Text'
-//Image should be about 120 x 80px
-$smallheaderlogo = "";
-
-// Themes-Liste !!! ID !!!
-$CFG['CPS']['themelist'] = "default_nm.css,default.css,angelish.css,angelishmore.css,facebookish.css,highcontrast.css,highcontrast_dark.css,modern.css,netmath.css,oea.css,wamap.css";
-$CFG['CPS']['themenames'] = "Standard (neu),Standard (alt),Engelhaft,Engelhafter,Facebook-Art,Hoher Kontrast,Hoher Kontrast (dunkel),Modern,NetMath,OEA,Wamap";
-
-// GROUP: LOGIN AND HOME PAGE
-//To change loginpage based on domain/url/etc, define $loginpage here
-
-$defaultcoursetheme = "wamap.css";
-// Default theme for new courses !!! ID !!!
-$CFG['CPS']['theme'] = array("default_nm.css",1);
-
-//short prompt, for login page
+//login prompts
 $loginprompt = "Username";
+$longloginprompt = "Enter a username.  Use only numbers, letters, or the _ character.";
+$loginformat = '/^[\w+\-]+$/';
 
-$studentTOS="info/studentTOS.php";
-// Kopf der Home-Seite
-$CFG['GEN']['headerinclude'] = "headercontentvcrp.php";
-$CFG['GEN']['hidedefindexmenu'] = true;
-
-// GROUP: USER REGISTRATION
-//For new user, long description of username requirement
-$longloginprompt = "Geben Sie einen Benutzernamen ein. Verwenden Sie nur Buchstaben, Zahlen und das Zeichen _.";
-
-//Require the username to meet a specific format.  Choose one of the following,
-//or write your own.
-$loginformat = '/^(\w+|lti-\d+)$/';  //A-Z, a-z, 0-9, _ are the only allowed characters
-//$loginformat = '/^\d{9}$/';  //Requires a 9 digit number
-//$loginformat = '/^\d{3}-\d{2}-\d{4}$/';  //SSN type format: 555-55-5555
-
-//uses more secure password hashes!
-$CFG['GEN']['newpasswords'] = 'only';
-
-$CFG['acct']['SIDformaterror'] = "Ungültiges Format für einen Benutzernamen.";
-$CFG['acct']['passwordFormaterror'] = "Ungültiges Passwortformat";
-$CFG['acct']['emailFormaterror'] = "Ungültige eMail-Adresse";
-
-//If set to true, the system will send an email to newusers when they try
-//to enroll.  They have to respond to the email before they are allowed to
-//log in.
+//require email confirmation of new users?
 $emailconfirmation = false;
 
-// Automatisches Einschreiben in Dozenten-Cafe und Spielwiese !!! ID !!! - Einkommentieren für Produktivversion
-// $CFG['GEN']['enrollonnewinstructor'] = array(15,87);
-
-// Activate logging of errors in question
-$CFG['logquestionerrors']=true;
-$CFG['hooks']['util/questionerrors'] = "../vcrp/correctquestionerrors.php";
-
-// GROUP: TESTS
+//email to send notices from
+$sendfrom = "imathas@yoursite.edu";
 
 //color shift icons as deadline approaches?
 $colorshift = true;
 
+//path settings
+//web path to install
+$imasroot = "";
 
-// -----------------------
+//base site url - use when generating full URLs to site pages.
+$httpmode = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on')
+    || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')
+	? 'https://' : 'http://';
+$GLOBALS['basesiteurl'] = $httpmode . Sanitize::domainNameWithPort($_SERVER['HTTP_HOST']) . $imasroot;
 
-  //For text editor file/image uploads and assessment file uploads, we can use
-  //Amazon S3 service to hold these files.  If using this option, provide your
-  //Amazon S3 key and secret below.  You'll also need to create a bucket and
-  //specify it below.
-  //If this is not provided, local storage will be used.
-  //$AWSkey = "";
-  //$AWSsecret = "";
-  //$AWSbucket = "";
+//mimetex path
+$mathimgurl = "http://www.imathas.com/cgi-bin/mimetex.cgi";
 
+//enable lti?
+$enablebasiclti = true;
 
-  //Special Config tags for customizing
-  //$loginpage = 'custom-login-page.php';
-  /*
-  $studentTOS = "info/studentTOS.php";
-  $CFG['CPS']['theme'] = array("modern.css",1);  //default theme - second value 0=fixed, 1=can change
-  $CFG['CPS']['themelist'] = "default.css,modern.css";  //list of allowed themes
-  $CFG['CPS']['themenames'] = "Default, Modern";  //to give names to the theme files
+//allow nongroup libs?
+$allownongrouplibs = false;
 
-  $CFG['GEN']['allowinstraddstus'] = false; //disallow instructors to add students from the roster page
-  $CFG['GEN']['allowInstrImportStuByName'] = false;  //disallow instructors from using first_last username on import
-  $CFG['GEN']['allowinstraddtutors'] = false;  //disallow instructors to enroll tutors
-  $CFG['GEN']['addteachersrights'] = 75;  //min rights to add/remove teachers to a course
-  $CFG['GEN']['homelayout'] = '|0,1,2|10,11|';  //default home layout
-  $CFG['GEN']['fixedhomelayout'] = array(3);  //prevent changing of home layout sections
-  $CFG['GEN']['hometitle'] = "Home";	//title for course list page
-  $CFG['GEN']['headerinclude'] = "headercontent.php";  //page to include in all headers
+//allow course import of questions?
+$allowcourseimport = false;
 
-  //$CFG['GEN']['noFileBrowser'] = true;  //disallow file uploads through the tinyMCE editor.
+//allow macro install?
+$allowmacroinstall = true;
 
-  //if you want to allow people to create guest accounts by just logging in with username "guest",
-  //provide an arrary of course ids to automatically enroll them in
-//  $CFG['GEN']['guesttempaccts'] = array(264);
+//use more secure password hashes? requires PHP 5.3.7+
+$CFG['GEN']['newpasswords'] = 'only';
+$CFG['GEN']['headerinclude'] = "headerincludehsrm.php";
+$CFG['locale'] = 'de';
+//session path 
+//$sessionpath = "";
 
-   //userid for instructor of student self-enroll courses (that show up in enroll list)
-   $CFG['GEN']['selfenrolluser'] = 92434;
+//Amazon S3 access for file upload 
 
-  //can set almost any assessment setting this way
-	 $CFG['AMS']['defpoints'] = 1;  //default points
-	 $CFG['AMS']['showtips'] = 2;   //entry answer format
+//$AWSkey = "";
 
-	 $CFG['AMS']['guesslib'] = true;  //guess library based on where most questions are from
+//$AWSsecret = "";
 
-	 //and most of the gradebook settings
-	 $CFG['GBS']['defgbmode'] = 1011;    //default gradebook mode
-	 $CFG['GBS']['orderby'] = 1;         //default gradebook ordering
-	 $CFG['GBS']['lockheader'] = true;   //lock headers?
-
-	 //and course settings.  All but themelist are in the form
-	 //array(defvalue, allowchange)
-	 $CFG['CPS']['hideicons'] = array(0,0);
-	 $CFG['CPS']['cploc'] = array(7,0);
-	 $CFG['CPS']['picicons'] =  array(1,0);
-	 $CFG['CPS']['unenroll'] = array(0,0);
-	 $CFG['CPS']['chatset'] = array(0,0);
-	 $CFG['CPS']['showlatepass'] = array(1,0);
-	 $CFG['CPS']['topbar'] = array(array("0,1,2,3,9","0,2,3,4,6,7,9",1),0);
-
-	 $CFG['CPS']['additemtype'] = array('links',0);   //instead of pull-down
-	 $CFG['CPS']['leftnavtools'] = false;      //hide roster, etc from left nav
-	 $CFG['CPS']['templateoncreate'] = true;  //ask to template course on creation?
-
-	 $CFG['CPS']['itemicons'] = array(
-		 'folder'=>'folder_icon.png',
-		 'assess'=>'assess_icon.png',
-		 'forum'=>'forum_icon.png',
-		 'inline'=>'text_icon.png',
-		 'web'=>'link_icon.png',
-		 'doc'=>'link_icon.png',
-		 'html'=>'link_icon.png');   //custom icons
-
-	 $CFG['CPS']['miniicons'] = array(
-		 'inline'=>'text_mini.png',
-		 'linked'=>'link_mini.png',
-		 'assess'=>'assess_mini.png',
-		 'forum'=>'forum_mini.png',
-		 'folder'=>'folder_mini.png',
-		 'calendar'=>'cal_mini.png');   //custom mini icons, for links display
-
-	//custom icons for test display, in place of half-full box, etc
-	 $CFG['TE']['navicons'] = array(
-	 	 'untried'=>'te_blue_arrow.png',
-	 	 'canretrywrong'=>'te_red_redo.png',
-	 	 'canretrypartial'=>'te_yellow_redo.png',
-	 	 'noretry'=>'te_blank.gif',
-	 	 'correct'=>'te_green_check.png',
-	 	 'wrong'=>'te_red_ex.png',
-	 	 'partial'=>'te_yellow_check.png');
-	 */
+//$AWSbucket = "";
 
 
+//Uncomment to change the default course theme, also used on the home & admin page:
+$defaultcoursetheme = "hsrm.css";
 
+//To change loginpage based on domain/url/etc, define $loginpage here
 
-
-
-
-
-  //no need to change anything from here on
+//no need to change anything from here on
   /* Connecting, selecting database */
   // MySQL with PDO_MYSQL
   try {
@@ -288,8 +171,8 @@ $colorshift = true;
   }
   $DBH->query("set session sql_mode=''");
 
-  unset($dbserver);
-  unset($dbusername);
-  unset($dbpassword);
-?>
+	  unset($dbserver);
+	  unset($dbusername);
+	  unset($dbpassword);
 
+?>
