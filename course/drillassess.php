@@ -98,7 +98,8 @@ if (isset($_GET['score']) && !empty($curitemid)) {
     if ($courseUIver > 1) {
         $state = array(
             'seeds' => array(0 => $seed),
-            'qsid' => array(0 => $curitemid)
+            'qsid' => array(0 => $curitemid),
+            'assessmentId' => $daid
         );
 		if (isset($_POST['useda11yalt'])) {
 			$state['useda11yalt'] = [0 => true];
@@ -319,7 +320,7 @@ foreach ($itemdescr as $qn=>$descr) {
 				echo '<li>' . _('Personal best') . ': ' . dispscore(min($scorerec[$qn])).'</li>';
 			}
 		}
-		if (($showtostu&4)==4 && $classbests[$qn]!=-1 ) {
+		if (($showtostu&4)==4 && isset($classbests[$qn]) && $classbests[$qn]!=-1 ) {
 			//show best score
 			echo '<li>'. _('Class best') . ': ' . Sanitize::encodeStringForDisplay(dispscore($classbests[$qn])) . '</li>';
 		}
@@ -404,7 +405,8 @@ if ($curitem == -1) {
             if ($courseUIver > 1) {
                 $state = array(
                     'seeds' => array(0 => $seed),
-                    'qsid' => array(0 => $curitemid)
+                    'qsid' => array(0 => $curitemid),
+                    'assessmentId' => $daid
                 );
                 $a2->setState($state);
                 $a2->loadQuestionData();
@@ -432,7 +434,8 @@ if ($curitem == -1) {
 			if ($courseUIver > 1) {
                 $state = array(
                     'seeds' => array(0 => $seed),
-                    'qsid' => array(0 => $curitemid)
+                    'qsid' => array(0 => $curitemid),
+                    'assessmentId' => $daid
                 );
                 $a2->setState($state);
                 $a2->loadQuestionData();
