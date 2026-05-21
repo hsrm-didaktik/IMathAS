@@ -2,7 +2,7 @@
 //Chat extension
 
 global $allowedmacros;
-array_push($allowedmacros,"asciimath2tex", "copyButton", "essayText");
+array_push($allowedmacros,"asciimath2tex", "copyButton", "essayText", "url2openwebui");
 
 require(__DIR__."/../../filter/math/ASCIIMath2TeX.php");
 
@@ -84,6 +84,63 @@ function essayText($html) {
   $divTag = $dom->getElementById('myDiv');
   $extractedText = $divTag->textContent;
   return ascii2texText($extractedText);
+}
+
+/* The function url2openwebui is used to convert a URL from chatsite format to a format that can be opened in the OpenWebUI. It takes a URL as input and returns a modified URL that can be used to open the content in the OpenWebUI.
+If there is a parameter 'prompt=' it is replaced with 'q=' with the same value and the new url is returned.
+Otherwise a prompt template is selected depending on the base url and the parameters. The prompt template is then filled with the parameters and the new url is returned.
+The parameter 'models=' is retained.
+*/
+function url2openwebui($url, $openwebuiBaseUrl="https://chatter.dahn-research.de") {
+  $parsedUrl = parse_url($url);
+  $baseUrl = $parsedUrl['scheme'] . '://' . $parsedUrl['host'] . (isset($parsedUrl['path']) ? $parsedUrl['path'] : '');
+  parse_str(isset($parsedUrl['query']) ? $parsedUrl['query'] : '', $params);
+  
+  $path=$parsedUrl['path'];
+
+  $models =[
+    '/cgeneral/assistants/Aufgaben-Helfer' => 'aufgaben-helfer',
+    '/cgeneral/tasks/Freitext%20kommentieren' => 'professor',
+    '/cgeneral/tasks/Freitextantwort%20verbessern' => 'sokrates',
+    '/cgeneral/tasks/Ein%20Konzept%20anwenden' => 'mathe-tutor',
+    '/cgeneral/assistants/Aufgaben-L%C3%B6ser' => 'aufgaben-lser',
+    '/cgeneral/tasks/Anwendungsaufgabe%20erstellen' => 'mathe-tutor',
+    '/cgeneral/assistants/Kurs-Helfer' => 'vorkursbegleiter',
+    '/cgeneral/assistants/Mathe-Reasoner' => 'mathe-reasoner',
+  ];
+
+  $model="openrouter/auto";
+  if (isset($models[$path])) {
+    $model = $models[$path];
+  }
+
+  if (isset($params['prompt'])) {
+    $params['q'] = $params['prompt'];
+    unset($params['prompt']);
+    $params['models'] = rawurlencode($model);
+    return $openwebuiBaseUrl ."?". http_build_query($params);
+  }
+
+  // Define prompt templates for specific $parsedUrl['path'] values
+  $promptTemplates = [
+    '/cgeneral/tasks/Freitext%20kommentieren' => "Ich habe die Frage \n\n {{Frage}} \n\n so beantwortet: \n\n {{Antwort}} \n\n Bewerte meine Antwort und gib mir Hinweise, um die Antwort zu verbessern.",
+    '/cgeneral/tasks/Freitextantwort%20verbessern' => "Ich habe die Frage \n\n {{Frage}} \n\n so beantwortet: \n\n {{Antwort}} \n\n Hilf mir, die Antwort zu verbessern.",
+    '/cgeneral/tasks/Ein%20Konzept%20anwenden' => "Gib mir {{Anzahl}} Beispiele für Anwendungen von {{Konzept}} in {{Gebiet}}. Gib zu jedem Beispiel einen Link zu einer Webseite mit weiteren Informationen.",
+    '/cgeneral/tasks/Anwendungsaufgabe%20erstellen' => "Gib mir eine Anwendungsaufgabe aus dem Fachgebiet {{Fachgebiet}}, die ähnlich zu dieser Aufgabe ist:\n\n {{Aufgabe}}\n\nAchte darauf, dass die Parameter der Aufgabe und die Lösung fachlich plausibel sind.",
+    // Add more templates as needed
+  ];
+  
+  $template="Wie kannst Du mir helfen?";
+  if (isset($promptTemplates[$path])) {
+    $template = $promptTemplates[$path];
+
+    $decodedParams = array_map('rawurldecode', $params);
+    foreach ($decodedParams as $key => $value) {
+      $template = str_replace('{{' . $key . '}}', $value, $template);
+    } 
+  }
+  return "$openwebuiBaseUrl?models=" . rawurlencode($model) . "&q=" . rawurlencode($template);  
+
 }
 
 ?>

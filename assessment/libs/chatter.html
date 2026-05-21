@@ -9,6 +9,7 @@
     <ul>
         <li><a href="#asciimath2tex">asciimath2tex</a></li>
         <li><a href="#essayText">essayText</a></li>
+        <li><a href="#url2openwebui">url2openwebui</a></li>
         <li><a href="#copyButton">copyButton</a></li>
     </ul>
 
@@ -19,20 +20,24 @@
     <p>For transmission as URL parameters, strings should be URL-encoded. To URL-encode a string use the function <code>rawurlencode</code>.</p>
 
 
-    <h2><a style="color:blue" name="asciimath2tex">asciimath2tex($arg)</a></h2>
+    <h2><a style="color:blue" name="asciimath2tex">asciimath2tex(arg)</a></h2>
     <p>
-        This function converts a formula in ASCIIMath to LaTeX. `$arg` should be an ASCIIMath formula without enclosing backticks. The result will be enclosed between $-signs.
+        This function converts a formula in ASCIIMath to LaTeX. <code>arg</code> should be an ASCIIMath formula without enclosing backticks. The result will be enclosed between $-signs.
     </p>
 
-    <h2><a style="color:blue" name="essayText">essayText($arg)</a></h2>
+    <h2><a style="color:blue" name="essayText">essayText(arg)</a></h2>
     <p>
-        The function takes an HTML string as argument as it is returned as a student answer from an essay question. It removes all HTML tags and replaces ASCIIMath formulas with LaTeX formulas.
+        The function takes an HTML string <code>arg</code> as argument as it is returned as a student answer from an essay question. It removes all HTML tags and replaces ASCIIMath formulas with LaTeX formulas.
     </p>
 
-    <h2><a style="color:blue" name="copyButton">copyButton($arg <i>[, $label, $successMessage, $failMessage, $formatPrompt]</i>)</a></h2>
+    <h2><a style="color:blue" name="url2openwebui">url2openwebui(arg [, openwebuiBaseUrl])</a></h2>
+    <p>This function takes a URL <code>arg</code> for a chat in https://chatsite.dahn-research.de with urlencoded parameters as argument and returns a URL that opens the chat in the Open WebUI instance referenced in <code>openwebuiBaseUrl</code> which defaults to <code>https://chatter.dahn-research.de</code>. If necessary, the function extracts parameters from the URL and constructs a new prompt that uses these parameters.</p> 
+    <p>Use as <code>$url=url2openwebui($url)</code>.</p>
+
+    <h2><a style="color:blue" name="copyButton">copyButton(arg [, label, successMessage, failMessage, formatPrompt])</a></h2>
     <p>
-        This function returns a button with <em>label</em> that copies <em>arg</em> to the clipboard and reports in an
-        alert <em>successMessage</em> respectively <em>failMessage</em> in case of failure. <em>formatPrompt</em> is prepended to the string to be copied.
+        This function returns a button with <code>label</code> that copies <code>arg</code> to the clipboard and reports in an
+        alert <code>successMessage</code> respectively <code>failMessage</code> in case of failure. <code>formatPrompt</code> is prepended to the string to be copied.
     </p>
     <p>
         <b>Notes:</b> 
