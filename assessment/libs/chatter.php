@@ -2,7 +2,7 @@
 //Chat extension
 
 global $allowedmacros;
-array_push($allowedmacros,"asciimath2tex", "copyButton", "essayText", "url2openwebui");
+array_push($allowedmacros,"asciimath2tex", "copyButton", "essayText", "url2openwebui", "chaturl");
 
 require(__DIR__."/../../filter/math/ASCIIMath2TeX.php");
 
@@ -142,5 +142,17 @@ function url2openwebui($url, $openwebuiBaseUrl="https://chatter.dahn-research.de
   return "$openwebuiBaseUrl?models=" . rawurlencode($model) . "&q=" . rawurlencode($template);  
 
 }
+
+/* The function chaturl builds a url for a chat on Opem WebUI.
+It takes the following parameters:
+- $model: the model to use for the chat
+- $prompt: the prompt to use for the chat. The prompt must be formatted in markdown with formulas in LaTeX. It must not be URL-encoded, as it will be encoded by the function.
+- $openwebuiBaseUrl: the base url of the OpenWebUI instance to use
+The function returns a url that can be used to open a chat on the OpenWebUI with the specified model and prompt.
+*/
+function chaturl($model, $prompt, $openwebuiBaseUrl="https://chatter.dahn-research.de") {
+  return "$openwebuiBaseUrl?models=" . rawurlencode($model) . "&q=" . rawurlencode($prompt);  
+}
+
 
 ?>

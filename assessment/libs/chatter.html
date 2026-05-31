@@ -9,6 +9,7 @@
     <ul>
         <li><a href="#asciimath2tex">asciimath2tex</a></li>
         <li><a href="#essayText">essayText</a></li>
+        <li><a href="#chaturl">chaturl</a></li>
         <li><a href="#url2openwebui">url2openwebui</a></li>
         <li><a href="#copyButton">copyButton</a></li>
     </ul>
@@ -29,6 +30,15 @@
     <p>
         The function takes an HTML string <code>arg</code> as argument as it is returned as a student answer from an essay question. It removes all HTML tags and replaces ASCIIMath formulas with LaTeX formulas.
     </p>
+
+    <h2><a style="color:blue" name="chaturl">chaturl(model, prompt [, openwebuiBaseUrl])</a></h2>
+    <p>This function builds a URL for a chat on Open WebUI. It takes the following parameters:
+    <ul>
+        <li><code>model</code>: the model to use for the chat</li>
+        <li><code>prompt</code>: the prompt to use for the chat. The prompt must be formatted in markdown with formulas in LaTeX. It must not be URL-encoded, as it will be encoded by the function.</li>
+        <li><code>openwebuiBaseUrl</code>: the base URL of the OpenWebUI instance to use. Defaults to <code>https://chatter.dahn-research.de</code>.</li>
+    </ul>
+    <p>Use as <code>$url=chaturl($model, $prompt)</code>.</p>
 
     <h2><a style="color:blue" name="url2openwebui">url2openwebui(arg [, openwebuiBaseUrl])</a></h2>
     <p>This function takes a URL <code>arg</code> for a chat in https://chatsite.dahn-research.de with urlencoded parameters as argument and returns a URL that opens the chat in the Open WebUI instance referenced in <code>openwebuiBaseUrl</code> which defaults to <code>https://chatter.dahn-research.de</code>. If necessary, the function extracts parameters from the URL and constructs a new prompt that uses these parameters.</p> 
